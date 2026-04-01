@@ -1,0 +1,20 @@
+# Информация о проекте
+PROJECT_NAME           = "3DViewer"
+PROJECT_NUMBER         = 2.0
+
+# Папки
+INPUT                  = include
+OUTPUT_DIRECTORY       = docs
+RECURSIVE              = YES
+
+# Язык и кодировка
+OUTPUT_LANGUAGE        = Russian
+DOXYFILE_ENCODING      = UTF-8
+
+# Настройки парсинга
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+GENERATE_TREEVIEW      = YES
+
+# Генерация dvi
+LATEX_CMD_NAME         = latex
