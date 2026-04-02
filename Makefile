@@ -8,6 +8,7 @@ install:
 	cmake --build $(BUILD_DIR) --target $(NAME_PROJECT)
 
 run : 
+	./$(BUILD_DIR)/$(NAME_PROJECT)
 
 # создание документации
 dvi :
