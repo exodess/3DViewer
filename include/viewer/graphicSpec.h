@@ -66,6 +66,21 @@
 #define UNIFORM_ASPECT_RATIO "u_aspectRatio"
 
 /**
+@brief Имя uniform переменной в фрагментарном шейдере для загрузки цвета источника света
+*/
+#define UNIFORM_LIGHT_COLOR "u_lightColor"
+
+/**
+@brief Имя uniform переменной в вершинном шейдере для загрузки координаты источника света в пространстве
+*/
+#define UNIFORM_LIGHT_POSITION "u_lightPosition"
+
+/**
+@brief Имя uniform переменной в вершинном шейдере для загрузки координаты камеры в пространстве
+*/
+#define UNIFORM_CAMERA_POSITION "u_cameraPosition"
+
+/**
 @brief Классы для управления логикой проекта реализованы внутри пространства имен s21
 */
 namespace s21 {
@@ -109,6 +124,10 @@ private:
 	int32_t uLoc_projectionMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы проекции
 	int32_t uLoc_aspectRatio_; ///< Идентификатор uniform'ы для загрузки соотношения сторон области вывода фигуры
 
+	int32_t uLoc_lightColor_; ///< Идентификатор uniform'ы для загрузки цвета источника света на сцене
+	int32_t uLoc_lightPosition_; ///< Идентификатор uniform'ы для загрузки положения источника света на сцене
+	int32_t uLoc_cameraPosition_; ///< Идентификатор uniform'ы для загрузки положения камеры на сцене
+
 	/**
 	@brief Считывания исходного кода шейдера для его последующей компиляции
 	@note Исходный код шейдеров расположены в папке shaders
@@ -125,7 +144,7 @@ private:
 	*/
 	uint32_t createShader(const char* sourceShaderCode, uint32_t shaderType);
 
-	/** 
+	/**
 	@brief Создание шейдерной программы, присоединение к ней скомпилированных ранее шейдеров
 	@note После присоединения шейдеров к шейдерной программе они удаляются
 	@param vertexShader Идентификатор скомпилированного вершинного шейдера
@@ -154,7 +173,7 @@ public:
 	ShaderProgram(std::string vertShaderPath, std::string geomShaderPath, std::string fragShaderPath);
 	~ShaderProgram(); ///< Удаление шейдерной программы
 	/**
-	@brief Указание коду OpenGL использовать нашу созданную шейдерную программу 
+	@brief Указание коду OpenGL использовать нашу созданную шейдерную программу
 	*/
 	void use() noexcept;
 
@@ -199,34 +218,55 @@ public:
 	@return Индекс формы, иначе -1, если такой формы не существует
 	*/
 	int32_t getModeEdgesUniformLocation() noexcept;
-		
+
 	/**
 	@brief Получает расположение uniform'ы для загрузки матрицы модели\n
 	Необходимо для метода Mesh::loadModelMatrix()
 	@return Индекс формы, иначе -1, если такой формы не существует
 	*/
-	int32_t	getModelMatrixUniformLocation() noexcept; 
+	int32_t	getModelMatrixUniformLocation() noexcept;
 
 	/**
 	@brief Получает расположение uniform'ы для загрузки матрицы камеры\n
 	Необходимо для метода Mesh::loadViewMatrix()
 	@return Индекс формы, иначе -1, если такой формы не существует
 	*/
-	int32_t	getViewMatrixUniformLocation() noexcept; 
+	int32_t	getViewMatrixUniformLocation() noexcept;
 
 	/**
 	@brief Получает расположение uniform'ы для загрузки матрицы проекции\n
 	Необходимо для метода Mesh::loadProjectionMatrix()
 	@return Индекс формы, иначе -1, если такой формы не существует
 	*/
-	int32_t	getProjectionMatrixUniformLocation() noexcept; 
-	
+	int32_t	getProjectionMatrixUniformLocation() noexcept;
+
 	/**
 	@brief Получает расположение uniform'ы для загрузки соотношения сторон экрана\n
 	Необходимо для метода Mesh::loadAspectRatio()
 	@return Индекс формы, иначе -1, если такой формы не существует
 	*/
 	int32_t getAspectRatioUniformLocation() noexcept;
+
+	/**
+	 * @brief Получает расположение uniform'ы для загрузки цвета источника света\n
+	 * Необходим для метода Mesh::loadLightColor()
+	 * @return Индекс формы, иначе -1, если такой формы не существует
+	 */
+	int32_t getLightColorUniformLocation() noexcept;
+
+	/**
+	 * @brief Получает расположение uniform'ы для загрузки координаты источника света в трехмерном пространстве\n
+	 * Необходим для метода Mesh::loadLightPosition()
+	 * @return Индекс формы, иначе -1, если такой формы не существует
+	 */
+	int32_t getLightPositionUniformLocation() noexcept;
+
+	/**
+	 * @brief Получает расположение uniform'ы для загрузки координаты камеры в трехмерном пространстве\n
+	 * Необходим для метода Mesh::loadCameraPosition()
+	 * @return Индекс формы, иначе -1, если такой формы не существует
+	 */
+	int32_t getCameraPositionUniformLocation() noexcept;
 };
 
 
@@ -236,8 +276,8 @@ public:
 С помощью этого класса реализуются объекты VBO и EBO
 
 - VBO (Vertex Buffer Object) - хранит уникальные вершины
-- EBO (Element Buffer Object) - хранит индексы (номера) вершин из VBO в том порядке, 
-в котором их нужно выводить на экран 
+- EBO (Element Buffer Object) - хранит индексы (номера) вершин из VBO в том порядке,
+в котором их нужно выводить на экран
 */
 class BO {
 
@@ -246,13 +286,13 @@ private:
 	static std::map<uint32_t, uint32_t> handler_count; ///< Счетчик использования дескриптора
 
 protected:
-	/** 
+	/**
 	@brief Определяет тип буфера
 
 	- Для VBO - GL_ARRAY_BUFFER
 	- Для EBO - GL_ELEMENT_ARRAY_BUFFER
 	*/
-	uint32_t type_; 
+	uint32_t type_;
 
 public:
 	BO(uint32_t type) noexcept; ///< Создает пустой буфер заданного типа
@@ -264,14 +304,14 @@ public:
 	void setAttrib(std::size_t stride, void* offset) noexcept; ///< Устанвливаем атрибуты
 	void load(const void* mem, int size, uint32_t mode) noexcept; ///< Загружает данные в буфер
 	void use() noexcept; ///< Привязка элементного буфера
-	
+
 }; // class BO
 
 
 /**
 @class VAO
-@brief Vertex Array Object, 
-содержит один или несколько объектов буфера вершин, 
+@brief Vertex Array Object,
+содержит один или несколько объектов буфера вершин,
 предназначен для хранения информации о полном визуализируемом объекте
 */
 class VAO {
@@ -294,7 +334,7 @@ public:
 @class VerticesMode
 @brief Перечисление для указания режима отображения вершин
 */
-enum VerticesMode { NONE = 0, ///< Вершины не отображаются 
+enum VerticesMode { NONE = 0, ///< Вершины не отображаются
                     CIRCLE, ///< Вершины представлены кругами
                     SQUARE ///< Вершины представлены квадратами
                   };
@@ -331,13 +371,13 @@ enum EdgesMode { SOLID, ///< Ребра представлены сплошно�
 class Mesh {
 
 private:
-	VAO vao_; ///< Объект 
+	VAO vao_; ///< Объект
 	BO vbo_; ///< Объект буфера вершин
 	BO ebo_; ///< Объект буфера индексов
-	
+
 	uint32_t count_vertices_; ///< Количество вершин в фигуре
 	uint32_t count_edges_; ///< Количество ребер в вершине
-	
+
 public:
 	Mesh() noexcept; ///< Создаем буферы, куда будем загружать данные о вершинах фигуры
 
@@ -346,7 +386,7 @@ public:
 	@param figure Считанная из файла фигура
 	*/
 	void loadData(const Figure& figure) noexcept;
-		
+
 	/**
 	@brief Загружает размер вершин в вершинный шейдер
 	@param size Пользовательское значение размера вершин
@@ -355,10 +395,10 @@ public:
 	@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getSizeVerticesUniformLocation()
 	*/
 	bool loadVerticesSize(int32_t u_location, float size) noexcept;
-	
+
 	/**
 	@brief Загружает значение цвета вершин фигуры в фрагментарный шейдер
-	@param color Пользовательское значение цвета в формате RGB
+	@param r, g, b Пользовательское значение цвета в формате RGB
 	@param u_location Идентификатор uniform'ы
 	@return true, если uniform'а существует, иначе false
 	@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getColorVerticesUniformLocation()
@@ -367,17 +407,17 @@ public:
 
 	/**
 	@brief Загружает режим отображения вершин в фрагментарный шейдер\n
-	Метод требует также расположение uniform'ы размера вершины, 
+	Метод требует также расположение uniform'ы размера вершины,
 	так как при задании	режима NONE размер вершины устанавливается в 0
 	@param mode Режим отображения (нет, круг, квадрат)
 	@param u_sizelocation Идентификатор uniform'ы u_vertSize
-	@return true, если uniform'а существует, иначе false 
+	@return true, если uniform'а существует, иначе false
 	@note Идентификатор uniform'ы u_sizelocation передается с помощью метода ShaderProgram::getSizeVerticesUniformLocation()
 	@note Идентификатор uniform'ы u_modelocation передается с помощью метода ShaderProgram::getModeVerticesUniformLocation()
 	@warning Вызывается строго после loadVerticesSize()!
 	*/
 	bool loadVerticesMode(int32_t u_sizelocation, int32_t u_modelocation, VerticesMode mode) noexcept;
-	
+
 	/**
 	@brief Загружает размер ребер в вершинный шейдер
 	@param size Пользовательское значение размера ребер
@@ -386,10 +426,10 @@ public:
 	@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getSizeEdgesUniformLocation()
 	*/
 	bool loadEdgesSize(int32_t u_location, float size) noexcept;
-	
+
 	/**
 	@brief Загружает значение цвета ребер в фрагментарный шейдер
-	@param color Пользовательское значение цвета в формате RGB
+	@param r, g, b Пользовательское значение цвета в формате RGB
 	@param u_location Идентификатор uniform'ы
 	@return true, если uniform'а существует, иначе false
 	@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getColorEdgesUniformLocation()
@@ -404,11 +444,11 @@ public:
 	@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getModeEdgesUniformLocation()
 	*/
 	bool loadEdgesMode(int32_t u_location, EdgesMode mode) noexcept;
-	
-	/** 
+
+	/**
 	@brief Загружает матрицу модели в вершинный шейдер\n
 	Позволяет изменить положение фигуры в пространстве:
-	- Координату 
+	- Координату
 	- Угол поворота
 	- Масштаб
 	@param u_location Идентификатор uniform'ы
@@ -416,9 +456,9 @@ public:
 	@return true, если uniform'а существует, иначе false
 	@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getModelMatrixUniformLocation()
 	*/
-	bool loadModelMatrix(int32_t u_location, float mtrx[4][4]) noexcept; 
+	bool loadModelMatrix(int32_t u_location, float mtrx[4][4]) noexcept;
 
-	/** 
+	/**
 	@brief Загружает матрицу камеры в вершинный шейдер\n
 	Позволяет изменить положение камеры в пространстве
 	@param u_location Идентификатор uniform'ы
@@ -428,7 +468,7 @@ public:
 	*/
 	bool loadViewMatrix(int32_t u_location, float mtrx[4][4]) noexcept;
 
-	/** 
+	/**
 	@brief Загружает матрицу проекции в вершинный шейдер\n
 	Позволяет изменить способ проекции фигуры на экран
 	@param u_location Идентификатор uniform'ы
@@ -439,7 +479,7 @@ public:
 	bool loadProjectionMatrix(int32_t u_location, float mtrx[4][4]) noexcept;
 
 	/**
-	@brief Загружает соотношение экрана в геометрический шейдер
+	@brief Загружает соотношение экрана в геометрический шейдер\n
 	Позволяет сохранять масштаб при изменении размеров экрана
 	@param u_location Идентификатор uniform'ы
 	@param ratio Коэффиициент width / height
@@ -447,27 +487,57 @@ public:
 	@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getAspectRatioUniformLocation()
 	*/
 	bool loadAspectRatio(int32_t u_location, float ratio) noexcept;
-	
+
+	/**
+	 * @brief Загружает цвет источника света в фрагментарный шейдер\n
+	 * Позволяет изменять цвет освещения фигуры на сцене
+	 * @param u_location Идентификатор uniform'ы
+	 * @param r, g, b Пользовательский цвет источника света в формате RGB
+	 * @return true, если uniform'а существует, иначе false
+	 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getLightColorUniformLocation()
+	 */
+	bool loadLightColor(int32_t u_location, float r, float g, float b) noexcept;
+
+	/**
+	 * @brief Загружает координаты источника света в вершинный шейдер\n
+	 * Позволяет изменять положение освещения фигуры
+	 * @param u_location Идентификатор uniform'ы
+	 * @param position Координата источника света в формате (X, Y, Z)
+	 * @return true, если uniform'а существует, иначе false
+	 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getLightPositionUniformLocation()
+	 */
+	bool loadLightPosition(int32_t u_location, const Point3D& position) noexcept;
+
+	/**
+	 * @brief Загружает координаты камеры в вершинный шейдер\n
+	 * Позволяет изменять положения просмотра сцены
+	 * @param u_location Идентификатор uniform'ы
+	 * @param position Координата источника света в формате (X, Y, Z)
+	 * @return true, если uniform'а существует, иначе false
+	 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getCameraPositionUniformLocation()
+	 */
+	bool loadCameraPosition(int32_t u_location, const Point3D& position) noexcept;
+
 	/**
 	@brief Отрисовка фигуры\n
 	@note Вызывается после того, как были загружены все данные в uniform'ы (методы load*)
 	*/
 	void render() noexcept;
-	
+
 	/**
-	@brief Получение количества обрабатываемых вершин 
+	@brief Получение количества обрабатываемых вершин
 	для последующего вывода этой информации на экран
 	@return Количество вершин в моделе
 	*/
 	uint32_t countVertices() noexcept;
 
 	/**
-	@brief Получение количества обрабатываемых вершин 
+	@brief Получение количества обрабатываемых вершин
 	для последующего вывода этой информации на экран
 	@return Количество ребер в моделе
 	*/
 	uint32_t countEdges() noexcept;
-	
+
 };
 
 } // namespace s21

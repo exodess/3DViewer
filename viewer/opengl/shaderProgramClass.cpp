@@ -7,41 +7,50 @@ namespace s21 {
 // =============== ПУБЛИЧНЫЕ МЕТОДЫ =================
 // ==================================================
 
-GLint ShaderProgram::getColorVerticesUniformLocation() noexcept 
+GLint ShaderProgram::getColorVerticesUniformLocation() noexcept
 	{ return uLoc_verticesColor_; }
 
 GLint ShaderProgram::getSizeVerticesUniformLocation() noexcept
 	{ return uLoc_verticesSize_; }
 
-GLint ShaderProgram::getModeVerticesUniformLocation() noexcept 
+GLint ShaderProgram::getModeVerticesUniformLocation() noexcept
 	{ return uLoc_verticesMode_; }
 
-GLint ShaderProgram::getColorEdgesUniformLocation() noexcept 
+GLint ShaderProgram::getColorEdgesUniformLocation() noexcept
 	{ return uLoc_edgesColor_; }
 
-GLint ShaderProgram::getSizeEdgesUniformLocation() noexcept 
+GLint ShaderProgram::getSizeEdgesUniformLocation() noexcept
 	{ return uLoc_edgesSize_; }
 
-GLint	ShaderProgram::getModeEdgesUniformLocation() noexcept 
+GLint ShaderProgram::getModeEdgesUniformLocation() noexcept
 	{ return uLoc_edgesDashSize_; }
 
-GLint ShaderProgram::getModelMatrixUniformLocation() noexcept 
+GLint ShaderProgram::getModelMatrixUniformLocation() noexcept
 	{ return uLoc_modelMatrix_; }
 
-GLint ShaderProgram::getViewMatrixUniformLocation() noexcept 
+GLint ShaderProgram::getViewMatrixUniformLocation() noexcept
 	{ return uLoc_viewMatrix_; }
 
-GLint ShaderProgram::getProjectionMatrixUniformLocation() noexcept 
+GLint ShaderProgram::getProjectionMatrixUniformLocation() noexcept
 	{ return uLoc_projectionMatrix_; }
 
 GLint ShaderProgram::getAspectRatioUniformLocation() noexcept
 	{ return uLoc_aspectRatio_; }
 
-ShaderProgram::ShaderProgram(std::string vertShaderPath, 
+	GLint ShaderProgram::getLightColorUniformLocation() noexcept
+		{ return uLoc_lightColor_; }
+
+	GLint ShaderProgram::getLightPositionUniformLocation() noexcept
+		{ return uLoc_lightPosition_; }
+
+	GLint ShaderProgram::getCameraPositionUniformLocation() noexcept
+		{ return uLoc_cameraPosition_; }
+
+ShaderProgram::ShaderProgram(std::string vertShaderPath,
                              std::string geomShaderPath,
                              std::string fragShaderPath) {
 
-	// Читаем код шейдеров и сохраняем их именно в C-строки 
+	// Читаем код шейдеров и сохраняем их именно в C-строки
 	// 	для нормальной работы OpenGL функций
 
 	std::cout << "Инициализация функций OpenGL... ";
@@ -56,7 +65,7 @@ ShaderProgram::ShaderProgram(std::string vertShaderPath,
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDepthFunc(GL_LESS);
 	std::cout << "+\n";
-	
+
 	std::cout << "Чтение файла вершинного шейдера" << std::endl;
 	std::string strVertexCode = readShaderSource(vertShaderPath);
 	std::cout << "Чтение файла геометрического шейдера" << std::endl;
@@ -85,12 +94,15 @@ ShaderProgram::ShaderProgram(std::string vertShaderPath,
 	uLoc_edgesColor_ = getUniformLocation(UNIFORM_EDGES_COLOR);
 	uLoc_edgesSize_ = getUniformLocation(UNIFORM_EDGES_SIZE);
 	uLoc_edgesDashSize_ = getUniformLocation(UNIFORM_EDGES_MODE);
-	
+
 	uLoc_modelMatrix_ = getUniformLocation(UNIFORM_MODEL_MATRIX);
 	uLoc_viewMatrix_ = getUniformLocation(UNIFORM_VIEW_MATRIX);
 	uLoc_projectionMatrix_ = getUniformLocation(UNIFORM_PROJECTION_MATRIX);
 	uLoc_aspectRatio_ = getUniformLocation(UNIFORM_ASPECT_RATIO);
-	
+
+	uLoc_lightColor_ = getUniformLocation(UNIFORM_LIGHT_COLOR);
+	uLoc_lightPosition_ = getUniformLocation(UNIFORM_LIGHT_POSITION);
+	uLoc_cameraPosition_ = getUniformLocation(UNIFORM_CAMERA_POSITION);
 }
 
 ShaderProgram::~ShaderProgram() {
@@ -104,7 +116,7 @@ ShaderProgram::~ShaderProgram() {
 void ShaderProgram::use() noexcept {
 
 	glUseProgram(ProgramID_);
-	
+
 }
 
 // ==================================================
@@ -117,7 +129,7 @@ GLint ShaderProgram::getUniformLocation(char * name_uniform) noexcept {
 	return location;
 }
 
-GLuint ShaderProgram::createShaderProgram(GLuint vertexShader, 
+GLuint ShaderProgram::createShaderProgram(GLuint vertexShader,
                                           GLuint geometryShader,
                                           GLuint fragmentShader) {
 
@@ -145,7 +157,7 @@ GLuint ShaderProgram::createShaderProgram(GLuint vertexShader,
 
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-		
+
 	}
 	else std::cout << "\tПрограмма успешно скомпилирована!\n";
 
@@ -154,7 +166,7 @@ GLuint ShaderProgram::createShaderProgram(GLuint vertexShader,
 	glDeleteShader(geometryShader);
 	glDeleteShader(fragmentShader);
 	std::cout << " +\n";
-	
+
 	return shaderProgram;
 }
 
@@ -174,7 +186,7 @@ std::string ShaderProgram::readShaderSource(std::string path) {
 		shaderFile.close();
 
 		return fileStream.str();
-		
+
 	}
 
 	catch(std::ifstream::failure& e) {
@@ -183,7 +195,7 @@ std::string ShaderProgram::readShaderSource(std::string path) {
 			 path << "\", " << e.what() << std::endl;
 		return "";
 	}
-		
+
 }
 
 GLuint ShaderProgram::createShader(const char* sourceShaderCode, GLenum shaderType) {
@@ -201,14 +213,14 @@ GLuint ShaderProgram::createShader(const char* sourceShaderCode, GLenum shaderTy
 	std::cout << "\tКомпиляция шейдера";
 	glCompileShader(shader);
 	std::cout << " +\n";
-	
+
 	std::cout << "\tПроверяем на ошибки компиляции\n";
 	GLint success;
 	GLchar infoLog[512];
 
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 	if(!success) {
-	
+
 		std::string nameShader = "[UNKNOW_SHADER_NAME]";
 		if(shaderType == GL_VERTEX_SHADER) nameShader = "VERTEX";
 		else if(shaderType == GL_GEOMETRY_SHADER) nameShader = "GEOMETRY";
@@ -219,7 +231,7 @@ GLuint ShaderProgram::createShader(const char* sourceShaderCode, GLenum shaderTy
 
 	}
 	else std::cout << "\tШейдер успешно скомпилировался!\n";
-	
+
 	return shader;
 }
 	

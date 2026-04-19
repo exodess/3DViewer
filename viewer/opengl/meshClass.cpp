@@ -216,6 +216,36 @@ bool Mesh::loadAspectRatio(GLint uniform_location, float ratio) noexcept {
 	return true;
 }
 
+	bool Mesh::loadLightColor(int32_t u_location, float r, float g, float b) noexcept {
+		if (u_location == -1) {
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			return false;
+		}
+
+		glUniform3f(u_location, r, g, b);
+		return true;
+	}
+
+	bool Mesh::loadLightPosition(int32_t u_location, const Point3D &position) noexcept {
+		if (u_location == -1) {
+			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			return false;
+		}
+
+		glUniform3f(u_location, position.x, position.y, position.z);
+		return true;
+	}
+
+	bool Mesh::loadCameraPosition(int32_t u_location, const Point3D &position) noexcept {
+		if (u_location == -1) {
+			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			return false;
+		}
+
+		glUniform3f(u_location, position.x, position.y, position.z);
+		return true;
+	}
+
 void Mesh::render() noexcept {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	vao_.use(); 
