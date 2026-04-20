@@ -205,7 +205,7 @@ public:
 class TransformMatrix {
 
 private:
-	float mtrx_[4][4]; ///< Хране
+	float mtrx_[4][4]; ///< Хранение матрицы 4*4
 
 public:
 	
@@ -393,32 +393,38 @@ private:
 
 /**
 @class Vertex
-@brief Представляет класс для хранения информации об отдельной вершине
+@brief Представляет класс для хранения информации об отдельной вершине\n
+Каждая вершина хранит в себе:
+1. Координату в трехмерном пространстве
+2. Вектор нормали
+
+Вектор нормали необходим для корректной обработки освещения
 */
 class Vertex : public BaseSceneObject {
 
 private:
 	Point3D position_; ///< Координата вершины в трехмерном пространстве
+	Point3D normale_; ///< Вектор нормали вершины для корректной обработки освещения
 
 public:
 	/**
-	@brief Инициализация вершины через структуру координаты
-	@param point Координата, представленная в виде стрктуры Point3D
+	@brief Инициализация вершины через задание ее координаты и вектора нормали
+	@param point Координата, представленная в виде вектора (X, Y, Z)
+	@param normale Вектор нормали вершины
 	*/
-	Vertex(Point3D point) noexcept;
-	/**
-	@brief Инициализация вершины через задание отдельных координат
-	@param x Координата по оси X
-	@param y Координата по оси Y
-	@param z Координата по оси Z
-	*/
-	Vertex(float x, float y, float z) noexcept;
+	Vertex(const Point3D& point, const Point3D& normale) noexcept;
 	Vertex(const Vertex&) noexcept;
 	Vertex& operator=(const Vertex&) noexcept;
 	bool operator==(const Vertex&) const noexcept;
-	
-	Point3D& getPosition() noexcept; ///< Получение координаты вершины в пространстве
+
+	/**
+	 * Изменяет вектор нормали вершины
+	 * @param normale Новый вектор нормали для данной вершины
+	 */
+	void setNormals(const Point3D& normale) noexcept;
+	Point3D& getPosition() noexcept; ///< Получение координаты вершины в трехмерном пространстве
 	const Point3D& getPosition() const noexcept;
+	const Point3D& getNormale() const noexcept; ///< Получение вектора нормали вершины
 	void Transform(const TransformMatrix&) override; ///< Не используется
 	
 };
@@ -522,6 +528,7 @@ class Figure : public BaseSceneObject {
 private:
 	std::vector<Vertex> vertices_; ///< Множество вершин (координат в трехмерном пространстве)
 	std::vector<Edge> edges_; ///< Множество ребер (связей между вершинами)
+	std::vector<Vertex> normales_;
 
 public:
 
@@ -535,10 +542,8 @@ public:
 	Figure(const Figure&) noexcept;
 	Figure& operator=(const Figure&) noexcept; 
 	
-	std::vector<Vertex>& getVertices() noexcept; ///< Доступ к списку вершин
-	const std::vector<Vertex>& getVertices() const noexcept;
-	std::vector<Edge>& getEdges() noexcept; ///< Доступ к списку ребер
-	const std::vector<Edge>& getEdges() const noexcept;
+	const std::vector<Vertex>& getVertices() const noexcept; ///< Доступ к списку вершин фигуры
+	const std::vector<Edge>& getEdges() const noexcept; ///< Доступ к списку ребер фигуры
 
 	void Transform(const TransformMatrix&) override; ///< Не используется
 

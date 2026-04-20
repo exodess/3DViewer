@@ -301,7 +301,7 @@ public:
 	~BO(); ///< уничтожает буфер
 	BO& operator=(const BO&) noexcept; ///< Оператор присваивания
 
-	void setAttrib(std::size_t stride, void* offset) noexcept; ///< Устанвливаем атрибуты
+	void setAttrib(std::size_t stride, void* offset, int index) noexcept; ///< Устанвливаем атрибуты
 	void load(const void* mem, int size, uint32_t mode) noexcept; ///< Загружает данные в буфер
 	void use() noexcept; ///< Привязка элементного буфера
 
@@ -372,7 +372,7 @@ class Mesh {
 
 private:
 	VAO vao_; ///< Объект
-	BO vbo_; ///< Объект буфера вершин
+	BO vbo_; ///< Объект буфера вершин для непосредственного хранения вершин
 	BO ebo_; ///< Объект буфера индексов
 
 	uint32_t count_vertices_; ///< Количество вершин в фигуре

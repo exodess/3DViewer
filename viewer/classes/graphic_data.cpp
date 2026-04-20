@@ -36,26 +36,35 @@ uint32_t Edge::getEnd() const noexcept {
 // ===========================
 
 
-Vertex::Vertex(Point3D point) noexcept : position_{point} {}
+Vertex::Vertex(const Point3D& point, const Point3D& normale) noexcept : position_{point}, normale_{normale} {}
 
-Vertex::Vertex(float x, float y, float z) noexcept : position_{Point3D(x, y, z)} {}
-
-Vertex::Vertex(const Vertex& other) noexcept : position_{other.position_} {}
+Vertex::Vertex(const Vertex& other) noexcept : position_{other.position_}, normale_{other.normale_} {}
 
 Vertex& Vertex::operator=(const Vertex& other) noexcept {
 	position_ = other.position_;
+	normale_ = other.normale_;
 	return *this;
 }
 
 bool Vertex::operator==(const Vertex& other) const noexcept {
-	return (position_ == other.position_);
+	return (position_ == other.position_) && (normale_ == other.normale_);
 }
 
-Point3D& Vertex::getPosition() noexcept { 
-	return position_; 
+void Vertex::setNormals(const Point3D &normale) noexcept {
+	normale_ = normale;
 }
+
+
+Point3D& Vertex::getPosition() noexcept {
+	return position_;
+}
+
 const Point3D& Vertex::getPosition() const noexcept {
 	return position_;
+}
+
+const Point3D& Vertex::getNormale() const noexcept {
+	return normale_;
 }
 
 void Vertex::Transform(const TransformMatrix& mtrx) {
@@ -70,7 +79,7 @@ void Vertex::Transform(const TransformMatrix& mtrx) {
 
 Figure::Figure() noexcept : vertices_{}, edges_{} {}
 
-Figure::Figure(std::vector<Vertex>& vertices, std::vector<Edge>& edges) noexcept 
+Figure::Figure(std::vector<Vertex>& vertices, std::vector<Edge>& edges) noexcept
 	: vertices_{vertices}, edges_{edges} {}
 
 Figure::Figure(const Figure& other) noexcept : vertices_{other.vertices_}, edges_{other.edges_} {}
@@ -81,16 +90,10 @@ Figure& Figure::operator=(const Figure& other) noexcept {
 	return *this;
 }
 
-std::vector<Vertex>& Figure::getVertices() noexcept { 
-	return vertices_; 
-}
 const std::vector<Vertex>& Figure::getVertices() const noexcept {
 	return vertices_;
 }
 
-std::vector<Edge>& Figure::getEdges() noexcept { 
-	return edges_; 
-}
 const std::vector<Edge>& Figure::getEdges() const noexcept {
 	return edges_;
 }

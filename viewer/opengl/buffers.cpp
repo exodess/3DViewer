@@ -78,10 +78,10 @@ void BO::load(const void* mem, int size, GLuint mode) noexcept{
 
 }
 
-void BO::setAttrib(std::size_t stride, void* offset) noexcept {
-	glEnableVertexAttribArray(0);
+void BO::setAttrib(std::size_t stride, void* offset, int index) noexcept {
+	glEnableVertexAttribArray(index);
 	glVertexAttribPointer(
-        0,                  
+        index,
         3,                  
         GL_FLOAT,           
         GL_FALSE,           

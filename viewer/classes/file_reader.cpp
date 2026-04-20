@@ -20,11 +20,10 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 
 	std::vector<Vertex> vertices;
 	std::vector<Edge> edges;
-	std::vector<Vertex> normals;
+	std::vector<Point3D> normals_coordinates;
 
 	vertices.clear();
 	edges.clear();
-	normals.clear();
 
 	std::ifstream file(path, std::ios::in);
 
@@ -57,23 +56,36 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 
 			}
 			// добавляем вычисленную вершину в список
-			vertices.push_back(Vertex(Point3D(arr[0], arr[1], arr[2])));
+			vertices.push_back(Vertex(Point3D(arr[0], arr[1], arr[2]), Point3D()));
 		}
 
 		else if(word == surface_prefix) {
 
 			for(int i = 0; i < 3; ++i) {
 				std::string temp;
-				unsigned int value = 0;
+				unsigned int vert_index = 0;
+				unsigned int uv_index = 0;
+				unsigned int norm_index = 0;
+				// Считываем индекс вершины, индекс UV-координату и индекс нормали
+				// f v/vt/vn
 
 				if(ss >> word) {
+					// считываем индекс координаты вершины из списка
 					std::getline(std::stringstream(word), temp, '/');
-					std::from_chars(temp.data(), temp.data() + word.size(), value);
+					std::from_chars(temp.data(), temp.data() + word.size(), vert_index);
 
+					// считываем индекс нужной UV-координаты из списка
+					std::getline(std::stringstream(word), temp, '/');
+					std::from_chars(temp.data(), temp.data() + word.size(), uv_index);
+
+					// считываем последнее число - индекс нормали вершины
+					std::from_chars(temp.data(), temp.data() + word.size(), norm_index);
 				}
 
-				if(value > 0) value --;
-				list_ind[i] = value;
+				list_ind[i] = vert_index;
+				if (norm_index > 0) {
+					vertices[vert_index].setNormals(normals_coordinates[norm_index - 1]);
+				}
 			}
 			edges.push_back( Edge(list_ind[0], list_ind[1]) );
 			edges.push_back( Edge(list_ind[1], list_ind[2]) );
@@ -88,7 +100,7 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 				}
 				arr[i] = value;
 			}
-			normals.push_back(Vertex(Point3D(arr[0], arr[1], arr[2])));
+			normals_coordinates.push_back(Point3D(arr[0], arr[1], arr[2]));
 		}
 	}
 
@@ -96,9 +108,9 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 
 	std::cout << "\tСчитано " << vertices.size() << " вершин, ";
 	std::cout << edges.size() << " ребер, ";
-	std::cout << normals.size() << " нормалей" << std::endl;
+	std::cout << normals_coordinates.size() << " нормалей" << std::endl;
 
-	return new Scene(Figure(vertices, edges, normals));
+	return new Scene(Figure(vertices, edges));
 }
 
 void FileReader::Normalize(std::vector<Vertex>& vertices) {

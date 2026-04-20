@@ -11,11 +11,13 @@ GLuint Mesh::countEdges() noexcept {
 	return count_edges_;
 }
 
-Mesh::Mesh() noexcept : vao_{VAO()}, 
-                        vbo_{BO(GL_ARRAY_BUFFER)}, 
-                        ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
-                        count_vertices_{0},
-                        count_edges_{0} {
+Mesh::Mesh() noexcept :
+	vao_{VAO()},
+	vbo_{BO(GL_ARRAY_BUFFER)},
+	ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
+	count_vertices_{0},
+	count_edges_{0} {
+
 	std::cout << "[Mesh] Создание объекта класса Mesh\n";
 }
 
@@ -45,7 +47,7 @@ void Mesh::loadData(const Figure& figure) noexcept {
 	}
 
 	vbo_.load(raw_vertices.data(), raw_vertices.size() * sizeof(float), GL_STATIC_DRAW);
-	    
+
 	// Передаем плоский массив uint32_t
 	if (!raw_indices.empty()) {
 		ebo_.load(raw_indices.data(), raw_indices.size() * sizeof(uint32_t), GL_STATIC_DRAW);
@@ -55,7 +57,7 @@ void Mesh::loadData(const Figure& figure) noexcept {
 
 	// Шаг ровно 12 байт (3 координаты)
 	// Смещение 0, так как массив чистый
-	vbo_.setAttrib(3 * sizeof(float), (void*) 0);
+	vbo_.setAttrib(3 * sizeof(float), (void*) 0, 0);
 
 	std::cout << "\tСохраняем количество обрабатываемых вершин и ребер:\n";
 	count_vertices_ = vertices.size();
@@ -63,9 +65,10 @@ void Mesh::loadData(const Figure& figure) noexcept {
 	
 	VAO::disable();
 	
-	std::cout << "\tcount_vertices = " << count_vertices_ << ", count_edges = " << count_edges_ << std::endl;
+	std::cout << "\tcount_vertices = " << count_vertices_;
+	std::cout << ", count_edges = " << count_edges_;
+	std::cout << "\n";
 }
-
 
 bool Mesh::loadVerticesColor(GLint uniform_location, float r, float g, float b) noexcept {
 
