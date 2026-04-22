@@ -40,6 +40,9 @@ void MainWindow::connectSignals() noexcept {
 	connect(ui->action_Exit, &QAction::triggered, this, &MainWindow::on_action_Exit_triggered);
 	connect(ui->action_Orthographic, &QAction::triggered, this, &MainWindow::on_action_Orthographic_triggered);
 	connect(ui->action_Perspective, &QAction::triggered, this, &MainWindow::on_action_Perspective_triggered);
+	connect(ui->action_Wireframe, &QAction::triggered, this, &MainWindow::on_action_Wireframe_triggered);
+	connect(ui->action_FlatShading, &QAction::triggered, this, &MainWindow::on_action_FlatShading_triggered);
+	connect(ui->action_SmoothShading, &QAction::triggered, this, &MainWindow::on_action_SmoothShading_triggered);
 
 	// СОЕДИНЕНИЕ КНОПОК ЦВЕТА
 	connect(ui->btn_VertexColor, &QPushButton::clicked, this, &MainWindow::on_btn_VertexColor_clicked);
@@ -237,6 +240,24 @@ void MainWindow::on_action_Perspective_triggered() {
 	glWidget_->setNewProjectionType(ProjectionType::PERSPECTIVE);
 	    
 	ui->statusbar->showMessage("Центральная проекция");
+}
+
+void MainWindow::on_action_Wireframe_triggered() {
+	glWidget_->setNewDisplayType(DisplayType::WIREFRAME_MODEL);
+
+	ui->statusbar->showMessage("Отображение только ребер и вершин");
+}
+
+void MainWindow::on_action_FlatShading_triggered() {
+	glWidget_->setNewDisplayType(DisplayType::FLAT_SHADING_MODEL);
+
+	ui->statusbar->showMessage("Плоское затенение");
+}
+
+void MainWindow::on_action_SmoothShading_triggered() {
+	glWidget_->setNewDisplayType(DisplayType::SMOOTH_SHADING_MODEL);
+
+	ui->statusbar->showMessage("Мягкое затенение методом Гура");
 }
 
 } // namespace s21

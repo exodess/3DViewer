@@ -2,17 +2,12 @@
 #define UI_MAINWINDOW_H
 
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
-#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
-#include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QVBoxLayout>
@@ -26,7 +21,10 @@ public:
     QAction *action_Exit;
     QAction *action_Orthographic;
     QAction *action_Perspective;
-    QWidget *centralwidget;
+    QAction *action_Wireframe;
+    QAction *action_FlatShading;
+    QAction *action_SmoothShading;
+    QWidget *centralWidget;
     QVBoxLayout *mainVerticalLayout;   // Главный вертикальный слой
     QHBoxLayout *contentLayout;        // Слой для разделения "Экран | Настройки"
     
@@ -69,6 +67,7 @@ public:
     QMenuBar *menubar;
     QMenu *menu_File;
     QMenu *menu_Projection;
+    QMenu *menu_DisplayType;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *MainWindow) {
@@ -82,15 +81,18 @@ public:
         action_Exit = new QAction(MainWindow);
         action_Orthographic = new QAction(MainWindow);
         action_Perspective = new QAction(MainWindow);
+        action_Wireframe = new QAction(MainWindow);
+        action_FlatShading = new QAction(MainWindow);
+        action_SmoothShading = new QAction(MainWindow);
 
-        centralwidget = new QWidget(MainWindow);
-        mainVerticalLayout = new QVBoxLayout(centralwidget);
+        centralWidget = new QWidget(MainWindow);
+        mainVerticalLayout = new QVBoxLayout(centralWidget);
 
         // Создаем горизонтальный слой для разделения контента
         contentLayout = new QHBoxLayout();
 
         // Панель настроек (будет справа)
-        groupBox_Settings = new QGroupBox("Настройки вида", centralwidget);
+        groupBox_Settings = new QGroupBox("Настройки вида", centralWidget);
         groupBox_Settings->setFixedWidth(250);
         settingsLayout = new QVBoxLayout(groupBox_Settings);
 
@@ -212,7 +214,7 @@ public:
         infoLayout->addItem(horizontalSpacer);
 
         mainVerticalLayout->addLayout(infoLayout);
-        MainWindow->setCentralWidget(centralwidget);
+        MainWindow->setCentralWidget(centralWidget);
 
         // ================================
         // ========= Верхнее меню =========
@@ -221,6 +223,7 @@ public:
         menubar = new QMenuBar(MainWindow);
         menu_File = new QMenu("Файл", menubar);
         menu_Projection = new QMenu("Проекция", menubar);
+        menu_DisplayType = new QMenu("Отображение", menubar);
         MainWindow->setMenuBar(menubar);
 
         statusbar = new QStatusBar(MainWindow);
@@ -229,10 +232,14 @@ public:
 
         menubar->addAction(menu_File->menuAction());
         menubar->addAction(menu_Projection->menuAction());
+        menubar->addAction(menu_DisplayType->menuAction());
         menu_File->addAction(action_Open);
         menu_File->addAction(action_Exit);
         menu_Projection->addAction(action_Orthographic);
         menu_Projection->addAction(action_Perspective);
+        menu_DisplayType->addAction(action_Wireframe);
+        menu_DisplayType->addAction(action_FlatShading);
+        menu_DisplayType->addAction(action_SmoothShading);
 
         retranslateUi(MainWindow);
     }
@@ -242,6 +249,9 @@ public:
         action_Exit->setText("Выход");
         action_Orthographic->setText("Параллельная");
         action_Perspective->setText("Центральная");
+        action_Wireframe->setText("Каркасная модель");
+        action_FlatShading->setText("Плоское затенение");
+        action_SmoothShading->setText("Мягкое затенение");
     }
 };
 

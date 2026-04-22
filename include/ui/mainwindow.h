@@ -19,6 +19,9 @@ private slots:
     void on_action_Exit_triggered();
     void on_action_Orthographic_triggered();
     void on_action_Perspective_triggered();
+    void on_action_Wireframe_triggered();
+    void on_action_FlatShading_triggered();
+    void on_action_SmoothShading_triggered();
     
     void on_btn_VertexColor_clicked();
     void onVertexSizeChanged(float value);

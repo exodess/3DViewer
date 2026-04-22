@@ -54,14 +54,21 @@ public:
     void setNewAspectRatio(float) noexcept;
     void setNewBackgroundColor(float r, float g, float b) noexcept;
 
+    void setNewLightPosition(float x, float y, float z) noexcept; ///< Смещение источника освещения
+    void setNewLightColor(float r, float g, float b) noexcept; ///< Изменение цвета источника света
+    void setNewDisplayType(DisplayType display_type) noexcept; ///< Смена режима отображения фигуры
+
     // Геттеры для интерфейса
     QColor getEdgeColor() noexcept;
     QColor getVertexColor() noexcept;
     QColor getBackgroundColor() noexcept;
+    QColor getLightColor() noexcept;
     float getVertexSize() noexcept;
     float getEdgeSize() noexcept;
+    Point3D getLightPosition() noexcept;
     int getVertexMode() noexcept;
     int getEdgeMode() noexcept;
+    int getDisplayType() noexcept;
 
 protected:
     void initializeGL() override;
@@ -104,6 +111,10 @@ private:
     // тип проекции
     ProjectionType projectionType_;
 
+    // тип отрисовки фигуры
+    DisplayType displayType_;
+    Point3D lightColor_;
+    Point3D lightPosition_;
 };
 
 } // namespace s21
