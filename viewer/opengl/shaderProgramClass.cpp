@@ -34,6 +34,9 @@ GLint ShaderProgram::getViewMatrixUniformLocation() noexcept
 GLint ShaderProgram::getProjectionMatrixUniformLocation() noexcept
 	{ return uLoc_projectionMatrix_; }
 
+GLint ShaderProgram::getNormalMatrixUniformLocation() noexcept
+	{ return uLoc_normalMatrix_; }
+
 GLint ShaderProgram::getAspectRatioUniformLocation() noexcept
 	{ return uLoc_aspectRatio_; }
 
@@ -45,6 +48,9 @@ GLint ShaderProgram::getAspectRatioUniformLocation() noexcept
 
 	GLint ShaderProgram::getCameraPositionUniformLocation() noexcept
 		{ return uLoc_cameraPosition_; }
+
+GLint ShaderProgram::getDisplayTypeUniformLocation() noexcept
+	{ return uLoc_displayType_; }
 
 ShaderProgram::ShaderProgram(std::string vertShaderPath,
                              std::string geomShaderPath,
@@ -98,11 +104,13 @@ ShaderProgram::ShaderProgram(std::string vertShaderPath,
 	uLoc_modelMatrix_ = getUniformLocation(UNIFORM_MODEL_MATRIX);
 	uLoc_viewMatrix_ = getUniformLocation(UNIFORM_VIEW_MATRIX);
 	uLoc_projectionMatrix_ = getUniformLocation(UNIFORM_PROJECTION_MATRIX);
+	uLoc_normalMatrix_ = getUniformLocation(UNIFORM_NORMAL_MATRIX);
 	uLoc_aspectRatio_ = getUniformLocation(UNIFORM_ASPECT_RATIO);
 
 	uLoc_lightColor_ = getUniformLocation(UNIFORM_LIGHT_COLOR);
 	uLoc_lightPosition_ = getUniformLocation(UNIFORM_LIGHT_POSITION);
 	uLoc_cameraPosition_ = getUniformLocation(UNIFORM_CAMERA_POSITION);
+	uLoc_displayType_ = getUniformLocation(UNIFORM_DISPLAY_TYPE);
 }
 
 ShaderProgram::~ShaderProgram() {

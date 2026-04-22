@@ -117,4 +117,92 @@ TransformMatrix TransformMatrix::Identity() noexcept {
     return TransformMatrix();
 }
 
+float TransformMatrix::calc_minor(int i, int j) const noexcept {
+    float sub_det = 0.0; // определитель нижней подматрицы
+    float temp[3][3];
+
+    // копируем подматрицу в другой массив
+    int ki = 0;
+    for (int a = 0; a < 3; ++a) {
+        int kj = 0;
+        if (i != ki) {
+            for (int b = 0; b < 3; ++b) {
+                if (kj != i)
+                    temp[a][b] = mtrx_[ki][kj];
+                kj++;
+            }
+        };
+
+        ki ++;
+    }
+
+    for (int a = 0; i < 3; ++i) {
+        float temp_temp[2][2];
+
+        // копируем матрицу и находим определитель
+        for (int aa = 0; aa < 2; ++aa) {
+            int kk = 0;
+            for (int bb = 0; bb < 2; ++bb) {
+                if (kk != j)
+                    temp_temp[aa][bb] = temp[aa + 1][kk];
+                kk++;
+            }
+        }
+        float simple_det = temp_temp[0][0] * temp_temp[1][1] - temp_temp[0][1] * temp_temp[1][0];
+
+        sub_det += (j % 2 == 0) ? simple_det * temp[0][j] : -simple_det * temp[0][j];
+    }
+
+    return ((i + j) % 2 == 0) ? sub_det : -sub_det;
+}
+
+
+float TransformMatrix::det() const noexcept {
+    float det = 0.0;
+
+    for (int j = 0; j < 4; ++j) {
+        det += mtrx_[0][j] * calc_minor(0, j);
+    }
+
+    return det;
+}
+
+TransformMatrix TransformMatrix::calcComplements() const noexcept {
+    TransformMatrix result;
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            result.mtrx_[i][j] = calc_minor(i, j);
+        }
+    }
+
+    return result;
+}
+
+
+TransformMatrix TransformMatrix::inverse() const noexcept {
+    TransformMatrix result;
+
+    float d = det();
+    if (d != 0.0) {
+        result = calcComplements().transpose();
+
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+                result.mtrx_[i][j] /= d;
+
+    }
+    return result;
+}
+
+TransformMatrix TransformMatrix::transpose() const noexcept {
+    TransformMatrix result;
+
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
+            result.mtrx_[i][j] = mtrx_[j][i];
+
+    return result;
+}
+
 } // namespace s21

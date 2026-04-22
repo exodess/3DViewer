@@ -61,6 +61,11 @@
 #define UNIFORM_PROJECTION_MATRIX "u_projectionMatrix"
 
 /**
+@brief Имя uniform переменной в вершинном шейдере для загрузки матрицы трансформации вектора нормали вершины
+*/
+#define UNIFORM_NORMAL_MATRIX "u_normalMatrix"
+
+/**
 @brief Имя uniform переменной в геометрическом шейдере для загрузки соотношения сторон экрана
 */
 #define UNIFORM_ASPECT_RATIO "u_aspectRatio"
@@ -79,6 +84,11 @@
 @brief Имя uniform переменной в вершинном шейдере для загрузки координаты камеры в пространстве
 */
 #define UNIFORM_CAMERA_POSITION "u_cameraPosition"
+
+/**
+@brief Имя uniform переменной в фрагментарном шейдере для загрузки режима отображения фигуры
+*/
+#define UNIFORM_DISPLAY_TYPE "u_displayType"
 
 /**
 @brief Классы для управления логикой проекта реализованы внутри пространства имен s21
@@ -122,11 +132,13 @@ private:
 	int32_t uLoc_modelMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы модели
 	int32_t uLoc_viewMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы камеры
 	int32_t uLoc_projectionMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы проекции
+	int32_t uLoc_normalMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы трансформации вектора нормали
 	int32_t uLoc_aspectRatio_; ///< Идентификатор uniform'ы для загрузки соотношения сторон области вывода фигуры
 
 	int32_t uLoc_lightColor_; ///< Идентификатор uniform'ы для загрузки цвета источника света на сцене
 	int32_t uLoc_lightPosition_; ///< Идентификатор uniform'ы для загрузки положения источника света на сцене
 	int32_t uLoc_cameraPosition_; ///< Идентификатор uniform'ы для загрузки положения камеры на сцене
+	int32_t uLoc_displayType_; ///< Идентификатор uniform'ы для загрузки режима отображения модели
 
 	/**
 	@brief Считывания исходного кода шейдера для его последующей компиляции
@@ -241,6 +253,13 @@ public:
 	int32_t	getProjectionMatrixUniformLocation() noexcept;
 
 	/**
+	 * @brief Получает расположение uniform'ы для загрузки матрицы трансформации вектора нормали\n
+	 * Необходимо для метода Mesh::loadNormalMatrix()
+	 * @return Индекс формы, иначе -1, если такой формы не существует
+	 */
+	int32_t getNormalMatrixUniformLocation() noexcept;
+
+	/**
 	@brief Получает расположение uniform'ы для загрузки соотношения сторон экрана\n
 	Необходимо для метода Mesh::loadAspectRatio()
 	@return Индекс формы, иначе -1, если такой формы не существует
@@ -267,6 +286,13 @@ public:
 	 * @return Индекс формы, иначе -1, если такой формы не существует
 	 */
 	int32_t getCameraPositionUniformLocation() noexcept;
+
+	/**
+	 * @brief Получает расположение uniform'ы для загрузки режима отображения фигуры на экране\n
+	 * Необходим для метода Mesh::loadDisplayType()
+	 * @return Индекс формы, иначе -1, если такой формы не существует
+	 */
+	int32_t getDisplayTypeUniformLocation() noexcept;
 };
 
 
@@ -348,6 +374,15 @@ enum EdgesMode { SOLID, ///< Ребра представлены сплошно�
                };
 
 /**
+ * @class DisplayType
+ * @brief Перечисление для указания типа отображения фигуры
+ */
+enum DisplayType {
+	WIREFRAME_MODEL = 0, ///< Каркасная модель
+	FLAT_SHADING_MODEL, ///< Плоское затенение
+	SMOOTH_SHADING_MODEL, ///< Мягкое затенение
+};
+/**
 @class Mesh
 @brief Управляет созданием буферов для OpenGL и загрузкой в них данных для изменения фигуры\n
 
@@ -382,7 +417,12 @@ public:
 	Mesh() noexcept; ///< Создаем буферы, куда будем загружать данные о вершинах фигуры
 
 	/**
-	@brief Загрузка данных о вершинах фигуры
+	@brief Загрузка данных о вершинах фигуры\n
+	Вершины загружаются в буфер видеокарты следующей структурой:
+	- Первые 3 float переменные относятся к координате вершины
+	- Вторые 3 float переменные относятся к вектору нормали
+	|  vX | vY | vZ  | nX | nY | nZ |
+	| <-координата-> |  <-нормаль-> |
 	@param figure Считанная из файла фигура
 	*/
 	void loadData(const Figure& figure) noexcept;
@@ -479,6 +519,17 @@ public:
 	bool loadProjectionMatrix(int32_t u_location, float mtrx[4][4]) noexcept;
 
 	/**
+	 * @brief Загружает матрицу трансформации вектора нормали вершины в вершинный шейдер\n
+	 * Позволяет перевести вектор нормали в глобальные координаты
+	 * @param u_location Идентификатор uniform'ы
+	 * @param mtrx Матрица трансформации 3*3
+	 * @return true, если uniform'а существует, иначе false
+	 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getNormalMatrixUniformLocation()
+	 * @warning Матрица трансформации имеет размер 3*3, в отличие от остальных методов!
+	 */
+	bool loadNormalMatrix(int32_t u_location, float mtrx[3][3]) noexcept;
+
+	/**
 	@brief Загружает соотношение экрана в геометрический шейдер\n
 	Позволяет сохранять масштаб при изменении размеров экрана
 	@param u_location Идентификатор uniform'ы
@@ -506,7 +557,7 @@ public:
 	 * @return true, если uniform'а существует, иначе false
 	 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getLightPositionUniformLocation()
 	 */
-	bool loadLightPosition(int32_t u_location, const Point3D& position) noexcept;
+	bool loadLightPosition(int32_t u_location, float x, float y, float z) noexcept;
 
 	/**
 	 * @brief Загружает координаты камеры в вершинный шейдер\n
@@ -516,7 +567,17 @@ public:
 	 * @return true, если uniform'а существует, иначе false
 	 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getCameraPositionUniformLocation()
 	 */
-	bool loadCameraPosition(int32_t u_location, const Point3D& position) noexcept;
+	bool loadCameraPosition(int32_t u_location, float x, float y, float z) noexcept;
+
+
+	/**
+	 * @brief Задает способ отображения фигуры
+	 * @param u_location Идентификатор uniform'ы
+	 * @param displayType Тип отображения объекта
+	 * @return true, если uniform'а существует, иначе false
+	 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getDisplayTypeUniformLocation()
+	 */
+	bool loadDisplayType(int32_t u_location, DisplayType displayType) noexcept;
 
 	/**
 	@brief Отрисовка фигуры\n

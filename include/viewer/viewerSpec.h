@@ -207,6 +207,16 @@ class TransformMatrix {
 private:
 	float mtrx_[4][4]; ///< Хранение матрицы 4*4
 
+	/**
+	 * Вычисляет минор - определитель матрицы 3*3, получаемой путем
+	 * вычеркивания из исходной матрицы элемента (i, j)
+	 * @param i Индекс элемента по вертикали
+	 * @param j Индекс элемента по горизонтали
+	 * @return определитель подматрицы 3*3
+	 */
+	float calc_minor(int i, int j) const noexcept;
+	float det() const noexcept; ///< Вычисление определителя матрицы
+	TransformMatrix calcComplements() const noexcept; ///< Вычисление матрицы алгебраических дополнений
 public:
 	
 	TransformMatrix() noexcept; ///< Конструктор по умолчанию, создает единичную матрицу
@@ -215,6 +225,9 @@ public:
 	// Операторы
 	TransformMatrix& operator=(const TransformMatrix& other) noexcept;
 	TransformMatrix operator*(const TransformMatrix& other) const noexcept;
+
+	TransformMatrix inverse() const noexcept; ///< Создание новой инвертированной матрицы
+	TransformMatrix transpose() const noexcept; ///< Создание новой транспонированной матрицы
 	
 	/**
 	@brief Изменение координаты точки путем умножения ее координаты на аффинную матрицу\n
@@ -242,7 +255,6 @@ public:
 class TransformMatrixBuilder {
 
 public:
-
 	/**
 	 * @brief Создание комбинированной матрицы поворота
 	 * @param x_deg Угол поворота вокруг оси X (градусы)

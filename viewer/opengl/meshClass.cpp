@@ -30,12 +30,16 @@ void Mesh::loadData(const Figure& figure) noexcept {
 
 	// Создаем плоские буферы исключительно из POD-типов (Plain Old Data)
 	std::vector<float> raw_vertices;
-	raw_vertices.reserve(vertices.size() * 3);
+	raw_vertices.reserve(vertices.size() * 6);
 	
 	for (const auto& v : vertices) {
 		raw_vertices.push_back(v.getPosition().x);
 		raw_vertices.push_back(v.getPosition().y);
 		raw_vertices.push_back(v.getPosition().z);
+
+		raw_vertices.push_back(v.getNormale().x);
+		raw_vertices.push_back(v.getNormale().y);
+		raw_vertices.push_back(v.getNormale().z);
 	}
 
 	std::vector<uint32_t> raw_indices;
@@ -55,9 +59,12 @@ void Mesh::loadData(const Figure& figure) noexcept {
 
 	vao_.use();
 
-	// Шаг ровно 12 байт (3 координаты)
-	// Смещение 0, так как массив чистый
-	vbo_.setAttrib(3 * sizeof(float), (void*) 0, 0);
+	// Первые три переменные в блоке относятся к координатам, смещение 0
+	vbo_.setAttrib(6 * sizeof(float), (void*) 0, 0);
+
+	// указываем, как в буфере расположены векторы нормалей
+	// Векторы нормалей идут после 3 float переменных, поэтому смещение 3 * sizeof(float)
+	vbo_.setAttrib(6 * sizeof(float), (void*) (3 * sizeof(float)), GL_FLOAT);
 
 	std::cout << "\tСохраняем количество обрабатываемых вершин и ребер:\n";
 	count_vertices_ = vertices.size();
@@ -208,6 +215,17 @@ bool Mesh::loadProjectionMatrix(GLint uniform_location, float mtrx[4][4]) noexce
 	return true;
 }
 
+bool Mesh::loadNormalMatrix(GLint uniform_location, float mtrx[3][3]) noexcept {
+	if (uniform_location == -1) {
+		std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+		return false;
+	}
+
+	glUniformMatrix3fv(uniform_location, 1, GL_TRUE, &mtrx[0][0]);
+	return true;
+}
+
+
 bool Mesh::loadAspectRatio(GLint uniform_location, float ratio) noexcept {
 
 	if(uniform_location == -1) {
@@ -229,25 +247,36 @@ bool Mesh::loadAspectRatio(GLint uniform_location, float ratio) noexcept {
 		return true;
 	}
 
-	bool Mesh::loadLightPosition(int32_t u_location, const Point3D &position) noexcept {
+	bool Mesh::loadLightPosition(int32_t u_location, float x, float y, float z) noexcept {
 		if (u_location == -1) {
 			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
 			return false;
 		}
 
-		glUniform3f(u_location, position.x, position.y, position.z);
+		glUniform3f(u_location, x, y, z);
 		return true;
 	}
 
-	bool Mesh::loadCameraPosition(int32_t u_location, const Point3D &position) noexcept {
+	bool Mesh::loadCameraPosition(int32_t u_location, float x, float y, float z) noexcept {
 		if (u_location == -1) {
 			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
 			return false;
 		}
 
-		glUniform3f(u_location, position.x, position.y, position.z);
+		glUniform3f(u_location, x, y, z);
 		return true;
 	}
+
+bool Mesh::loadDisplayType(int32_t u_location, DisplayType displayType) noexcept {
+	if (u_location == -1) {
+		std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+		return false;
+	}
+
+	glUniform1i(u_location, static_cast<int>(displayType));
+	return true;
+}
+
 
 void Mesh::render() noexcept {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
