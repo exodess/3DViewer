@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <charconv>
+#include <random>
 
 namespace s21 {
 
@@ -66,30 +67,32 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 				unsigned int vert_index = 0;
 				unsigned int uv_index = 0;
 				unsigned int norm_index = 0;
-				// Считываем индекс вершины, индекс UV-координату и индекс нормали
-				// f v/vt/vn
+				// Считываем индекс вершины, индекс UV-координаты и индекс нормали
+				// f v1/vt1/vn1 v2/vt2/vn2 ...
 
 				if(ss >> word) {
 					// считываем индекс координаты вершины из списка
 					std::getline(std::stringstream(word), temp, '/');
 					std::from_chars(temp.data(), temp.data() + word.size(), vert_index);
 
+					std::string str_vt = (word.find('/') != std::string::npos) ? word.substr(word.find('/') + 1) : "0";
 					// считываем индекс нужной UV-координаты из списка
-					std::getline(std::stringstream(word), temp, '/');
-					std::from_chars(temp.data(), temp.data() + word.size(), uv_index);
+					std::getline(std::stringstream(str_vt), temp, '/');
+					std::from_chars(temp.data(), temp.data() + temp.size(), uv_index);
 
 					// считываем последнее число - индекс нормали вершины
-					std::from_chars(temp.data(), temp.data() + word.size(), norm_index);
+					std::string str_vn = (str_vt.find('/') != std::string::npos) ? str_vt.substr(str_vt.find('/') + 1) : "0";
+					std::from_chars(str_vn.data(), str_vn.data() + str_vn.size(), norm_index);
 				}
 
 				list_ind[i] = vert_index;
-				if (norm_index > 0) {
-					vertices[vert_index].setNormals(normals_coordinates[norm_index - 1]);
+				if (norm_index > 0 && normals_coordinates.size() >= norm_index) {
+					vertices[vert_index - 1].setNormals(normals_coordinates[norm_index - 1]);
 				}
 			}
 			edges.push_back( Edge(list_ind[0], list_ind[1]) );
+			edges.push_back( Edge(list_ind[0], list_ind[2]) );
 			edges.push_back( Edge(list_ind[1], list_ind[2]) );
-			edges.push_back( Edge(list_ind[2], list_ind[0]) );
 		}
 		else if (word == normale_prefix) {
 			// считываем нормали, их всегда 3
