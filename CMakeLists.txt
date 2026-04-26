@@ -22,6 +22,7 @@ file(GLOB viewer_src_files "viewer/classes/*.cpp")
 file(GLOB opengl_src_files "viewer/opengl/*.cpp")
 file(GLOB gui_src_files "ui/*.cpp" "include/ui/*.h")
 file(GLOB glad_src_files "dependencies/src/glad.c")
+file(GLOB gtest_src_files "gtest/*.cpp")
 
 # Копируем нужные ресурсы в директорию сборки
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders/shader.vert"
@@ -65,3 +66,32 @@ target_link_libraries(3DViewer
 	Qt6::Widgets
 	Qt6::OpenGLWidgets
 )
+
+# ---------------------------
+# тестирование с помощью GTest
+# ----------------------------
+
+# Собираем в режиме отладки
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+find_package(GTest REQUIRED)
+include(GoogleTest)
+
+enable_testing() # чтобы можно было запускать через ctest
+
+add_executable(TestViewer ${gtest_src_files})
+
+target_compile_definitions(TestViewer PRIVATE
+		SHADERS_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders/"
+		TEST_SHAPES_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/gtest/"
+)
+
+target_include_directories(TestViewer PUBLIC)
+target_link_libraries(TestViewer
+		ViewerClasses
+		GTest::gtest_main
+)
+
+gtest_discover_tests(TestViewer)
