@@ -58,6 +58,15 @@ TransformMatrix TransformMatrix::operator*(const TransformMatrix& other) const n
     return result;
 }
 
+float& TransformMatrix::operator()(int i, int j) {
+    if (i < 0 || j < 0 ||i > 3 || j > 3) {
+        throw std::out_of_range("Out of range TransformMatrix!");
+        return mtrx_[0][0];
+    }
+
+    return mtrx_[i][j];
+}
+
 Point3D TransformMatrix::TransformPoint(const Point3D& point) const noexcept {
     // Трансформация точки с использованием однородных координат
     // [x']   [m00 m01 m02 m03]   [x]
@@ -97,21 +106,6 @@ Point3D TransformMatrix::TransformPoint(const Point3D& point) const noexcept {
     return Point3D(result_x, result_y, result_z);
 }
 
-float TransformMatrix::GetElement(size_t row, size_t col) const noexcept {
-    // Получение элемента матрицы
-    if (row < 4 && col < 4) {
-        return mtrx_[row][col];
-    }
-    return 0.0f;
-}
-
-void TransformMatrix::SetElement(size_t row, size_t col, float value) noexcept {
-    // Установка элемента матрицы
-    if (row < 4 && col < 4) {
-        mtrx_[row][col] = value;
-    }
-}
-
 TransformMatrix TransformMatrix::Identity() noexcept {
     // Возврат единичной матрицы
     return TransformMatrix();
@@ -127,30 +121,28 @@ float TransformMatrix::calc_minor(int i, int j) const noexcept {
         int kj = 0;
         if (i != ki) {
             for (int b = 0; b < 3; ++b) {
-                if (kj != i)
+                if (kj != j)
                     temp[a][b] = mtrx_[ki][kj];
+                else b--;
                 kj++;
             }
-        };
+        }
+        else a--;
 
         ki ++;
     }
 
-    for (int a = 0; i < 3; ++i) {
-        float temp_temp[2][2];
+    for (int a = 0; a < 3; ++a) {
+        float positive_mul = 1.0f;
+        float negative_mul = 1.0f;
 
-        // копируем матрицу и находим определитель
-        for (int aa = 0; aa < 2; ++aa) {
-            int kk = 0;
-            for (int bb = 0; bb < 2; ++bb) {
-                if (kk != j)
-                    temp_temp[aa][bb] = temp[aa + 1][kk];
-                kk++;
-            }
+        for (int b = 0; b < 3; ++b) {
+            positive_mul *= temp[(a + b) % 3][b];
+            negative_mul *= temp[b][(6 - a - b) % 3];
         }
-        float simple_det = temp_temp[0][0] * temp_temp[1][1] - temp_temp[0][1] * temp_temp[1][0];
 
-        sub_det += (j % 2 == 0) ? simple_det * temp[0][j] : -simple_det * temp[0][j];
+        sub_det += positive_mul;
+        sub_det -= negative_mul;
     }
 
     return ((i + j) % 2 == 0) ? sub_det : -sub_det;

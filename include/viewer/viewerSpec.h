@@ -207,6 +207,7 @@ class TransformMatrix {
 private:
 	float mtrx_[4][4]; ///< Хранение матрицы 4*4
 
+public:
 	/**
 	 * Вычисляет минор - определитель матрицы 3*3, получаемой путем
 	 * вычеркивания из исходной матрицы элемента (i, j)
@@ -217,29 +218,26 @@ private:
 	float calc_minor(int i, int j) const noexcept;
 	float det() const noexcept; ///< Вычисление определителя матрицы
 	TransformMatrix calcComplements() const noexcept; ///< Вычисление матрицы алгебраических дополнений
-public:
-	
+
 	TransformMatrix() noexcept; ///< Конструктор по умолчанию, создает единичную матрицу
 	TransformMatrix(const TransformMatrix& other) noexcept;
 	
 	// Операторы
 	TransformMatrix& operator=(const TransformMatrix& other) noexcept;
 	TransformMatrix operator*(const TransformMatrix& other) const noexcept;
+	float& operator()(int i, int j) ; ///< Получение элемента матрицы
 
 	TransformMatrix inverse() const noexcept; ///< Создание новой инвертированной матрицы
 	TransformMatrix transpose() const noexcept; ///< Создание новой транспонированной матрицы
-	
+
 	/**
 	@brief Изменение координаты точки путем умножения ее координаты на аффинную матрицу\n
 	@param point Координата точки в трехмерном пространстве
 	@return Новая координата точки после преобразования
 	*/
 	Point3D TransformPoint(const Point3D& point) const noexcept;
-	
-	// Геттеры и сеттеры
-	float GetElement(size_t row, size_t col) const noexcept; ///< Получение значение конкретной ячейки матрицы
-	void SetElement(size_t row, size_t col, float value) noexcept; ///< Установка значения в конкретной ячейке матрицы
-	
+
+
 	/**
 	@brief Статический метод получения начальной матрицы
 	@return Единичная матрица 4*4

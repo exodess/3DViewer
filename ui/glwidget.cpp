@@ -249,7 +249,7 @@ void GLWidget::setNewModelMatrix() noexcept {
 
 		for(int i = 0; i < 4; ++i) {
 			for(int j = 0; j < 4; ++j) {
-				global_matrix[i][j] = modelMatrix_.GetElement(i, j);
+				global_matrix[i][j] = modelMatrix_(i, j);
 			}
 		}
 
@@ -263,7 +263,7 @@ void GLWidget::setNewModelMatrix() noexcept {
 
 		for(int i = 0; i < 3; ++i) {
 			for(int j = 0; j < 3; ++j) {
-				normal_matrix[i][j] = normal.GetElement(i, j);
+				normal_matrix[i][j] = normal(i, j);
 			}
 		}
 		mesh_->loadNormalMatrix(
@@ -285,7 +285,7 @@ void GLWidget::setNewViewMatrix(float zoomFactor) noexcept {
 	if(mesh_ && shaderProgram_) {
 		for(int i = 0; i < 4; ++i) {
 	 		for(int j = 0; j < 4; ++j) {
-	 			global_matrix[i][j] = viewMatrix_.GetElement(i, j);
+	 			global_matrix[i][j] = viewMatrix_(i, j);
 	 		}
 		}
 
@@ -322,7 +322,7 @@ void GLWidget::setNewProjectionType(ProjectionType type) noexcept {
 
 		for(int i = 0; i < 4; ++i) {
 			for(int j = 0; j < 4; ++j) {
-				global_matrix[i][j] = projectionMatrix_.GetElement(i, j);
+				global_matrix[i][j] = projectionMatrix_(i, j);
 			}
 		}
 
