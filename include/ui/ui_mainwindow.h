@@ -57,6 +57,14 @@ public:
     QDoubleSpinBox* spin_scaleY;
     QDoubleSpinBox* spin_scaleZ;
 
+    // Настройка источника света
+    QHBoxLayout *lightLayout;
+    QDoubleSpinBox *light_transX;
+    QDoubleSpinBox *light_transY;
+    QDoubleSpinBox *light_transZ;
+    QPushButton *btn_LightColor;
+
+
     // Снизу: Инфо-панель
     QHBoxLayout *infoLayout;
     QLabel *label_FileInfo;
@@ -191,6 +199,22 @@ public:
         }
         settingsLayout->addLayout(scaleLayout);
 
+        // ===========================
+        // --- НАСТРОЙКА ОСВЕЩЕНИЯ ---
+        // ===========================
+        settingsLayout->addWidget(new QLabel("--- ИСТОЧНИК СВЕТА ---"));
+        lightLayout = new QHBoxLayout();
+        light_transX = new QDoubleSpinBox(); light_transY = new QDoubleSpinBox(); light_transZ = new QDoubleSpinBox();
+        for(auto s : {light_transX, light_transY, light_transZ}) {
+            s->setRange(-10.0, 10.0);
+            s->setSingleStep(0.1);
+            lightLayout->addWidget(s);
+        }
+        settingsLayout->addLayout(lightLayout);
+
+        btn_LightColor = new QPushButton("Цвет источника света");
+        settingsLayout->addWidget(btn_LightColor);
+
         settingsLayout->addStretch(); // Пружина вниз
 
         // Добавляем панель в горизонтальный слой
@@ -204,8 +228,8 @@ public:
         // ===========================
         infoLayout = new QHBoxLayout();
         label_FileInfo = new QLabel("Файл: не выбран");
-        label_VertexCount = new QLabel("Вершин: 0");
-        label_EdgeCount = new QLabel("Ребер: 0");
+        label_VertexCount = new QLabel("");
+        label_EdgeCount = new QLabel("");
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         infoLayout->addWidget(label_FileInfo);

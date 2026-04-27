@@ -34,6 +34,8 @@ private slots:
     void on_btn_BackgroundColor_clicked();
     void onCameraZoomChanged(int value);
 
+    void on_btn_LightColor_clicked();
+
 private:
     void loadScene(const QString& path);
     void updateInfoLabels();
@@ -43,8 +45,6 @@ private:
     GLWidget *glWidget_;
     Viewer *viewer_;
     QString currentFileName_;
-    int vertexCount_; // можно убрать
-    int edgeCount_; // можно убрать
 };
 
 } // namespace s21

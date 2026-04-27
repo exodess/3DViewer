@@ -10,8 +10,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , glWidget_(nullptr)
     , viewer_(nullptr)
-    , vertexCount_(0)
-    , edgeCount_(0)
 {
 	ui->setupUi(this);
 	this->setMinimumSize(300, 650);
@@ -32,7 +30,6 @@ MainWindow::~MainWindow() {
 
 void MainWindow::connectSignals() noexcept {
 
-	connect(ui->btn_BackgroundColor, &QPushButton::clicked, this, &MainWindow::on_btn_BackgroundColor_clicked);
 	connect(ui->slider_Zoom, &QSlider::valueChanged, this, &MainWindow::onCameraZoomChanged);
 
 	// СОЕДИНЕНИЕ СИГНАЛОВ МЕНЮ (Actions)
@@ -45,8 +42,10 @@ void MainWindow::connectSignals() noexcept {
 	connect(ui->action_SmoothShading, &QAction::triggered, this, &MainWindow::on_action_SmoothShading_triggered);
 
 	// СОЕДИНЕНИЕ КНОПОК ЦВЕТА
+	connect(ui->btn_BackgroundColor, &QPushButton::clicked, this, &MainWindow::on_btn_BackgroundColor_clicked);
 	connect(ui->btn_VertexColor, &QPushButton::clicked, this, &MainWindow::on_btn_VertexColor_clicked);
 	connect(ui->btn_EdgeColor, &QPushButton::clicked, this, &MainWindow::on_btn_EdgeColor_clicked);
+	connect(ui->btn_LightColor, &QPushButton::clicked, this, &MainWindow::on_btn_LightColor_clicked);
 
 	// Соединяем Спинбоксы размеров
 	connect(ui->spin_VertexSize, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
@@ -65,12 +64,14 @@ void MainWindow::connectSignals() noexcept {
 		glWidget_->setTranslation(ui->spin_transX->value(), ui->spin_transY->value(), ui->spin_transZ->value());
 		glWidget_->setRotation(ui->spin_rotX->value(), ui->spin_rotY->value(), ui->spin_rotZ->value());
 		glWidget_->setScale(ui->spin_scaleX->value(), ui->spin_scaleY->value(), ui->spin_scaleZ->value());
+		glWidget_->setNewLightPosition(ui->light_transX->value(), ui->light_transY->value(), ui->light_transZ->value());
 	};
 
 	// Соединяем все спинбоксы с обновлением
 	for(auto s : {ui->spin_transX, ui->spin_transY, ui->spin_transZ, 
 	              ui->spin_rotX, ui->spin_rotY, ui->spin_rotZ,
-	              ui->spin_scaleX, ui->spin_scaleY, ui->spin_scaleZ}) {
+	              ui->spin_scaleX, ui->spin_scaleY, ui->spin_scaleZ,
+	              ui->light_transX, ui->light_transY, ui->light_transZ}) {
 	    connect(s, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, updateTransform);
 	}
 
@@ -78,6 +79,8 @@ void MainWindow::connectSignals() noexcept {
 	ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getVertexColor().name()));
 	ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getEdgeColor().name()));
 	ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getBackgroundColor().name()));
+	ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getLightColor().name()));
+
 	ui->spin_VertexSize->setValue(glWidget_->getVertexSize());
 	ui->spin_EdgeWidth->setValue(glWidget_->getEdgeSize());
 	if(glWidget_->getEdgeMode() == 0) {
@@ -183,6 +186,19 @@ void MainWindow::on_btn_BackgroundColor_clicked() {
 	}
 }
 
+void MainWindow::on_btn_LightColor_clicked() {
+	QColor color = QColorDialog::getColor(Qt::blue, this, "Выберите цвет источника освещения");
+
+	if (color.isValid()) {
+		float r = color.redF();
+		float g = color.greenF();
+		float b = color.blueF();
+		glWidget_->setNewLightColor(r, g, b);
+
+		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
+	}
+}
+
 // Слот для передвижения камеры
 
 void MainWindow::onCameraZoomChanged(int value) {
@@ -198,12 +214,12 @@ void MainWindow::loadScene(const QString& path) {
 	if (result.isSuccess()) {
 		currentFileName_ = QFileInfo(path).fileName();
 		viewer_->DrawScene();
-		vertexCount_ = static_cast<int>(glWidget_->countVertices());
-		edgeCount_ = static_cast<int>(glWidget_->countEdges());
+		int vertexCount_ = static_cast<int>(glWidget_->countVertices());
+		int edgeCount_ = static_cast<int>(glWidget_->countSurfaces());
 		updateInfoLabels();
 		ui->statusbar->showMessage("Загружено: " + currentFileName_);
 		std::cout << "[MainWindow] Файл загружен: " << currentFileName_.toStdString() 
-		          << " | Вершин: " << vertexCount_ << " | Рёбер: " << edgeCount_ << "\n";
+		          << " | Вершин: " << vertexCount_ << " | Поверхностей: " << edgeCount_ << "\n";
 	} 
 
 	else {
@@ -215,8 +231,8 @@ void MainWindow::loadScene(const QString& path) {
 
 void MainWindow::updateInfoLabels() {
 	ui->label_FileInfo->setText("Файл: " + (currentFileName_.isEmpty() ? "не выбран" : currentFileName_));
-	ui->label_VertexCount->setText("Вершин: " + QString::number(vertexCount_));
-	ui->label_EdgeCount->setText("Рёбер: " + QString::number(edgeCount_));
+	ui->label_VertexCount->setText("Вершин: " + QString::number(static_cast<int>(glWidget_->countVertices())));
+	ui->label_EdgeCount->setText("Поверхностей: " + QString::number(static_cast<int>(glWidget_->countSurfaces())));
 }
 
 void MainWindow::on_action_Exit_triggered() {
