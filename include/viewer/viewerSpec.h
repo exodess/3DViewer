@@ -18,10 +18,10 @@
 Классы, описанные в данном файле, осуществляют хранение информации о том, как будет представлены объекты в памяти 
 и как ими управлять
 
-Загружаемая фигура поддерживает только список вершин и поверхностей\n
+Загружаемая фигура поддерживает только список вершин, поверхностей и нормалей\n
 
-- Vertex - вершина
-- Edge - ребро фигуры (две вершины)
+- Vertex - координата точки и ее вектор нормали
+- Surface - поверхность фигуры (3 вершины)
 
 При проектировании данного проекта были использованы несколько паттернов проектирования:
 - классы BaseSceneObject, Figure и Vertex реализуют паттерн Strategy
@@ -50,7 +50,7 @@ class BaseSceneObject;
 class Viewer;
 class Scene;
 class Figure;
-class Edge;
+class Surface;
 class Vertex;
 
 class TransformMatrix;
@@ -133,7 +133,7 @@ public:
 @brief Абстрактный базовый класс, от которого наследуются все объекты, находящиеся на сцене\n
 Предоставляет интерфейс для классов-наследников, как они должны быть реализованы
 
-@note От данного класса наследуются классы Figure, Edge, Vertex
+@note От данного класса наследуются классы Figure, Surface, Vertex
 */
 class BaseSceneObject {
 
@@ -441,29 +441,26 @@ public:
 	
 };
 
-// ==================================
-// ========== Edge (Ребро) ==========
-// ==================================
+// =================================
+// ===== Surface (Поверхность) =====
+// =================================
 
-class Edge {
+class Surface {
 
 private:
-	uint32_t begin_; ///< Индекс начальной вершины ребра
-	uint32_t end_; ///< Индекс конечной вершины ребра
+	std::vector<uint32_t> indices_; ///< Индексы вершин из списка, считанного из файла
 
 public:
 	/**
-	@brief Инициализация ребра из двух вершин
-	@param v1 Индекс первой вершины
-	@param v2 Индекс второй вершины
+	@brief Инициализация поверхности из двух вершин
+	@param ind1 Индекс первой вершины
+	@param ind2 Индекс второй вершины
+	@param ind3 Индекс третьей вершины
 	*/
-	Edge(uint32_t v1, uint32_t v2) noexcept;
-	Edge(const Edge&) noexcept;
-	Edge& operator=(const Edge&) noexcept;
-	bool operator==(const Edge&) const noexcept; ///< Два ребра равны, если равны попарно индексы двух вершин
+	Surface(uint32_t ind1, uint32_t ind2, uint32_t ind3) noexcept;
+	bool operator==(const Surface&) const noexcept; ///< Две поверхности равны, если равны попарно индексы трех вершин
 
-	uint32_t getBegin() const noexcept; ///< Получение индекса начальной вершины
-	uint32_t getEnd() const noexcept; ///< Получение индекса конечной вершины
+	uint32_t operator[](int i) const noexcept; ///< Доступ к индексам поверхности
 
 };
 
@@ -532,15 +529,13 @@ public:
 /**
 @class Figure
 @brief Представляет собой класс для хранения информации о целой фигуре\n
-Фигура - это множество вершин и ребер(связей между вершинами)\n
-Множество фигур образуют сцену Scene
+Фигура - это множество вершин и поверхностей(связей между вершинами)\n
 */
 class Figure : public BaseSceneObject {
 
 private:
 	std::vector<Vertex> vertices_; ///< Множество вершин (координат в трехмерном пространстве)
-	std::vector<Edge> edges_; ///< Множество ребер (связей между вершинами)
-	std::vector<Vertex> normales_;
+	std::vector<Surface> surfaces_; ///< Множество поверхностей (связей между вершинами)
 
 public:
 
@@ -548,14 +543,12 @@ public:
 	/**
 	@brief Создание фигуры из исходного множества вершин и ребер
 	@param vertices Считанные вершины
-	@param edges Считанные ребра
+	@param Surfaces Считанные поверхности
 	*/
-	Figure(std::vector<Vertex>& vertices, std::vector<Edge>& edges) noexcept;
-	Figure(const Figure&) noexcept;
-	Figure& operator=(const Figure&) noexcept; 
+	Figure(std::vector<Vertex>& vertices, std::vector<Surface>& Surfaces) noexcept;
 	
 	const std::vector<Vertex>& getVertices() const noexcept; ///< Доступ к списку вершин фигуры
-	const std::vector<Edge>& getEdges() const noexcept; ///< Доступ к списку ребер фигуры
+	const std::vector<Surface>& getSurfaces() const noexcept; ///< Доступ к списку поверхностей фигуры
 
 	void Transform(const TransformMatrix&) override; ///< Не используется
 
@@ -578,7 +571,7 @@ private:
 
 public:
 
-	Scene(Figure) noexcept; ///< Инициализация сцены
+	Scene(const Figure& figure) noexcept; ///< Инициализация сцены фигурой
  
 	Figure& getFigure() noexcept; ///< Получение текущей фигуры
 	const Figure& getFigure() const noexcept;

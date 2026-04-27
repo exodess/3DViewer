@@ -33,7 +33,7 @@ public:
 
     void DrawScene(Scene& scene) override;
     uint32_t countVertices() noexcept;
-    uint32_t countEdges() noexcept;
+    uint32_t countSurfaces() noexcept;
 
     void setRotation(float x, float y, float z) noexcept;
     void setTranslation(float x, float y, float z) noexcept;

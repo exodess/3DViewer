@@ -1,19 +1,21 @@
 #version 430 core
 
 // Принимаем линии (по 2 вершины)
-layout (lines) in;
+layout (triangles) in;
 
 // Выдаем 4 вершины на ребро + 2 раза по 4 вершины на точки = 12 вершин
-layout (triangle_strip, max_vertices = 12) out;
+layout (triangle_strip, max_vertices = 27) out;
 
 uniform float u_edgesSize;
 uniform float u_vertSize;
 uniform float u_aspectRatio;
+uniform int u_displayType; // 0 - каркасная модель, иначе отрисовка с освещением
 
 // Данные, передаваемые в фрагментный шейдер
 out vec2 vTexCoord;
 out float vLineDist;
 flat out int vIsPoint;
+flat out int displayType;
 
 in vec3 Camera_vertex[];
 in vec3 Light_vertex[];
@@ -25,20 +27,22 @@ out vec3 Light_v;
 out vec3 Vertex_v;
 out vec3 Normal_v;
 
-// Генерация квадрата (точки) вокруг позиции
-void emitPoint(vec4 center, float size, int index) {
-    if (center.w <= 0.0) return; // Защита от точек за камерой
-    vIsPoint = 1;
-    float s = size / 2.0;
-    vec2 point = center.xy / center.w;
-
-    vec2 offset = vec2(s / u_aspectRatio, s);
-
-    // Передаем данные освещения
+void setLightSettings(int index) {
     Camera_v = Camera_vertex[index];
     Light_v = Light_vertex[index];
     Vertex_v = Vertex_view[index];
     Normal_v = Normal_vertex[index];
+
+    gl_Position = gl_in[index].gl_Position;
+}
+
+// Генерация квадрата (точки) вокруг позиции
+void emitPoint(vec4 center, float size) {
+    if (center.w <= 0.0) return; // Защита от точек за камерой
+    vIsPoint = 1;
+    float s = size / 2.0;
+    vec2 point = center.xy / center.w;
+    vec2 offset = vec2(s / u_aspectRatio, s);
 
     // Левый низ
     vTexCoord = vec2(0.0, 0.0);
@@ -84,18 +88,10 @@ void emitEdge(vec4 begin, vec4 end) {
     
     // Возвращаем в Clip Space, умножая обратно на w
     vLineDist = 0.0;
-    Camera_v = Camera_vertex[0];
-    Light_v = Light_vertex[0];
-    Vertex_v = Vertex_view[0];
-    Normal_v = Normal_vertex[0];
     gl_Position = vec4((point_begin + offset) * begin.w, begin.z, begin.w); EmitVertex();
     gl_Position = vec4((point_begin - offset) * begin.w, begin.z, begin.w); EmitVertex();
     
     vLineDist = len;
-    Camera_v = Camera_vertex[1];
-    Light_v = Light_vertex[1];
-    Vertex_v = Vertex_view[1];
-    Normal_v = Normal_vertex[1];
     gl_Position = vec4((point_end + offset) * end.w, end.z, end.w); EmitVertex();
     gl_Position = vec4((point_end - offset) * end.w, end.z, end.w); EmitVertex();
     
@@ -103,14 +99,36 @@ void emitEdge(vec4 begin, vec4 end) {
 }
 
 void main() {
-    // Забираем 2 вершины, составляющие текущую линию
+
+    displayType = u_displayType;
+
+    // Три вершины образуют треугольник
     vec4 p0 = gl_in[0].gl_Position;
     vec4 p1 = gl_in[1].gl_Position;
+    vec4 p2 = gl_in[2].gl_Position;
 
-    // 1. Отрисовываем ребро между ними
-    emitEdge(p0, p1);
+    if(u_displayType == 0) {
+        // каркасная фигура
 
-    // 2. Отрисовываем точки на обоих концах ребра
-    emitPoint(p0, u_vertSize, 0);
-    emitPoint(p1, u_vertSize, 1);
+        // 2. Отрисовываем вершины треугольника
+        emitPoint(p0, u_vertSize);
+        emitPoint(p1, u_vertSize);
+        emitPoint(p2, u_vertSize);
+
+        // 1. Отрисовываем ребра между вершинами
+        emitEdge(p0, p1);
+        emitEdge(p1, p2);
+        emitEdge(p0, p2);
+    }
+
+    else {
+        // Режим освещения
+
+        for(int i = 0; i < 3; ++i) {
+            setLightSettings(i);
+            EmitVertex();
+        }
+        EndPrimitive();
+    }
+
 }

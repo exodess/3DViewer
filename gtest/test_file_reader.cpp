@@ -15,13 +15,13 @@ TEST(ViewerClasses, FileReader_without_normales_Test) {
     s21::Scene* result = reader.ReadScene(file1, {0.0f, 0.0f, 0.0f, 0.0f});
 
     auto vertices = result->getFigure().getVertices();
-    auto edges = result->getFigure().getEdges();
+    auto surfaces = result->getFigure().getSurfaces();
 
     // test1.vobj содержит 5 вершин (после парсинга)
     EXPECT_EQ(vertices.size(), 5);
 
-    // test1.vobj содержит 18 рёбер (6 граней * 3 ребра = 18, или меньше если есть дубликаты)
-    EXPECT_EQ(edges.size(), 18);
+    // test1.vobj содержит 6 граней - 6 строк, начинающихся с 'f'
+    EXPECT_EQ(surfaces.size(), 6);
 
     // Проверяем что вершины не пустые и находятся в разумных пределах после нормализации
     for(size_t i = 0; i < vertices.size(); ++i) {
@@ -38,10 +38,10 @@ TEST(ViewerClasses, FileReader_with_normales_Test) {
     s21::Scene* result = reader.ReadScene(file1, {0.0f, 0.0f, 0.0f, 0.0f});
 
     auto vertices = result->getFigure().getVertices();
-    auto edges = result->getFigure().getEdges();
+    auto surfaces = result->getFigure().getSurfaces();
 
     ASSERT_EQ(vertices.size(), 6);
-    ASSERT_EQ(edges.size(), 6);
+    ASSERT_EQ(surfaces.size(), 2);
 
     auto file_normales = std::vector<s21::Point3D> {
         s21::Point3D(0.0, 0.0, 0.0),
@@ -51,12 +51,8 @@ TEST(ViewerClasses, FileReader_with_normales_Test) {
     };
 
     auto indices_normales = std::vector<uint32_t> {
-        0, 0,
-        0, 3,
-        0, 3,
-        1, 2,
-        1, 0,
-        2, 0
+        0, 0, 3,
+        1, 2, 0
     };
 
     for (auto v : vertices) {
@@ -66,10 +62,9 @@ TEST(ViewerClasses, FileReader_with_normales_Test) {
     }
 
     int i = 0;
-    for (auto e : edges) {
-        EXPECT_TRUE(vertices[e.getBegin() - 1].getNormale() == file_normales[indices_normales[i]]);
-        i++;
-        EXPECT_TRUE(vertices[e.getEnd() - 1].getNormale() == file_normales[indices_normales[i]]);
-        i++;
+    for (auto f : surfaces) {
+        EXPECT_TRUE(vertices[f[0] - 1].getNormale() == file_normales[indices_normales[i++]]);
+        EXPECT_TRUE(vertices[f[1] - 1].getNormale() == file_normales[indices_normales[i++]]);
+        EXPECT_TRUE(vertices[f[2] - 1].getNormale() == file_normales[indices_normales[i++]]);
     }
 }

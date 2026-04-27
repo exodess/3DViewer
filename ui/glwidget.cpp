@@ -215,7 +215,7 @@ void GLWidget::DrawScene(Scene& scene) {
 	setNewBackgroundColor(backColor_.x, backColor_.y, backColor_.z);
 
 	std::cout << "[GLWidget] Сцена отрисована | Вершин: " << countVertices()
-	          << " | Поверхностей: " << countEdges() << "\n";
+	          << " | Поверхностей: " << countSurfaces() << "\n";
 
 	mesh_->render();
 	update();
@@ -564,8 +564,8 @@ uint32_t GLWidget::countVertices() noexcept {
     return mesh_ ? mesh_->countVertices() : 0;
 }
 
-uint32_t GLWidget::countEdges() noexcept {
-    return mesh_ ? mesh_->countEdges() : 0;
+uint32_t GLWidget::countSurfaces() noexcept {
+    return mesh_ ? mesh_->countSurfaces() : 0;
 }
 
 void GLWidget::compileShaders() {

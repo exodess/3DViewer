@@ -7,8 +7,8 @@ GLuint Mesh::countVertices() noexcept {
 	return count_vertices_;
 }
 
-GLuint Mesh::countEdges() noexcept {
-	return count_edges_;
+GLuint Mesh::countSurfaces() noexcept {
+	return count_surfaces_;
 }
 
 Mesh::Mesh() noexcept :
@@ -16,7 +16,7 @@ Mesh::Mesh() noexcept :
 	vbo_{BO(GL_ARRAY_BUFFER)},
 	ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
 	count_vertices_{0},
-	count_edges_{0} {
+	count_surfaces_{0} {
 
 	std::cout << "[Mesh] Создание объекта класса Mesh\n";
 }
@@ -24,7 +24,7 @@ Mesh::Mesh() noexcept :
 void Mesh::loadData(const Figure& figure) noexcept {
 
 	auto vertices = figure.getVertices();
-	auto edges = figure.getEdges();
+	auto surfaces = figure.getSurfaces();
 
 	if (vertices.empty()) return;
 
@@ -43,11 +43,12 @@ void Mesh::loadData(const Figure& figure) noexcept {
 	}
 
 	std::vector<uint32_t> raw_indices;
-	raw_indices.reserve(edges.size() * 2);
+	raw_indices.reserve(surfaces.size() * 3);
 	
-	for (const auto& e : edges) {
-		raw_indices.push_back(e.getBegin()); 
-		raw_indices.push_back(e.getEnd());
+	for (const auto& s : surfaces) {
+		raw_indices.push_back(s[0]);
+		raw_indices.push_back(s[1]);
+		raw_indices.push_back(s[2]);
 	}
 
 	vbo_.load(raw_vertices.data(), raw_vertices.size() * sizeof(float), GL_STATIC_DRAW);
@@ -68,12 +69,12 @@ void Mesh::loadData(const Figure& figure) noexcept {
 
 	std::cout << "\tСохраняем количество обрабатываемых вершин и ребер:\n";
 	count_vertices_ = vertices.size();
-	count_edges_ = edges.size() * 2;
+	count_surfaces_ = surfaces.size();
 	
 	VAO::disable();
 	
 	std::cout << "\tcount_vertices = " << count_vertices_;
-	std::cout << ", count_edges = " << count_edges_;
+	std::cout << ", count_surfaces = " << count_surfaces_;
 	std::cout << "\n";
 }
 
@@ -206,8 +207,8 @@ bool Mesh::loadViewMatrix(GLint uniform_location, float mtrx[4][4]) noexcept {
 
 bool Mesh::loadProjectionMatrix(GLint uniform_location, float mtrx[4][4]) noexcept {
 
+	std::cout << "loadProjectionMatrix... ";
 	if(uniform_location == -1) {
-		std::cout << "loadProjectionMatrix... ";
 		std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
 		return false;
 	}
@@ -293,7 +294,7 @@ bool Mesh::loadDisplayType(int32_t u_location, DisplayType displayType) noexcept
 void Mesh::render() noexcept {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	vao_.use(); 
-	glDrawElements(GL_LINES, count_edges_, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, count_surfaces_ * 3, GL_UNSIGNED_INT, nullptr);
 
 	VAO::disable();
 }

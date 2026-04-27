@@ -20,11 +20,11 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 	std::string word;
 
 	std::vector<Vertex> vertices;
-	std::vector<Edge> edges;
+	std::vector<Surface> surfaces;
 	std::vector<Point3D> normals_coordinates;
 
 	vertices.clear();
-	edges.clear();
+	surfaces.clear();
 
 	std::ifstream file(path, std::ios::in);
 
@@ -90,9 +90,7 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 					vertices[vert_index - 1].setNormals(normals_coordinates[norm_index - 1]);
 				}
 			}
-			edges.push_back( Edge(list_ind[0], list_ind[1]) );
-			edges.push_back( Edge(list_ind[0], list_ind[2]) );
-			edges.push_back( Edge(list_ind[1], list_ind[2]) );
+			surfaces.push_back(Surface(list_ind[0], list_ind[1], list_ind[2]));
 		}
 		else if (word == normale_prefix) {
 			// считываем нормали, их всегда 3
@@ -110,10 +108,10 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 	Normalize(vertices);
 
 	std::cout << "\tСчитано " << vertices.size() << " вершин, ";
-	std::cout << edges.size() << " ребер, ";
+	std::cout << surfaces.size() << " поверхностей, ";
 	std::cout << normals_coordinates.size() << " нормалей" << std::endl;
 
-	return new Scene(Figure(vertices, edges));
+	return new Scene(Figure(vertices, surfaces));
 }
 
 void FileReader::Normalize(std::vector<Vertex>& vertices) {

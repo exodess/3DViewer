@@ -1,35 +1,26 @@
 #include <viewer/viewerSpec.h>
 
-// реализация классов Edge, Vertex, Figure
+// реализация классов Surface, Vertex, Figure
 
 namespace s21 {
 
 // ===========================
-// ========== Edge ===========
+// ========== Surface ===========
 // ===========================
 
 
-Edge::Edge(uint32_t v1, uint32_t v2) noexcept : begin_{v1}, end_{v2} {}
+Surface::Surface(uint32_t ind1, uint32_t ind2, uint32_t ind3) noexcept : indices_(std::vector<uint32_t>{ind1, ind2, ind3}) {}
 
-Edge::Edge(const Edge& other) noexcept : begin_{other.begin_}, end_{other.end_} {}
-
-Edge& Edge::operator=(const Edge& other) noexcept {
-	begin_ = other.begin_;
-	end_ = other.end_;
-	return *this;
+bool Surface::operator==(const Surface& other) const noexcept {
+	return (indices_ == other.indices_);
 }
 
-bool Edge::operator==(const Edge& other) const noexcept {
-	return (begin_ == other.begin_ && end_ == other.end_);
-}
+	uint32_t Surface::operator[](int i) const noexcept {
+		if (i < 0 || i > 2)
+			return 0;
 
-uint32_t Edge::getBegin() const noexcept {
-	return begin_;
-}
-
-uint32_t Edge::getEnd() const noexcept {
-	return end_;
-}
+		return indices_[i];
+	}
 
 // ===========================
 // ========= Vertex ==========
@@ -77,25 +68,17 @@ void Vertex::Transform(const TransformMatrix& mtrx) {
 // ===========================
 
 
-Figure::Figure() noexcept : vertices_{}, edges_{} {}
+Figure::Figure() noexcept : vertices_{}, surfaces_{} {}
 
-Figure::Figure(std::vector<Vertex>& vertices, std::vector<Edge>& edges) noexcept
-	: vertices_{vertices}, edges_{edges} {}
-
-Figure::Figure(const Figure& other) noexcept : vertices_{other.vertices_}, edges_{other.edges_} {}
-
-Figure& Figure::operator=(const Figure& other) noexcept {
-	vertices_ = other.vertices_;
-	edges_ = other.edges_;
-	return *this;
-}
+Figure::Figure(std::vector<Vertex>& vertices, std::vector<Surface>& surfaces) noexcept
+	: vertices_{vertices}, surfaces_{surfaces} {}
 
 const std::vector<Vertex>& Figure::getVertices() const noexcept {
 	return vertices_;
 }
 
-const std::vector<Edge>& Figure::getEdges() const noexcept {
-	return edges_;
+const std::vector<Surface>& Figure::getSurfaces() const noexcept {
+	return surfaces_;
 }
 
 void Figure::Transform(const TransformMatrix& mtrx) {
@@ -109,7 +92,7 @@ void Figure::Transform(const TransformMatrix& mtrx) {
 // ========== Scene ==========
 // ===========================
 
-Scene::Scene(Figure f) noexcept : figure_{f} {}
+Scene::Scene(const Figure& f) noexcept : figure_{f} {}
 
 Figure& Scene::getFigure() noexcept { 
 	return figure_; 
