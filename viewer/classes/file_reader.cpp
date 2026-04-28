@@ -41,7 +41,6 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 
 		ss >> word;
 		float arr[3]{0.0f};
-		unsigned int list_ind[3]{0};
 		if(word == vertex_prefix) {
 			// считываем координаты вершины
 
@@ -61,36 +60,42 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 		}
 
 		else if(word == surface_prefix) {
+			// Считываем индекс вершины, индекс UV-координаты и индекс нормали
+			// f v1/vt1/vn1 v2/vt2/vn2 ...
+			std::vector<unsigned int> list_ind;
 
-			for(int i = 0; i < 3; ++i) {
+			while(ss >> word) {
 				std::string temp;
 				unsigned int vert_index = 0;
 				unsigned int uv_index = 0;
 				unsigned int norm_index = 0;
-				// Считываем индекс вершины, индекс UV-координаты и индекс нормали
-				// f v1/vt1/vn1 v2/vt2/vn2 ...
 
-				if(ss >> word) {
-					// считываем индекс координаты вершины из списка
-					std::getline(std::stringstream(word), temp, '/');
-					std::from_chars(temp.data(), temp.data() + word.size(), vert_index);
+				// считываем индекс координаты вершины из списка
+				std::getline(std::stringstream(word), temp, '/');
+				std::from_chars(temp.data(), temp.data() + word.size(), vert_index);
 
-					std::string str_vt = (word.find('/') != std::string::npos) ? word.substr(word.find('/') + 1) : "0";
-					// считываем индекс нужной UV-координаты из списка
-					std::getline(std::stringstream(str_vt), temp, '/');
-					std::from_chars(temp.data(), temp.data() + temp.size(), uv_index);
+				std::string str_vt = (word.find('/') != std::string::npos) ? word.substr(word.find('/') + 1) : "0";
+				// считываем индекс нужной UV-координаты из списка
+				std::getline(std::stringstream(str_vt), temp, '/');
+				std::from_chars(temp.data(), temp.data() + temp.size(), uv_index);
 
-					// считываем последнее число - индекс нормали вершины
-					std::string str_vn = (str_vt.find('/') != std::string::npos) ? str_vt.substr(str_vt.find('/') + 1) : "0";
-					std::from_chars(str_vn.data(), str_vn.data() + str_vn.size(), norm_index);
-				}
+				// считываем последнее число - индекс нормали вершины
+				std::string str_vn = (str_vt.find('/') != std::string::npos) ? str_vt.substr(str_vt.find('/') + 1) : "0";
+				std::from_chars(str_vn.data(), str_vn.data() + str_vn.size(), norm_index);
 
-				list_ind[i] = vert_index - 1;
+				list_ind.push_back(vert_index - 1);
 				if (norm_index > 0 && normals_coordinates.size() >= norm_index) {
 					vertices[vert_index - 1].setNormals(normals_coordinates[norm_index - 1]);
 				}
 			}
-			surfaces.push_back(Surface(list_ind[0], list_ind[1], list_ind[2]));
+			if (list_ind.size() == 3) {
+				surfaces.push_back(Surface(list_ind[0], list_ind[1], list_ind[2]));
+			}
+			else {
+				surfaces.push_back(Surface(list_ind[0], list_ind[1], list_ind[2]));
+				surfaces.push_back(Surface(list_ind[0], list_ind[1], list_ind[3]));
+				surfaces.push_back(Surface(list_ind[0], list_ind[2], list_ind[3]));
+			}
 		}
 		else if (word == normale_prefix) {
 			// считываем нормали, их всегда 3
