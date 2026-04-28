@@ -110,7 +110,7 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 		}
 	}
 
-	Normalize(vertices);
+	Normalize(vertices, surfaces);
 
 	std::cout << "\tСчитано " << vertices.size() << " вершин, ";
 	std::cout << surfaces.size() << " поверхностей, ";
@@ -119,7 +119,7 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 	return new Scene(Figure(vertices, surfaces));
 }
 
-void FileReader::Normalize(std::vector<Vertex>& vertices) {
+void FileReader::Normalize(std::vector<Vertex>& vertices, std::vector<Surface>& surfaces) {
     if (vertices.empty()) return;
 
     // Шаг 1: Находим min и max по всем осям
@@ -153,6 +153,39 @@ void FileReader::Normalize(std::vector<Vertex>& vertices) {
         v.getPosition().y = (v.getPosition().y - centerY) * scale;
         v.getPosition().z = (v.getPosition().z - centerZ) * scale;
     }
+
+	if (vertices.size()  && vertices[0].getNormale() == Point3D(0.0f, 0.0f, 0.0f)) {
+		// Усреднение нормалей, если
+		for (auto& s : surfaces) {
+			Point3D v1 = vertices[s[0]].getPosition();
+			Point3D v2 = vertices[s[1]].getPosition();
+			Point3D v3 = vertices[s[2]].getPosition();
+
+			Point3D edge1 = Point3D(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+			Point3D edge2 = Point3D(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
+
+			// cross(edge1, edge2) - векторное произведение
+			Point3D faceNormal = Point3D(
+				edge1.y * edge2.z - edge1.z * edge2.y,
+				edge1.z * edge2.x - edge1.x * edge2.z,
+				edge1.x * edge2.y - edge1.y * edge2.x);
+
+			vertices[s[0]].getNormale() = vertices[s[0]].getNormale() + faceNormal;
+			vertices[s[1]].getNormale() = vertices[s[1]].getNormale() + faceNormal;
+			vertices[s[2]].getNormale() = vertices[s[2]].getNormale() + faceNormal;
+		}
+
+		for (auto& v : vertices) {
+			Point3D normal = v.getNormale();
+
+			float len = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+			normal.x /= len;
+			normal.y /= len;
+			normal.z /= len;
+
+			v.getNormale() = normal;
+		}
+	}
 }
 
 };

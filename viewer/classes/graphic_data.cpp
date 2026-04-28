@@ -50,6 +50,10 @@ Point3D& Vertex::getPosition() noexcept {
 	return position_;
 }
 
+Point3D& Vertex::getNormale() noexcept {
+	return normale_;
+}
+
 const Point3D& Vertex::getPosition() const noexcept {
 	return position_;
 }

@@ -41,10 +41,7 @@ void main() {
 
 	else if(displayType == 1){
 		// Нормаль
-		vec3 N = Normal_v;
-//		if(N == vec3(0, 0, 0)) {
-			N = normalize(cross(dFdx(Vertex_v), dFdy(Vertex_v)));
-//		}
+		vec3 N = normalize(cross(dFdx(Vertex_v), dFdy(Vertex_v)));
 
 		// Диффузная составляющая
 		float diffuse = max(dot(Light_v, N), 0.0);
@@ -56,11 +53,7 @@ void main() {
 	else if(displayType == 2) {
 		// мягкое освещение
 		// Затенение методом Блинна-Фонга
-
 		vec3 N = normalize(Normal_v);
-//		if(N == vec3(0, 0, 0)) {
-//			N = normalize(cross(dFdx(Vertex_v), dFdy(Vertex_v)));
-//		}
 
 		// Интенсивность диффузного отражения
 		float diffuse = max(dot(normalize(Light_v), N), 0.0);

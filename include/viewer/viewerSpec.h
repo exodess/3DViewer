@@ -84,7 +84,10 @@ struct Point3D {
 	bool operator==(const Point3D& other) const noexcept {
 		return (x == other.x && y == other.y && z == other.z);
 	}
-	
+
+	Point3D operator+(const Point3D& other) const noexcept {
+		return Point3D(x + other.x, y + other.y, z + other.z);
+	}
 };
 
 /**
@@ -435,6 +438,7 @@ public:
 	Point3D& getPosition() noexcept; ///< Получение координаты вершины в трехмерном пространстве
 	const Point3D& getPosition() const noexcept;
 	const Point3D& getNormale() const noexcept; ///< Получение вектора нормали вершины
+	Point3D& getNormale() noexcept;
 	void Transform(const TransformMatrix&) override; ///< Не используется
 	
 };
@@ -600,8 +604,9 @@ private:
 	/**
 	@brief Нормализация фигуры, чтобы она корректно отображалась на экране
 	@param vertices Считанные исходные вершины, образующие фигуру
+	@surfaces Считанные поверхности из файла
 	*/
-	void Normalize(std::vector<Vertex>& vertices);
+	void Normalize(std::vector<Vertex>& vertices, std::vector<Surface>& surfaces);
 };
 
 } // end namespace s21
