@@ -39,28 +39,40 @@ void main() {
 		}
 	}
 
-	else {
+	else if(displayType == 1){
 		// Нормаль
 		vec3 N = Normal_v;
-		if(N == vec3(0.0, 0.0, 0.0)) {
+//		if(N == vec3(0, 0, 0)) {
 			N = normalize(cross(dFdx(Vertex_v), dFdy(Vertex_v)));
-		}
+//		}
 
 		// Диффузная составляющая
 		float diffuse = max(dot(Light_v, N), 0.0);
 
-		// Отраженный вектор
-		vec3 R = normalize(reflect(-Light_v, N));
+		vec3 res = (0.1 + diffuse) * u_lightColor;
+		FragColor = vec4(res, 1.0);
+	}
+
+	else if(displayType == 2) {
+		// мягкое освещение
+		// Затенение методом Блинна-Фонга
+
+		vec3 N = normalize(Normal_v);
+//		if(N == vec3(0, 0, 0)) {
+//			N = normalize(cross(dFdx(Vertex_v), dFdy(Vertex_v)));
+//		}
+
+		// Интенсивность диффузного отражения
+		float diffuse = max(dot(normalize(Light_v), N), 0.0);
+
+		// Вектор половины пути
+		vec3 H = normalize(normalize(Light_v) + normalize(Camera_v));
 
 		// Зеркальная составляющая
-		float specular = 0.0;
-
-		// Если есть диффузная составляющая, то считаем зеркальную
-		if(diffuse > 0) {
-			specular = pow(max(dot(Camera_v, R), 0.0), 32);
-		}
+		float specular = pow(max(dot(H, N), 0.0), 32);
 
 		vec3 res = (0.1 + diffuse + 0.5 * specular) * u_lightColor;
 		FragColor = vec4(res, 1.0);
+
 	}
 }
