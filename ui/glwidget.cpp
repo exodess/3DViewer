@@ -9,6 +9,7 @@ GLWidget::GLWidget(QWidget* parent)
     , scene_(nullptr)
     , shaderProgram_(nullptr)
     , mesh_(nullptr)
+	, cameraZoom_(1.0f)
     , cameraVector_{0.0f, 0.0f, 10.0f}
     , rotationVector_{Point3D(0.0f, 0.0f, 0.0f)}
     , translationVector_{Point3D(0.0f, 0.0f, 0.0f)}
@@ -81,7 +82,6 @@ void GLWidget::saveSettingsToFile(const QString& filePath) {
 	settings["projectionType"] = static_cast<int>(projectionType_);
 	settings["displayType"] = static_cast<int>(displayType_);
 	settings["lightColor"] = colorToJson(lightColor_);
-	settings["lightPosition"] = colorToJson(lightPosition_);
 
 	QJsonDocument doc(settings);
 	QFile file(filePath);
@@ -167,9 +167,6 @@ void GLWidget::loadSettingsFromFile(const QString& filePath) {
 		if (settings.contains("lightColor")) {
 			lightColor_ = colorFromJson(settings["lightColor"].toObject());
 		}
-		if (settings.contains("lightPosition")) {
-			lightPosition_ = colorFromJson(settings["lightPosition"].toObject());
-		}
 
 		std::cout << "[GLWidget] Настройки загружены из файла: "
 		          << filePath.toStdString() << std::endl;
@@ -207,12 +204,12 @@ void GLWidget::DrawScene(Scene& scene) {
 	setNewLightColor(lightColor_.x, lightColor_.y, lightColor_.z);
 	setNewLightPosition(lightPosition_.x, lightPosition_.y, lightPosition_.z);
 
-	setNewModelMatrix();
-	setNewViewMatrix(1.0);
+	setNewViewMatrix(cameraZoom_);
 	setNewProjectionType(projectionType_);
 
 	setNewAspectRatio(static_cast<float>(width()) / static_cast<float>(height()));
 	setNewBackgroundColor(backColor_.x, backColor_.y, backColor_.z);
+	setNewModelMatrix();
 
 	std::cout << "[GLWidget] Сцена отрисована | Вершин: " << countVertices()
 	          << " | Поверхностей: " << countSurfaces() << "\n";
@@ -279,6 +276,7 @@ void GLWidget::setNewModelMatrix() noexcept {
 void GLWidget::setNewViewMatrix(float zoomFactor) noexcept {
 
 	makeCurrent();
+	cameraZoom_ = zoomFactor;
 	// Просто отодвигаем камеру по Z (без вращения!)
 	viewMatrix_ = TransformMatrixBuilder::CreateMoveMatrix(cameraVector_.x, cameraVector_.y, -cameraVector_.z * zoomFactor);
 

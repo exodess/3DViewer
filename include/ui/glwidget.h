@@ -85,6 +85,7 @@ private:
     Mesh* mesh_;
 
     // настройки для матриц
+    float cameraZoom_;
     Point3D cameraVector_;
     Point3D rotationVector_;
 		Point3D translationVector_;
