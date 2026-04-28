@@ -85,7 +85,7 @@ Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
 					std::from_chars(str_vn.data(), str_vn.data() + str_vn.size(), norm_index);
 				}
 
-				list_ind[i] = vert_index;
+				list_ind[i] = vert_index - 1;
 				if (norm_index > 0 && normals_coordinates.size() >= norm_index) {
 					vertices[vert_index - 1].setNormals(normals_coordinates[norm_index - 1]);
 				}

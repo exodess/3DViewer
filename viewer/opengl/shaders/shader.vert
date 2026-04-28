@@ -18,10 +18,10 @@ out vec3 Normal_vertex; // Трансформированная нормаль
 void main() {
     vec4 P = u_modelMatrix * vec4(inPosition, 1.0); // трансформация вершины
 
-    Camera_vertex = vec3(normalize(u_cameraPosition - P.xyz));
-    Light_vertex = vec3(normalize(u_lightPosition - P.xyz));
-    Vertex_view = vec3(P.xyz);
-    Normal_vertex = vec3(normalize(u_normalMatrix * inNormal));
+    Camera_vertex = normalize(u_cameraPosition - P.xyz);
+    Light_vertex = normalize(u_lightPosition - P.xyz);
+    Vertex_view = P.xyz;
+    Normal_vertex = normalize(u_normalMatrix * inNormal);
 
     gl_Position = u_projectionMatrix * u_viewMatrix * P;
 }
