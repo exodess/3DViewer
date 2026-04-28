@@ -1,52 +1,52 @@
-#ifndef S21_MAINWINDOW_H
-#define S21_MAINWINDOW_H
+#ifndef VIEWER_MAINWINDOW_H
+#define VIEWER_MAINWINDOW_H
 
 #include "ui_mainwindow.h"
 #include "glwidget.h"
-#include <viewer/viewerSpec.h>
+#include "viewer/viewerSpec.h"
 
-namespace s21 {
+namespace viewer {
 
-class MainWindow : public QMainWindow {
-    Q_OBJECT
+    class MainWindow : public QMainWindow {
+        Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    public:
+        explicit MainWindow(QWidget *parent = nullptr);
+        ~MainWindow();
 
-private slots:
-    void on_action_Open_triggered();
-    void on_action_Exit_triggered();
-    void on_action_Orthographic_triggered();
-    void on_action_Perspective_triggered();
-    void on_action_Wireframe_triggered();
-    void on_action_FlatShading_triggered();
-    void on_action_SmoothShading_triggered();
-    
-    void on_btn_VertexColor_clicked();
-    void onVertexSizeChanged(float value);
-    void onVertexTypeChanged(int value);
-    
-    void on_btn_EdgeColor_clicked();
-    void onEdgeWidthChanged(float value);
-    void onEdgeTypeChanged(int value);
+    private slots:
+        void on_action_Open_triggered();
+        void on_action_Exit_triggered();
+        void on_action_Orthographic_triggered();
+        void on_action_Perspective_triggered();
+        void on_action_Wireframe_triggered();
+        void on_action_FlatShading_triggered();
+        void on_action_SmoothShading_triggered();
 
-    void on_btn_BackgroundColor_clicked();
-    void onCameraZoomChanged(int value);
+        void on_btn_VertexColor_clicked();
+        void onVertexSizeChanged(float value);
+        void onVertexTypeChanged(int value);
 
-    void on_btn_LightColor_clicked();
+        void on_btn_EdgeColor_clicked();
+        void onEdgeWidthChanged(float value);
+        void onEdgeTypeChanged(int value);
 
-private:
-    void loadScene(const QString& path);
-    void updateInfoLabels();
-    void connectSignals() noexcept;
+        void on_btn_BackgroundColor_clicked();
+        void onCameraZoomChanged(int value);
 
-    Ui::MainWindow *ui;
-    GLWidget *glWidget_;
-    Viewer *viewer_;
-    QString currentFileName_;
-};
+        void on_btn_LightColor_clicked();
 
-} // namespace s21
+    private:
+        void loadScene(const QString& path);
+        void updateInfoLabels();
+        void connectSignals() noexcept;
 
-#endif // S21_MAINWINDOW_H
+        Ui::MainWindow *ui;
+        GLWidget *glWidget_;
+        Viewer *viewer_;
+        QString currentFileName_;
+    };
+
+} // namespace viewer
+
+#endif
