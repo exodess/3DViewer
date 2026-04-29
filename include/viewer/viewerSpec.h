@@ -60,15 +60,6 @@ namespace viewer {
 	// =====================================
 
 	/**
-	@class ProjectionType
-	@brief Типы проекции при отображении фигуры
-	*/
-	enum class ProjectionType {
-		ORTHOGRAPHIC, ///< Параллельная проекция
-		PERSPECTIVE ///< Центральная проекция
-	};
-
-	/**
 	@class Point3D
 	@brief Хранение координаты точки в трехмерном пространстве
 	*/

@@ -52,6 +52,7 @@ namespace viewer {
 		initializeOpenGLFunctions();
 
 		compileShaders();
+		setNewBackgroundColor(backColor_.x, backColor_.y, backColor_.z);
 		std::cout << "[GLWidget] OpenGL инициализирован\n";
 	}
 
@@ -89,7 +90,7 @@ namespace viewer {
 		else if (event->buttons() & Qt::RightButton) {
 			// Правая кнопка мыши - вращение
 			rotation_.x += dx * ROTATION_MOUSE_SENSITIVITY;
-			rotation_.y -= dy * ROTATION_MOUSE_SENSITIVITY;
+			rotation_.y += dy * ROTATION_MOUSE_SENSITIVITY;
 
 			setRotation(rotation_.y, rotation_.x, ui_->spin_rotZ->value());
 			ui_->spin_rotX->setValue(rotation_.y);
@@ -106,8 +107,6 @@ namespace viewer {
 		float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
 		cameraZoom_ -= det * 0.5f;
 		setNewViewMatrix(cameraZoom_);
-		ui_->label_ZoomValue->setText(QString::number(cameraZoom_ * 100.0) + "%");
-		ui_->slider_Zoom->setValue(cameraZoom_ * 100);
 
 		update();
 	}
@@ -227,7 +226,6 @@ namespace viewer {
 
 	void GLWidget::DrawScene(Scene& scene) {
 		makeCurrent();
-
 
 		if(scene_ != &scene) {
 			// загружена новая фигура
@@ -602,6 +600,10 @@ namespace viewer {
 
 	int GLWidget::getDisplayType() noexcept {
 		return displayType_;
+	}
+
+	int GLWidget::getProjectionType() noexcept {
+		return projectionType_;
 	}
 
 

@@ -40,8 +40,6 @@ public:
     QDoubleSpinBox *spin_EdgeWidth;
     QComboBox *combo_EdgeType;
     QPushButton *btn_BackgroundColor;
-    QSlider *slider_Zoom;
-    QLabel *label_ZoomValue;
 
     // Трансформация фигуры
     QHBoxLayout *rotLayout;
@@ -70,6 +68,9 @@ public:
     QLabel *label_FileInfo;
     QLabel *label_VertexCount;
     QLabel *label_EdgeCount;
+    QLabel *label_displayType;
+    QLabel *label_projectionType;
+
     QSpacerItem *horizontalSpacer;
     
     QMenuBar *menubar;
@@ -104,20 +105,23 @@ public:
         groupBox_Settings->setFixedWidth(250);
         settingsLayout = new QVBoxLayout(groupBox_Settings);
 
-        // --- СЕКЦИЯ ОБЩИХ НАСТРОЕК (ФОН И ЗУМ) ---
-        settingsLayout->addWidget(new QLabel("--- ОБЩИЕ ---"));
-        btn_BackgroundColor = new QPushButton("Цвет фона");
-        settingsLayout->addWidget(btn_BackgroundColor);
+        // =============================================
 
-        settingsLayout->addWidget(new QLabel("Отдаление камеры:"));
-        QHBoxLayout *zoomControlLayout = new QHBoxLayout();
-        slider_Zoom = new QSlider(Qt::Horizontal);
-        slider_Zoom->setRange(1, 200); // От 1% до 200%
-        slider_Zoom->setValue(100);    // По умолчанию 100%
-        label_ZoomValue = new QLabel("100%");
-        zoomControlLayout->addWidget(slider_Zoom);
-        zoomControlLayout->addWidget(label_ZoomValue);
-        settingsLayout->addLayout(zoomControlLayout);
+        // ===========================
+        // --- НАСТРОЙКА ОСВЕЩЕНИЯ ---
+        // ===========================
+        settingsLayout->addWidget(new QLabel("--- ИСТОЧНИК СВЕТА ---"));
+        lightLayout = new QHBoxLayout();
+        light_transX = new QDoubleSpinBox(); light_transY = new QDoubleSpinBox(); light_transZ = new QDoubleSpinBox();
+        for(auto s : {light_transX, light_transY, light_transZ}) {
+            s->setRange(-10.0, 10.0);
+            s->setSingleStep(0.1);
+            lightLayout->addWidget(s);
+        }
+        settingsLayout->addLayout(lightLayout);
+
+        btn_LightColor = new QPushButton("Цвет источника света");
+        settingsLayout->addWidget(btn_LightColor);
 
         settingsLayout->addSpacing(20);
 
@@ -199,21 +203,14 @@ public:
         }
         settingsLayout->addLayout(scaleLayout);
 
-        // ===========================
-        // --- НАСТРОЙКА ОСВЕЩЕНИЯ ---
-        // ===========================
-        settingsLayout->addWidget(new QLabel("--- ИСТОЧНИК СВЕТА ---"));
-        lightLayout = new QHBoxLayout();
-        light_transX = new QDoubleSpinBox(); light_transY = new QDoubleSpinBox(); light_transZ = new QDoubleSpinBox();
-        for(auto s : {light_transX, light_transY, light_transZ}) {
-            s->setRange(-10.0, 10.0);
-            s->setSingleStep(0.1);
-            lightLayout->addWidget(s);
-        }
-        settingsLayout->addLayout(lightLayout);
+        settingsLayout->addSpacing(20);
 
-        btn_LightColor = new QPushButton("Цвет источника света");
-        settingsLayout->addWidget(btn_LightColor);
+        // --- СЕКЦИЯ ОБЩИХ НАСТРОЕК ---
+        settingsLayout->addWidget(new QLabel("--- ОБЩИЕ ---"));
+        btn_BackgroundColor = new QPushButton("Цвет фона");
+        settingsLayout->addWidget(btn_BackgroundColor);
+
+        // =========================================
 
         settingsLayout->addStretch(); // Пружина вниз
 
@@ -230,11 +227,20 @@ public:
         label_FileInfo = new QLabel("Файл: не выбран");
         label_VertexCount = new QLabel("");
         label_EdgeCount = new QLabel("");
+        label_projectionType = new QLabel("");
+        label_displayType = new QLabel("");
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         infoLayout->addWidget(label_FileInfo);
+        infoLayout->addSpacing(15);
         infoLayout->addWidget(label_VertexCount);
+        infoLayout->addSpacing(15);
         infoLayout->addWidget(label_EdgeCount);
+        infoLayout->addSpacing(15);
+        infoLayout->addWidget(label_projectionType);
+        infoLayout->addSpacing(15);
+        infoLayout->addWidget(label_displayType);
+
         infoLayout->addItem(horizontalSpacer);
 
         mainVerticalLayout->addLayout(infoLayout);
@@ -276,6 +282,14 @@ public:
         action_Wireframe->setText("Каркасная модель");
         action_FlatShading->setText("Плоское затенение");
         action_SmoothShading->setText("Мягкое затенение");
+    }
+
+    QFrame* createSeparator() {
+        QFrame *line = new QFrame();
+        line->setFrameShape(QFrame::VLine);
+        line->setFrameShadow(QFrame::Sunken);
+        line->setStyleSheet("background-color: #000;");
+        return line;
     }
 };
 

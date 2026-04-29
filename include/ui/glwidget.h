@@ -72,6 +72,7 @@ namespace viewer {
         int getVertexMode() noexcept;
         int getEdgeMode() noexcept;
         int getDisplayType() noexcept;
+        int getProjectionType() noexcept;
 
     protected:
         void initializeGL() override;

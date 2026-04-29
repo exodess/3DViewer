@@ -32,7 +32,6 @@ namespace viewer {
         void onEdgeTypeChanged(int value);
 
         void on_btn_BackgroundColor_clicked();
-        void onCameraZoomChanged(int value);
 
         void on_btn_LightColor_clicked();
 

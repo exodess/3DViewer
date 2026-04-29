@@ -30,8 +30,6 @@ namespace viewer {
 
 	void MainWindow::connectSignals() noexcept {
 
-		connect(ui->slider_Zoom, &QSlider::valueChanged, this, &MainWindow::onCameraZoomChanged);
-
 		// СОЕДИНЕНИЕ СИГНАЛОВ МЕНЮ (Actions)
 		connect(ui->action_Open, &QAction::triggered, this, &MainWindow::on_action_Open_triggered);
 		connect(ui->action_Exit, &QAction::triggered, this, &MainWindow::on_action_Exit_triggered);
@@ -199,14 +197,6 @@ namespace viewer {
 		}
 	}
 
-	// Слот для передвижения камеры
-
-	void MainWindow::onCameraZoomChanged(int value) {
-		ui->label_ZoomValue->setText(QString::number(value) + "%");
-		float zoomFactor = value / 100.0;
-		glWidget_->setNewViewMatrix(zoomFactor);
-	}
-
 	void MainWindow::loadScene(const QString& path) {
 		NormalizationParameters params{0.0f, 1.0f, 0.1f, 0.1f};
 		auto result = viewer_->LoadScene(path.toStdString(), params);
@@ -233,6 +223,18 @@ namespace viewer {
 		ui->label_FileInfo->setText("Файл: " + (currentFileName_.isEmpty() ? "не выбран" : currentFileName_));
 		ui->label_VertexCount->setText("Вершин: " + QString::number(static_cast<int>(glWidget_->countVertices())));
 		ui->label_EdgeCount->setText("Поверхностей: " + QString::number(static_cast<int>(glWidget_->countSurfaces())));
+
+		if (glWidget_->getDisplayType() == DisplayType::WIREFRAME_MODEL)
+			ui->label_displayType->setText("Отображение только ребер и вершин");
+		else if (glWidget_->getDisplayType() == DisplayType::FLAT_SHADING_MODEL)
+			ui->label_displayType->setText("Плоское затенение");
+		else if (glWidget_->getDisplayType() == DisplayType::SMOOTH_SHADING_MODEL)
+			ui->label_displayType->setText("Мягкое затенение");
+
+		if (glWidget_->getProjectionType() == ProjectionType::ORTHOGRAPHIC)
+			ui->label_projectionType->setText("Параллельная проекция");
+		else if (glWidget_->getProjectionType() == ProjectionType::PERSPECTIVE)
+			ui->label_projectionType->setText("Центральная проекция");
 	}
 
 	void MainWindow::on_action_Exit_triggered() {
@@ -248,32 +250,32 @@ namespace viewer {
 
 		glWidget_->setNewProjectionType(ProjectionType::ORTHOGRAPHIC);
 
-		ui->statusbar->showMessage("Параллельная проекция");
+		ui->label_projectionType->setText("Параллельная проекция");
 	}
 
 	void MainWindow::on_action_Perspective_triggered() {
 
 		glWidget_->setNewProjectionType(ProjectionType::PERSPECTIVE);
 
-		ui->statusbar->showMessage("Центральная проекция");
+		ui->label_projectionType->setText("Центральная проекция");
 	}
 
 	void MainWindow::on_action_Wireframe_triggered() {
 		glWidget_->setNewDisplayType(DisplayType::WIREFRAME_MODEL);
 
-		ui->statusbar->showMessage("Отображение только ребер и вершин");
+		ui->label_displayType->setText("Отображение только ребер и вершин");
 	}
 
 	void MainWindow::on_action_FlatShading_triggered() {
 		glWidget_->setNewDisplayType(DisplayType::FLAT_SHADING_MODEL);
 
-		ui->statusbar->showMessage("Плоское затенение");
+		ui->label_displayType->setText("Плоское затенение");
 	}
 
 	void MainWindow::on_action_SmoothShading_triggered() {
 		glWidget_->setNewDisplayType(DisplayType::SMOOTH_SHADING_MODEL);
 
-		ui->statusbar->showMessage("Мягкое затенение методом Гура");
+		ui->label_displayType->setText("Мягкое затенение");
 	}
 
 }

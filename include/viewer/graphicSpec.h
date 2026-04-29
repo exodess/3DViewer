@@ -356,6 +356,15 @@ namespace viewer {
 	}; // class VAO
 
 	/**
+	 *@class ProjectionType
+	 *@brief Типы проекции при отображении фигуры
+	 */
+	enum ProjectionType {
+		ORTHOGRAPHIC = 0, ///< Параллельная проекция
+		PERSPECTIVE ///< Центральная проекция
+	};
+
+	/**
 	@class VerticesMode
 	@brief Перечисление для указания режима отображения вершин
 	*/
