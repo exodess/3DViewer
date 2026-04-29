@@ -1,6 +1,7 @@
 #ifndef VIEWER_GLWIDGET_H
 #define VIEWER_GLWIDGET_H
 
+#include <QMouseEvent>
 #include <QCoreApplication>
 #include <QMainWindow>
 #include <QFileDialog>
@@ -14,6 +15,11 @@
 #include <iostream>
 
 #include "viewer/graphicSpec.h"
+#include "ui/ui_mainwindow.h"
+
+#define TRANSLATION_MOUSE_SENSITIVITY 0.005f
+#define ROTATION_MOUSE_SENSITIVITY 0.2f
+#define ZOOM_MOUSE_SENSITIVITY 0.0006f
 
 namespace viewer {
 
@@ -21,7 +27,7 @@ namespace viewer {
         Q_OBJECT
 
     public:
-        explicit GLWidget(QWidget* parent = nullptr);
+        GLWidget(QWidget* parent, Ui::MainWindow* ui);
         ~GLWidget();
 
         // Сохранение и загрузка настроек
@@ -72,6 +78,10 @@ namespace viewer {
         void paintGL() override;
         void resizeGL(int w, int h) override;
 
+        void mousePressEvent(QMouseEvent* event) override;
+        void mouseMoveEvent(QMouseEvent* event) override;
+        void wheelEvent(QWheelEvent* event) override;
+
     private:
         void compileShaders();
         QJsonObject colorToJson(const Point3D& color) noexcept;
@@ -80,6 +90,8 @@ namespace viewer {
         Scene* scene_;
         ShaderProgram* shaderProgram_;
         Mesh* mesh_;
+
+        Ui::MainWindow* ui_;
 
         // настройки для матриц
         float cameraZoom_;
@@ -113,6 +125,10 @@ namespace viewer {
         DisplayType displayType_;
         Point3D lightColor_;
         Point3D lightPosition_;
+
+        QPoint lastPos_;
+        Point3D rotation_;
+        Point3D translation_;
     };
 
 }

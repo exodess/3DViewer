@@ -14,7 +14,7 @@ namespace viewer {
 		ui->setupUi(this);
 		this->setMinimumSize(300, 650);
 
-		glWidget_ = new GLWidget(this);
+		glWidget_ = new GLWidget(this, ui);
 		viewer_ = new Viewer(new FileReader(), glWidget_);
 
 		ui->contentLayout->insertWidget(0, glWidget_, 1); // 1 - это stretch factor (растяжение)

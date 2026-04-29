@@ -4,11 +4,12 @@ namespace viewer {
 
 	static float global_matrix[4][4];
 
-	GLWidget::GLWidget(QWidget* parent)
+	GLWidget::GLWidget(QWidget* parent, Ui::MainWindow* ui)
 	    : QOpenGLWidget(parent)
 	    , scene_(nullptr)
 	    , shaderProgram_(nullptr)
 	    , mesh_(nullptr)
+		, ui_(ui)
 		, cameraZoom_(1.0f)
 	    , cameraVector_{0.0f, 0.0f, 10.0f}
 	    , rotationVector_{Point3D(0.0f, 0.0f, 0.0f)}
@@ -25,6 +26,9 @@ namespace viewer {
 		, displayType_(DisplayType::WIREFRAME_MODEL)
 		, lightColor_(Point3D(1.0f, 1.0f, 1.0f))
 		, lightPosition_(Point3D(0.0f, 0.0f, 0.0f))
+		, lastPos_(0, 0)
+		, rotation_(Point3D(0.0f, 0.0f, 0.0f))
+		, translation_(Point3D(0.0f, 0.0f, 0.0f))
 	{
 		setFocusPolicy(Qt::StrongFocus);
 		loadSettingsFromFile("settings_viewer.json");
@@ -64,6 +68,49 @@ namespace viewer {
 		setNewProjectionType(projectionType_);
 	}
 
+	void GLWidget::mousePressEvent(QMouseEvent* event) {
+		lastPos_ = event->pos();
+	}
+
+	void GLWidget::mouseMoveEvent(QMouseEvent* event) {
+		float dx = event->position().x() - lastPos_.x();
+		float dy = event->position().y() - lastPos_.y();
+
+		if (event->buttons() & Qt::LeftButton) {
+			// Левая кнопка мыши - перемещение
+			translation_.x += dx * TRANSLATION_MOUSE_SENSITIVITY;
+			translation_.y -= dy * TRANSLATION_MOUSE_SENSITIVITY;
+
+			setTranslation(translation_.x, translation_.y, ui_->spin_transZ->value());
+			ui_->spin_transX->setValue(translation_.x);
+			ui_->spin_transY->setValue(translation_.y);
+		}
+
+		else if (event->buttons() & Qt::RightButton) {
+			// Правая кнопка мыши - вращение
+			rotation_.x += dx * ROTATION_MOUSE_SENSITIVITY;
+			rotation_.y -= dy * ROTATION_MOUSE_SENSITIVITY;
+
+			setRotation(rotation_.y, rotation_.x, ui_->spin_rotZ->value());
+			ui_->spin_rotX->setValue(rotation_.y);
+			ui_->spin_rotY->setValue(rotation_.x);
+		}
+
+		lastPos_ = event->pos();
+		update();
+	}
+
+	void GLWidget::wheelEvent(QWheelEvent* event) {
+		// Колесико мыши - зум
+
+		float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
+		cameraZoom_ -= det * 0.5f;
+		setNewViewMatrix(cameraZoom_);
+		ui_->label_ZoomValue->setText(QString::number(cameraZoom_ * 100.0) + "%");
+		ui_->slider_Zoom->setValue(cameraZoom_ * 100);
+
+		update();
+	}
 
 	// ===========================================================
 	// ============= СОХРАНЕНИЕ И ЗАГРУЗКА НАСТРОЕК ==============
