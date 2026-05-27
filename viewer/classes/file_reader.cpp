@@ -62,13 +62,13 @@ namespace viewer {
 			else if(word == surface_prefix) {
 				// Считываем индекс вершины, индекс UV-координаты и индекс нормали
 				// f v1/vt1/vn1 v2/vt2/vn2 ...
-				std::vector<int> list_ind;
+				std::vector<unsigned int> list_ind;
 
 				while(ss >> word) {
 					std::string temp;
-					int vert_index = 0;
-					int uv_index = 0;
-					int norm_index = 0;
+					unsigned int vert_index = 0;
+					unsigned int uv_index = 0;
+					unsigned int norm_index = 0;
 
 					// считываем индекс координаты вершины из списка
 					std::getline(std::stringstream(word), temp, '/');
@@ -83,16 +83,10 @@ namespace viewer {
 					std::string str_vn = (str_vt.find('/') != std::string::npos) ? str_vt.substr(str_vt.find('/') + 1) : "0";
 					std::from_chars(str_vn.data(), str_vn.data() + str_vn.size(), norm_index);
 
-					if (vert_index < 0) {
-						vert_index += vertices.size();
-					}
 					list_ind.push_back(vert_index - 1);
-
-					if (norm_index < 0) {
-						norm_index += normals_coordinates.size();
-					}
-					if (norm_index > 0 && vert_index > 0)
+					if (norm_index > 0 && normals_coordinates.size() >= norm_index) {
 						vertices[vert_index - 1].setNormals(normals_coordinates[norm_index - 1]);
+					}
 				}
 				if (list_ind.size() == 3) {
 					surfaces.push_back(Surface(list_ind[0], list_ind[1], list_ind[2]));
