@@ -60,7 +60,7 @@ namespace viewer {
 			}
 
 			else if(word == surface_prefix) {
-				// Считываем индекс вершины, индекс UV-координаты и индекс нормали
+				// Считываем индекс вершины и индекс нормали
 				// f v1/vt1/vn1 v2/vt2/vn2 ...
 				std::vector<long> list_ind;
 
