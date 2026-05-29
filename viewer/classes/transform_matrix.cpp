@@ -61,49 +61,9 @@ namespace viewer {
     float& TransformMatrix::operator()(int i, int j) {
         if (i < 0 || j < 0 ||i > 3 || j > 3) {
             throw std::out_of_range("Out of range TransformMatrix!");
-            return mtrx_[0][0];
         }
 
         return mtrx_[i][j];
-    }
-
-    Point3D TransformMatrix::TransformPoint(const Point3D& point) const noexcept {
-        // Трансформация точки с использованием однородных координат
-        // [x']   [m00 m01 m02 m03]   [x]
-        // [y']   [m10 m11 m12 m13]   [y]
-        // [z'] = [m20 m21 m22 m23] * [z]
-        // [w']   [m30 m31 m32 m33]   [1]
-
-        const float w = 1.0f;  // Однородная координата
-
-        float result_x = mtrx_[0][0] * point.x +
-                         mtrx_[0][1] * point.y +
-                         mtrx_[0][2] * point.z +
-                         mtrx_[0][3] * w;
-
-        float result_y = mtrx_[1][0] * point.x +
-                         mtrx_[1][1] * point.y +
-                         mtrx_[1][2] * point.z +
-                         mtrx_[1][3] * w;
-
-        float result_z = mtrx_[2][0] * point.x +
-                         mtrx_[2][1] * point.y +
-                         mtrx_[2][2] * point.z +
-                         mtrx_[2][3] * w;
-
-        // Перспективное деление (для перспективной проекции)
-        float result_w = mtrx_[3][0] * point.x +
-                         mtrx_[3][1] * point.y +
-                         mtrx_[3][2] * point.z +
-                         mtrx_[3][3] * w;
-
-        if (std::abs(result_w) > 1e-6f) {
-            result_x /= result_w;
-            result_y /= result_w;
-            result_z /= result_w;
-        }
-
-        return Point3D(result_x, result_y, result_z);
     }
 
     TransformMatrix TransformMatrix::Identity() noexcept {

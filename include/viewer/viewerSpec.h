@@ -66,12 +66,6 @@ namespace viewer {
 	class BaseSceneObject {
 
 	public:
-		/**
-		@brief Каждый класс, представленный на сцене,
-		должен иметь метод для изменения текущего положения в пространстве
-		@param trans_matrix Матрица трансформации, применяемая к каждой вершине
-		*/
-		virtual void Transform(const TransformMatrix& trans_matrix) = 0;
 		virtual ~BaseSceneObject() = default;
 	};
 
@@ -156,14 +150,6 @@ namespace viewer {
 
 		TransformMatrix inverse() const noexcept; ///< Создание новой инвертированной матрицы
 		TransformMatrix transpose() const noexcept; ///< Создание новой транспонированной матрицы
-
-		/**
-		@brief Изменение координаты точки путем умножения ее координаты на аффинную матрицу\n
-		@param point Координата точки в трехмерном пространстве
-		@return Новая координата точки после преобразования
-		*/
-		Point3D TransformPoint(const Point3D& point) const noexcept;
-
 
 		/**
 		@brief Статический метод получения начальной матрицы
@@ -363,7 +349,6 @@ namespace viewer {
 		const Point3D& getPosition() const noexcept;
 		const Point3D& getNormale() const noexcept; ///< Получение вектора нормали вершины
 		Point3D& getNormale() noexcept;
-		void Transform(const TransformMatrix&) override; ///< Не используется
 
 	};
 
@@ -475,8 +460,6 @@ namespace viewer {
 		const std::vector<Vertex>& getVertices() const noexcept; ///< Доступ к списку вершин фигуры
 		const std::vector<Surface>& getSurfaces() const noexcept; ///< Доступ к списку поверхностей фигуры
 
-		void Transform(const TransformMatrix&) override; ///< Не используется
-
 	};
 
 	// =====================================
@@ -500,8 +483,6 @@ namespace viewer {
 
 		Figure& getFigure() noexcept; ///< Получение текущей фигуры
 		const Figure& getFigure() const noexcept;
-		void TransformFigure(const TransformMatrix&); ///< Не используется
-
 	};
 
 	// =====================================

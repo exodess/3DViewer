@@ -62,10 +62,6 @@ namespace viewer {
 		return normale_;
 	}
 
-	void Vertex::Transform(const TransformMatrix& mtrx) {
-		position_ = mtrx.TransformPoint(position_);
-	}
-
 
 	// ===========================
 	// ========= Figure ==========
@@ -85,12 +81,6 @@ namespace viewer {
 		return surfaces_;
 	}
 
-	void Figure::Transform(const TransformMatrix& mtrx) {
-		for(auto it = vertices_.begin(); it != vertices_.end(); ++it) {
-			(*it).Transform(mtrx);
-		}
-
-	}
 
 	// ===========================
 	// ========== Scene ==========
@@ -103,10 +93,6 @@ namespace viewer {
 	}
 	const Figure& Scene::getFigure() const noexcept {
 		return figure_;
-	}
-
-	void Scene::TransformFigure(const TransformMatrix& mtrx) {
-		figure_.Transform(mtrx);
 	}
 
 }
