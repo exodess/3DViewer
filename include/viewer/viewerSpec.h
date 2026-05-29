@@ -28,16 +28,13 @@
 	
 */
 
+#include "dataStructures.h"
+
 namespace viewer {
 
 	// =====================================
 	// ========== Общее положение ==========
 	// =====================================
-
-	// Хранение данных:
-	struct Point3D;
-	struct NormalizationParameters;
-	struct ViewerOperationResult;
 
 	// Интерфейсы:
 	class BaseFileReader;
@@ -54,67 +51,6 @@ namespace viewer {
 	class TransformMatrix;
 	class TransformMatrixBuilder;
 	class FileReader;
-
-	// =====================================
-	// ========== Структуры данных =========
-	// =====================================
-
-	/**
-	@class Point3D
-	@brief Хранение координаты точки в трехмерном пространстве
-	*/
-	struct Point3D {
-
-		float x, y, z;
-
-		Point3D() : x{0.0f}, y{0.0f}, z{0.0f} {}
-		Point3D(float x_value, float y_value, float z_value) : x{x_value}, y{y_value}, z{z_value} {}
-
-		bool operator==(const Point3D& other) const noexcept {
-			return (x == other.x && y == other.y && z == other.z);
-		}
-
-		Point3D operator+(const Point3D& other) const noexcept {
-			return Point3D(x + other.x, y + other.y, z + other.z);
-		}
-	};
-
-	/**
-	@class NormalizationParameters
-	@brief Параметры загрузки сцены
-	@note Пока что не используется
-	*/
-	struct NormalizationParameters {
-
-		float min, max;
-		float dxStep, dyStep;
-
-	};
-
-	/**
-	@class ViewerOperationResult
-	@brief Структура для хранения информации о результате работы внутри класса
-	Viewer при вызове какого-либо метода
-
-	- Если операция прошла успешно, то isSuccess_ = true, а поле message_ пустое
-	- Иначе, в поле message_ будет хранится краткая информация о произошедшей ошибке
-
-	Структура передается в главный класс отрисовки приложения для сигнализации пользователя
-	о результатах операций
-	*/
-	struct ViewerOperationResult {
-
-	private:
-		bool isSuccess_; ///< Успешность операции
-		std::string message_; ///< Информация о ошибке, если она есть
-
-	public:
-		ViewerOperationResult(bool success, std::string mess = "") : isSuccess_{success}, message_{mess} {}
-
-		bool isSuccess() noexcept { return isSuccess_; } ///< Получение информации о том, успешно ли прошла операция или нет
-		std::string& getMessage() noexcept { return message_; } ///< Передает краткую аннотацию, почему операция завершилась с ошибкой
-
-	};
 
 	// =====================================
 	// ======== Используемые классы ========

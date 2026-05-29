@@ -356,44 +356,6 @@ namespace viewer {
 	}; // class VAO
 
 	/**
-	 *@class ProjectionType
-	 *@brief Типы проекции при отображении фигуры
-	 */
-	enum ProjectionType {
-		ORTHOGRAPHIC = 0, ///< Параллельная проекция
-		PERSPECTIVE ///< Центральная проекция
-	};
-
-	/**
-	@class VerticesMode
-	@brief Перечисление для указания режима отображения вершин
-	*/
-	enum VerticesMode {
-		NONE = 0, ///< Вершины не отображаются
-		CIRCLE, ///< Вершины представлены кругами
-		SQUARE ///< Вершины представлены квадратами
-	};
-
-	/**
-	@class EdgesMode
-	@brief Перечисление для указания режима отображения вершин
-	*/
-	enum EdgesMode {
-		SOLID, ///< Ребра представлены сплошной линией
-		DASHED ///< Ребра представлены пунктирной линией
-	};
-
-	/**
-	 * @class DisplayType
-	 * @brief Перечисление для указания типа отображения фигуры
-	 */
-	enum DisplayType {
-		WIREFRAME_MODEL = 0, ///< Каркасная модель
-		FLAT_SHADING_MODEL, ///< Плоское затенение
-		SMOOTH_SHADING_MODEL, ///< Мягкое затенение
-	};
-
-	/**
 	@class Mesh
 	@brief Управляет созданием буферов для OpenGL и загрузкой в них данных для изменения фигуры\n
 
