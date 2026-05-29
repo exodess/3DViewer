@@ -8,7 +8,7 @@
 
 namespace viewer {
 
-	Scene* FileReader::ReadScene(std::string path, NormalizationParameters param) {
+	Scene* FileReader::ReadScene(std::string path) {
 
 		std::cout << "[FileReader] Считывание модели из файла " << path << std::endl;
 
@@ -31,9 +31,6 @@ namespace viewer {
 		if(!file) {
 			std::cerr << "file \"" << path << "\" not found!" << std::endl;
 		}
-
-		std::cout << "\tПараметры нормализации:\n\t[ min = " << param.min << ", max = " << param.max;
-		std::cout << ", dxStep = " << param.dxStep << ", dyStep = " << param.dyStep << " ]" <<  std::endl;
 
 		while(file) {
 			getline(file, line);

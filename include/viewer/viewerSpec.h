@@ -86,10 +86,9 @@ namespace viewer {
 		/**
 		@brief Класс для загрузки фигуры должен иметь специализированный метод для чтения фигуры
 		@param path Путь до файла с фигурой
-		@param param Параметры, с которыми считывается фигура
 		@return Готовая к отображению сцена, которая сохраняется в классе Viewer
 		*/
-		virtual Scene* ReadScene(std::string path, NormalizationParameters param) = 0;
+		virtual Scene* ReadScene(std::string path) = 0;
 		virtual ~BaseFileReader() = default;
 	};
 
@@ -441,10 +440,9 @@ namespace viewer {
 		/**
 		@brief Загрузка сцены из файла
 		@param path Путь к файлу модели
-		@param param Параметры нормализации
 		@return Результат операции
 		*/
-		ViewerOperationResult LoadScene(std::string path, NormalizationParameters);
+		ViewerOperationResult LoadScene(std::string path);
 
 
 	};
@@ -520,10 +518,9 @@ namespace viewer {
 		/**
 		@brief Чтение сцены
 		@param path Расположение файла .obj
-		@param param Параметры нормализации, которые необходимо применить для считываемой фигуры (не используется)
 		@return Готовая для отображения на экран сцена, содержащая загруженную фигуру
 		*/
-		Scene* ReadScene(std::string path, NormalizationParameters param) override;
+		Scene* ReadScene(std::string path) override;
 
 	private:
 		/**

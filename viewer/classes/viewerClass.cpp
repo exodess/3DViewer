@@ -45,14 +45,14 @@ namespace viewer {
 		}
 	}
 
-	ViewerOperationResult Viewer::LoadScene(std::string path, NormalizationParameters param) {
+	ViewerOperationResult Viewer::LoadScene(std::string path) {
 		if(reader_) {
 			if(scene_) {
 				delete scene_;
 				scene_ = nullptr;
 			}
 
-			scene_ = reader_->ReadScene(path, param);
+			scene_ = reader_->ReadScene(path);
 			std::cout << "[Viewer] Сцена загружена из: " << path << "\n";
 
 			return ViewerOperationResult(true);

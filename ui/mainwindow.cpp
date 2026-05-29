@@ -200,8 +200,7 @@ namespace viewer {
 	}
 
 	void MainWindow::loadScene(const QString& path) {
-		NormalizationParameters params{0.0f, 1.0f, 0.1f, 0.1f};
-		auto result = viewer_->LoadScene(path.toStdString(), params);
+		auto result = viewer_->LoadScene(path.toStdString());
 
 		if (result.isSuccess()) {
 			currentFileName_ = QFileInfo(path).fileName();

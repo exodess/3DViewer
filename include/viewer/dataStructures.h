@@ -67,16 +67,6 @@ namespace viewer {
 	};
 
 	/**
-	 * @class NormalizationParameters
-	 * @brief Параметры загрузки сцены
-	 * @note Пока что не используется
-	 */
-	struct NormalizationParameters {
-		float min, max;
-		float dxStep, dyStep;
-	};
-
-	/**
 	@class ViewerOperationResult
 	@brief Структура для хранения информации о результате работы внутри класса
 	Viewer при вызове какого-либо метода
