@@ -25,6 +25,8 @@ public:
     QAction *action_FlatShading;
     QAction *action_SmoothShading;
     QAction *action_RayTracing;
+    QAction *action_SaveScreenshot;
+    QAction *action_SaveGif;
     QWidget *centralWidget;
     QVBoxLayout *mainVerticalLayout;
     QHBoxLayout *contentLayout;
@@ -83,6 +85,7 @@ public:
     QMenu *menu_File;
     QMenu *menu_Projection;
     QMenu *menu_DisplayType;
+    QMenu *menu_Export;
     QStatusBar *statusbar;
 
     // ----------------------------------------------------------------
@@ -113,6 +116,8 @@ public:
         action_FlatShading = new QAction(MainWindow);
         action_SmoothShading = new QAction(MainWindow);
         action_RayTracing = new QAction(MainWindow);
+        action_SaveGif = new QAction(MainWindow);
+        action_SaveScreenshot = new QAction(MainWindow);
 
         centralWidget = new QWidget(MainWindow);
         mainVerticalLayout = new QVBoxLayout(centralWidget);
@@ -331,6 +336,7 @@ public:
         menu_File = new QMenu("Файл", menubar);
         menu_Projection = new QMenu("Проекция", menubar);
         menu_DisplayType = new QMenu("Отображение", menubar);
+        menu_Export = new QMenu("Запись", menubar);
         MainWindow->setMenuBar(menubar);
 
         statusbar = new QStatusBar(MainWindow);
@@ -340,6 +346,7 @@ public:
         menubar->addAction(menu_File->menuAction());
         menubar->addAction(menu_Projection->menuAction());
         menubar->addAction(menu_DisplayType->menuAction());
+        menubar->addAction(menu_Export->menuAction());
 
         menu_File->addAction(action_Open);
         menu_File->addAction(action_Exit);
@@ -351,6 +358,8 @@ public:
         menu_DisplayType->addAction(action_FlatShading);
         menu_DisplayType->addAction(action_SmoothShading);
         menu_DisplayType->addAction(action_RayTracing);
+        menu_Export->addAction(action_SaveScreenshot);
+        menu_Export->addAction(action_SaveGif);
 
         retranslateUi(MainWindow);
     }
@@ -364,6 +373,8 @@ public:
         action_FlatShading->setText("Плоское затенение");
         action_SmoothShading->setText("Мягкое затенение");
         action_RayTracing->setText("Трассировка лучей");
+        action_SaveScreenshot->setText("Скриншот");
+        action_SaveGif->setText("Анимация (GIF)");
     }
 
     QFrame* createSeparator() {

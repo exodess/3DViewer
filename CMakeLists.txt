@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(3DViewer VERSION 2.0 LANGUAGES C CXX)
+project(3DViewer VERSION 2.1.2 LANGUAGES C CXX)
 
 # настраиваем стандарт языка для компиляции
 set(CMAKE_CXX_STANDARD 20)
@@ -17,12 +17,35 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt6 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 
+# ============================================
+# Ручной поиск libcgif (для GIF записи)
+# ============================================
+find_path(CGIF_INCLUDE_DIR
+		NAMES cgif.h
+		PATHS /usr/include /usr/local/include
+)
+
+find_library(CGIF_LIBRARY
+		NAMES cgif libcgif
+		PATHS /usr/lib/x86_64-linux-gnu /usr/lib /usr/local/lib
+)
+
+if(CGIF_INCLUDE_DIR AND CGIF_LIBRARY)
+	set(CGIF_FOUND TRUE)
+	set(CGIF_INCLUDE_DIRS ${CGIF_INCLUDE_DIR})
+	set(CGIF_LIBRARIES ${CGIF_LIBRARY})
+	add_compile_definitions(HAS_GIF_SUPPORT)
+else()
+	set(CGIF_FOUND FALSE)
+endif()
+
 # Необходимые файлы и директории
 file(GLOB viewer_src_files "viewer/classes/*.cpp")
 file(GLOB opengl_src_files "viewer/opengl/*.cpp")
 file(GLOB gui_src_files "ui/*.cpp" "include/ui/*.h")
 file(GLOB glad_src_files "dependencies/src/glad.c")
 file(GLOB gtest_src_files "gtest/*.cpp")
+file(GLOB gif_src_files "viewer/services/*.cpp")
 
 # Копируем нужные ресурсы в директорию сборки
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders/shader.vert"
@@ -38,6 +61,11 @@ file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders/shader.frag"
 #     Создание библиотек для работы проекта
 # ---------------------------------------------
 
+# Библиотека для записи GIF анимаций
+add_library(GIF_LIB STATIC ${gif_src_files})
+target_include_directories(GIF_LIB PRIVATE ${CGIF_INCLUDE_DIRS})
+target_link_libraries(GIF_LIB ${CGIF_LIBRARIES})
+
 # Библиотека для работы с классами бэкенда
 add_library(ViewerClasses STATIC ${viewer_src_files})
 
@@ -52,6 +80,7 @@ add_library(ViewerGraphicLib STATIC ${glad_src_files} ${opengl_src_files})
 target_link_libraries(ViewerGraphicLib 
 	ViewerClasses
 	GLAD_LIB
+	GIF_LIB
 	OpenGL::GL
 )
 

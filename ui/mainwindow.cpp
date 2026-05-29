@@ -38,6 +38,8 @@ namespace viewer {
 		connect(ui->action_Wireframe, &QAction::triggered, this, &MainWindow::on_action_Wireframe_triggered);
 		connect(ui->action_FlatShading, &QAction::triggered, this, &MainWindow::on_action_FlatShading_triggered);
 		connect(ui->action_SmoothShading, &QAction::triggered, this, &MainWindow::on_action_SmoothShading_triggered);
+		connect(ui->action_SaveScreenshot, &QAction::triggered, this, &MainWindow::on_action_SaveScreenshot_triggered);
+		connect(ui->action_SaveGif, &QAction::triggered, this, &MainWindow::on_action_SaveGif_triggered);
 
 		// СОЕДИНЕНИЕ КНОПОК ЦВЕТА
 		connect(ui->btn_BackgroundColor, &QPushButton::clicked, this, &MainWindow::on_btn_BackgroundColor_clicked);
@@ -277,5 +279,24 @@ namespace viewer {
 
 		ui->label_displayType->setText("Мягкое затенение");
 	}
+
+	void MainWindow::on_action_SaveScreenshot_triggered() {
+		QString fileName = QFileDialog::getSaveFileName(this, "Сохранить скриншот",
+														"", "Images (*.png *.jpg)");
+		if (!fileName.isEmpty()) {
+			glWidget_->saveImage(fileName);
+			ui->statusbar->showMessage("Скриншот сохранен в файле " + fileName);
+		}
+	}
+
+	void MainWindow::on_action_SaveGif_triggered() {
+		QString fileName = QFileDialog::getSaveFileName(this, "Сохранить анимацию",
+														"", "Animation (*.gif)");
+		if (!fileName.isEmpty()) {
+			glWidget_->startRecording(fileName, 10, 5);
+			ui->statusbar->showMessage("Анимация сохранена в файле " + fileName);
+		}
+	}
+
 
 }

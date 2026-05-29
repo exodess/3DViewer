@@ -22,6 +22,8 @@ namespace viewer {
         void on_action_Wireframe_triggered();
         void on_action_FlatShading_triggered();
         void on_action_SmoothShading_triggered();
+        void on_action_SaveScreenshot_triggered();
+        void on_action_SaveGif_triggered();
 
         void on_btn_VertexColor_clicked();
         void onVertexSizeChanged(float value);
