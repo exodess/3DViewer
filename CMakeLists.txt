@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(3DViewer VERSION 2.0 LANGUAGES C CXX)
+project(3DViewer VERSION 2.1 LANGUAGES C CXX)
 
 # настраиваем стандарт языка для компиляции
 set(CMAKE_CXX_STANDARD 20)
