@@ -1,3 +1,5 @@
+#include <random>
+
 #include "viewer/viewerSpec.h"
 
 // реализация классов Surface, Vertex, Figure
@@ -62,6 +64,32 @@ namespace viewer {
 		return normale_;
 	}
 
+	// ===========================
+	// ===== BaseSceneObject =====
+	// ===========================
+
+	Point3D& BaseSceneObject::translation() noexcept {
+		return translationVector_;
+	}
+
+	Point3D& BaseSceneObject::rotation() noexcept {
+		return rotationVector_;
+	}
+
+	Point3D &BaseSceneObject::scale() noexcept {
+		return scaleVector_;
+	}
+
+	TransformMatrix BaseSceneObject::getModelMatrix() noexcept {
+		TransformMatrix scaleMatrix = TransformMatrixBuilder::CreateScaleMatrix(
+			scaleVector_.x(), scaleVector_.y(), scaleVector_.z());
+		TransformMatrix rotationMatrix = TransformMatrixBuilder::CreateRotationMatrix(
+			rotationVector_.x(), rotationVector_.y(), rotationVector_.z());
+		TransformMatrix translationMatrix = TransformMatrixBuilder::CreateMoveMatrix(
+			translationVector_.x(), translationVector_.y(), translationVector_.z());
+
+		return translationMatrix * rotationMatrix * scaleMatrix;
+	}
 
 	// ===========================
 	// ========= Figure ==========

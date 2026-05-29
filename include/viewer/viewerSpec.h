@@ -37,9 +37,9 @@ namespace viewer {
 	// =====================================
 
 	// Интерфейсы:
+	class BaseSceneObject;
 	class BaseFileReader;
 	class BaseDrawerScene;
-	class BaseSceneObject;
 
 	// Основные классы:
 	class Viewer;
@@ -57,16 +57,26 @@ namespace viewer {
 	// =====================================
 
 	/**
-	@class BaseSceneObject
-	@brief Абстрактный базовый класс, от которого наследуются все объекты, находящиеся на сцене\n
-	Предоставляет интерфейс для классов-наследников, как они должны быть реализованы
-
-	@note От данного класса наследуются классы Figure, Surface, Vertex
+	 * @class BaseSceneObject
+	 * @brief Абстрактный базовый класс, от которого наследуются классы, описывающие объекты на сцене.
+	 * От этого класса наследуются Figure и Camera
 	*/
 	class BaseSceneObject {
+	private:
+		Point3D translationVector_; ///< Смещение объекта относительно центра координат
+		Point3D rotationVector_; ///< Поворот объекта относительно нулевого угла
+		Point3D scaleVector_ = Point3D(1.0f, 1.0f, 1.0f); ///< Масштаб объекта в трехмерном пространстве
 
 	public:
-		virtual ~BaseSceneObject() = default;
+		Point3D& translation() noexcept; ///< Доступ к полю со смещением объекта
+		Point3D& rotation() noexcept; ///< Доступ к полю угла вращения объекта
+		Point3D& scale() noexcept; ///< Доступ к полю масштаба отображения объекта
+
+		/**
+		 * @brief Вычисляет и возвращает результирующую матрицу, которая потом будет загружена в шейдерную программу
+		 * @return Матрица модели: Translation * Rotation * Scale
+		 */
+		TransformMatrix getModelMatrix() noexcept;
 	};
 
 	/**
@@ -110,7 +120,7 @@ namespace viewer {
 	class BaseDrawerScene {
 
 	public:
-		virtual void DrawScene(Scene&) = 0;
+		virtual void DrawScene(Scene*) = 0;
 		virtual ~BaseDrawerScene() = default;
 	};
 
@@ -323,7 +333,7 @@ namespace viewer {
 
 	Вектор нормали необходим для корректной обработки освещения
 	*/
-	class Vertex : public BaseSceneObject {
+	class Vertex {
 
 	private:
 		Point3D position_; ///< Координата вершины в трехмерном пространстве

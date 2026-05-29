@@ -35,7 +35,7 @@ namespace viewer {
         void saveSettingsToFile(const QString& filePath);
         void loadSettingsFromFile(const QString& filePath);
 
-        void DrawScene(Scene& scene) override;
+        void DrawScene(Scene* scene) override;
         uint32_t countVertices() noexcept;
         uint32_t countSurfaces() noexcept;
 

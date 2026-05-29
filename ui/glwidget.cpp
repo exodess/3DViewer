@@ -369,12 +369,12 @@ namespace viewer {
 	}
 
 
-	void GLWidget::DrawScene(Scene& scene) {
+	void GLWidget::DrawScene(Scene* scene) {
 		makeCurrent();
 
-		if(scene_ != &scene) {
+		if(scene_ != scene) {
 			// загружена новая фигура
-			scene_ = &scene;
+			scene_ = scene;
 
 			if (mesh_)
 				delete mesh_;
