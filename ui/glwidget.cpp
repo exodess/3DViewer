@@ -10,22 +10,7 @@ namespace viewer {
 	    , shaderProgram_(nullptr)
 	    , mesh_(nullptr)
 		, ui_(ui)
-		, cameraZoom_(1.0f)
-	    , cameraVector_{0.0f, 0.0f, 10.0f}
-	    , rotationVector_{Point3D(0.0f, 0.0f, 0.0f)}
-	    , translationVector_{Point3D(0.0f, 0.0f, 0.0f)}
-	    , scaleVector_{Point3D(1.0f, 1.0f, 1.0f)}
-	    , vertColor_{Point3D(0.0f, 0.0f, 0.0f)}
-	    , vertSize_{0.01f}
-	    , vertMode_(VerticesMode::NONE)
-	    , edgColor_{Point3D(0.0f, 0.4f, 0.6f)}
-	    , edgSize_{0.002f}
-	    , edgMode_(EdgesMode::SOLID)
 	    , backColor_(Point3D(1.0, 1.0, 1.0))
-	    , projectionType_(ProjectionType::PERSPECTIVE)
-		, displayType_(DisplayType::WIREFRAME_MODEL)
-		, lightColor_(Point3D(1.0f, 1.0f, 1.0f))
-		, lightPosition_(Point3D(0.0f, 0.0f, 0.0f))
 		, lastPos_(0, 0)
 		, rotation_(Point3D(0.0f, 0.0f, 0.0f))
 		, translation_(Point3D(0.0f, 0.0f, 0.0f))

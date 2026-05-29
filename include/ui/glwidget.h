@@ -155,42 +155,12 @@ namespace viewer {
 
         Ui::MainWindow* ui_;
 
-        // настройки для матриц
-        float cameraZoom_;
-        Point3D cameraVector_;
-        Point3D rotationVector_;
-        Point3D translationVector_;
-        Point3D scaleVector_;
-
-		    // матрицы
-        TransformMatrix modelMatrix_;
-        TransformMatrix viewMatrix_;
-        TransformMatrix projectionMatrix_;
-
-        // настройки для вершин
-        Point3D vertColor_;
-        float vertSize_;
-        VerticesMode vertMode_;
-
-        // настройки для ребер
-        Point3D edgColor_;
-        float edgSize_;
-        EdgesMode edgMode_;
-
         // цвет фона
         Point3D backColor_;
 
-        // тип проекции
-        ProjectionType projectionType_;
-
-        // тип отрисовки фигуры
-        DisplayType displayType_;
-        Point3D lightColor_;
-        Point3D lightPosition_;
-
-        QPoint lastPos_;
-        Point3D rotation_;
-        Point3D translation_;
+        QPoint lastPos_; ///< Последняя позиция мыши
+        Point3D rotation_; ///< Вращение мыши относительно нулевого угла
+        Point3D translation_; ///< Перемещение мыши относительно последней позиции
 
         // GIF запись
         std::unique_ptr<GifRecorder> gif_recorder_;  ///< Рекордер GIF
