@@ -93,8 +93,8 @@ namespace viewer {
 			rotation_.y += dy * ROTATION_MOUSE_SENSITIVITY;
 
 			setRotation(rotation_.y, rotation_.x, ui_->spin_rotZ->value());
-			ui_->spin_rotX->setValue(rotation_.y);
-			ui_->spin_rotY->setValue(rotation_.x);
+			ui_->spin_rotX->setValue(static_cast<int>(rotation_.y) % 360);
+			ui_->spin_rotY->setValue(static_cast<int>(rotation_.x) % 360);
 		}
 
 		lastPos_ = event->pos();
