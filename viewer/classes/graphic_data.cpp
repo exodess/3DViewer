@@ -109,12 +109,38 @@ namespace viewer {
 		return surfaces_;
 	}
 
+	// ===========================
+	// ========= Camera ==========
+	// ===========================
+
+	Camera::Camera() noexcept : type_(ProjectionType::ORTHOGRAPHIC) {}
+
+	TransformMatrix Camera::getProjectionMatrix(float aspect) noexcept {
+
+		TransformMatrix resultMatrix;
+
+		if (type_ == ProjectionType::ORTHOGRAPHIC) {
+			float size = 2.0f;
+			resultMatrix = TransformMatrixBuilder::CreateOrthographicMatrix(
+				  -size * aspect, size * aspect, -size, size, -100.0f, 100.0f);
+		}
+		else {
+			resultMatrix = TransformMatrixBuilder::CreatePerspectiveMatrix(
+				  45.0f, aspect, 0.1f, 100.0f);
+		}
+
+		return resultMatrix;
+	}
+
+	ProjectionType& Camera::projectionType() noexcept {
+		return type_;
+	}
 
 	// ===========================
 	// ========== Scene ==========
 	// ===========================
 
-	Scene::Scene() noexcept {}
+	Scene::Scene() noexcept : camera_(Camera()) {}
 
 	void Scene::addFigure(const Figure &figure) noexcept {
 		figures_.push_back(figure);
@@ -126,6 +152,10 @@ namespace viewer {
 		}
 
 		return figures_[number - 1];
+	}
+
+	Camera &Scene::getCamera() noexcept {
+		return camera_;
 	}
 
 

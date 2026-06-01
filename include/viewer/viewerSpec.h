@@ -44,7 +44,10 @@ namespace viewer {
 	// Основные классы:
 	class Viewer;
 	class Scene;
+
+	class Camera;
 	class Figure;
+
 	class Surface;
 	class Vertex;
 
@@ -442,6 +445,37 @@ namespace viewer {
 
 	};
 
+	/**
+	 * @class Camera
+	 * @brief Данный класс хранит информацию о том, как будет отображена вся сцена с точки зрения пользователя
+	 * Кроме стандартных настроек изменения положения в пространстве,
+	 * камера задает тип проекции сцены - ортографическая или перспективная.
+	 * @note Матрица модели камеры является матрицей вида - View Matrix
+	 */
+	class Camera : public BaseSceneObject {
+	private:
+		ProjectionType type_; ///< Тип проекции
+
+	public:
+		/**
+		 * @brief Создание камеры с стандартными настройками вида
+		 */
+		Camera() noexcept;
+
+		/**
+		 * @brief Создание проекционной матрицы, в зависимости от выбора пользователя
+		 * @param aspect Соотношение сторон сцены
+		 * @return Ортографическая или перспективная матрица проекции
+		 */
+		TransformMatrix getProjectionMatrix(float aspect) noexcept;
+
+		/**
+		 * @brief Метод для доступа к полю типу проекции сцены
+		 * @return Ссылка а
+		 */
+		ProjectionType& projectionType() noexcept;
+	};
+
 	// =====================================
 	// ========== Figure (Фигура) ==========
 	// =====================================
@@ -483,6 +517,7 @@ namespace viewer {
 	*/
 	class Scene {
 	private:
+		Camera camera_;
 		std::vector<Figure> figures_; ///< Список фигур, которые в данный момент находятся на сцене
 
 	public:
@@ -503,6 +538,12 @@ namespace viewer {
 		 * @return Ссылка на нужную фигуру
 		 */
 		Figure& getFigure(int number);
+
+		/**
+		 * @brief Доступ к камере сцены для изменения глобальных настроек представления сцены
+		 * @return Текущая камера
+		 */
+		Camera& getCamera() noexcept;
 	};
 
 	// =====================================
