@@ -490,6 +490,9 @@ namespace viewer {
 	private:
 		std::vector<Vertex> vertices_; ///< Множество вершин (координат в трехмерном пространстве)
 		std::vector<Surface> surfaces_; ///< Множество поверхностей (связей между вершинами)
+		DisplayType displayType_; ///< Хранит способ отображения фигуры на сцене
+		EdgeInfo edgInfo_; ///< Способ отображения ребер в фигуре
+		VertexInfo vertInfo_; ///< Способ отображения вершин в фигуре
 
 	public:
 
@@ -499,11 +502,14 @@ namespace viewer {
 		@param vertices Считанные вершины
 		@param Surfaces Считанные поверхности
 		*/
-		Figure(std::vector<Vertex>& vertices, std::vector<Surface>& Surfaces) noexcept;
+		Figure(const std::vector<Vertex>& vertices, const std::vector<Surface>& Surfaces) noexcept;
 
 		const std::vector<Vertex>& getVertices() const noexcept; ///< Доступ к списку вершин фигуры
 		const std::vector<Surface>& getSurfaces() const noexcept; ///< Доступ к списку поверхностей фигуры
 
+		DisplayType& displayType() noexcept; ///< Получение информации о том, как должна отрисовываться фигура
+		EdgeInfo& edgeInfo() noexcept; ///< Получение информации о способе представления ребер фигуры в каркасном режиме
+		VertexInfo& vertexInfo() noexcept; ///< Получение информации о способе представления вершин фигуры в каркасном режиме
 	};
 
 	// =====================================

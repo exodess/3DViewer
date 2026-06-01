@@ -96,10 +96,10 @@ namespace viewer {
 	// ===========================
 
 
-	Figure::Figure() noexcept : vertices_{}, surfaces_{} {}
+	Figure::Figure() noexcept : displayType_(DisplayType::WIREFRAME_MODEL) {}
 
-	Figure::Figure(std::vector<Vertex>& vertices, std::vector<Surface>& surfaces) noexcept
-		: vertices_{vertices}, surfaces_{surfaces} {}
+	Figure::Figure(const std::vector<Vertex>& vertices, const std::vector<Surface>& surfaces) noexcept
+		: vertices_{vertices}, surfaces_{surfaces}, displayType_(DisplayType::WIREFRAME_MODEL) {}
 
 	const std::vector<Vertex>& Figure::getVertices() const noexcept {
 		return vertices_;
@@ -107,6 +107,18 @@ namespace viewer {
 
 	const std::vector<Surface>& Figure::getSurfaces() const noexcept {
 		return surfaces_;
+	}
+
+	DisplayType &Figure::displayType() noexcept {
+		return displayType_;
+	}
+
+	EdgeInfo &Figure::edgeInfo() noexcept {
+		return edgInfo_;
+	}
+
+	VertexInfo &Figure::vertexInfo() noexcept {
+		return vertInfo_;
 	}
 
 	// ===========================
