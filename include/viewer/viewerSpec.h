@@ -90,9 +90,9 @@ namespace viewer {
 		/**
 		@brief Класс для загрузки фигуры должен иметь специализированный метод для чтения фигуры
 		@param path Путь до файла с фигурой
-		@return Готовая к отображению сцена, которая сохраняется в классе Viewer
+		@return Готовая к отображению фигура, которая сохраняется в текущей сцене
 		*/
-		virtual Scene* ReadScene(std::string path) = 0;
+		virtual Figure ReadFigure(std::string path) = 0;
 		virtual ~BaseFileReader() = default;
 	};
 
@@ -433,11 +433,11 @@ namespace viewer {
 		ViewerOperationResult DrawScene();
 
 		/**
-		@brief Загрузка сцены из файла
+		@brief Загрузка фигуры из файла
 		@param path Путь к файлу модели
 		@return Результат операции
 		*/
-		ViewerOperationResult LoadScene(std::string path);
+		ViewerOperationResult LoadFigure(std::string path);
 
 
 	};
@@ -478,21 +478,31 @@ namespace viewer {
 
 	/**
 	@class Scene
-	@brief Класс для хранения текущей фигуры, которая должна быть отрисована
-	@note В каждый момент времени может быть только одна фигура на сцене!
+	@brief Класс для хранения текущих фигур, которые должны быть отрисованы
+	@note Поддержка двух и более фигур одновременно на сцене
 	*/
 	class Scene {
-
 	private:
-
-		Figure figure_; ///< Фигура, находящаяся на сцене
+		std::vector<Figure> figures_; ///< Список фигур, которые в данный момент находятся на сцене
 
 	public:
+		Scene() noexcept; ///< Инициализация сцены в момент загрузки прогаммы
 
-		Scene(const Figure& figure) noexcept; ///< Инициализация сцены фигурой
+		/**
+		 * @brief Добавление фигуры на сцену для отрисовки
+		 * @param figure Загруженная из файла модель
+		 */
+		void addFigure(const Figure& figure) noexcept;
 
-		Figure& getFigure() noexcept; ///< Получение текущей фигуры
-		const Figure& getFigure() const noexcept;
+		/**
+		 * @brief Получение фигуры из списка, которую выбрал пользователь. Это означает, что данная фигура
+		 * переходит в активное состояние и для нее могут быть применены стандартные преобразования -
+		 * перемещение, вращение и масштабирование
+		 * @param number Номер фигуры в списке (Какой по счету она была загружена)
+		 * @note Номер начинается с 1
+		 * @return Ссылка на нужную фигуру
+		 */
+		Figure& getFigure(int number);
 	};
 
 	// =====================================
@@ -507,11 +517,11 @@ namespace viewer {
 
 	public:
 		/**
-		@brief Чтение сцены
+		@brief Чтение новой фигуры
 		@param path Расположение файла .obj
-		@return Готовая для отображения на экран сцена, содержащая загруженную фигуру
+		@return Готовая для отображения на экране загруженная фигура
 		*/
-		Scene* ReadScene(std::string path) override;
+		Figure ReadFigure(std::string path) override;
 
 	private:
 		/**

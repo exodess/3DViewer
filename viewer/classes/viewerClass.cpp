@@ -7,7 +7,7 @@ namespace viewer {
 	Viewer::Viewer(BaseFileReader* reader, BaseDrawerScene* drawer) noexcept
 		: reader_{reader},
 		  drawer_{drawer},
-		  scene_{new Scene(Figure())}
+		  scene_{new Scene()}
 	{
 
 		std::cout << "[Viewer] Инициализация Viewer завершена\n";
@@ -36,7 +36,7 @@ namespace viewer {
 
 	ViewerOperationResult Viewer::DrawScene() {
 		if(drawer_) {
-			drawer_->DrawScene(*scene_);
+			drawer_->DrawScene(scene_);
 			return ViewerOperationResult(true);
 		}
 		else {
@@ -45,15 +45,11 @@ namespace viewer {
 		}
 	}
 
-	ViewerOperationResult Viewer::LoadScene(std::string path) {
+	ViewerOperationResult Viewer::LoadFigure(std::string path) {
 		if(reader_) {
-			if(scene_) {
-				delete scene_;
-				scene_ = nullptr;
-			}
 
-			scene_ = reader_->ReadScene(path);
-			std::cout << "[Viewer] Сцена загружена из: " << path << "\n";
+			scene_->addFigure(reader_->ReadFigure(path));
+			std::cout << "[Viewer] Модель загружена из: " << path << "\n";
 
 			return ViewerOperationResult(true);
 		}

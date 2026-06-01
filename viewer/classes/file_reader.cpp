@@ -8,7 +8,7 @@
 
 namespace viewer {
 
-	Scene* FileReader::ReadScene(std::string path) {
+	Figure FileReader::ReadFigure(std::string path) {
 
 		std::cout << "[FileReader] Считывание модели из файла " << path << std::endl;
 
@@ -120,7 +120,7 @@ namespace viewer {
 		std::cout << surfaces.size() << " поверхностей, ";
 		std::cout << normals_coordinates.size() << " нормалей" << std::endl;
 
-		return new Scene(Figure(vertices, surfaces));
+		return Figure(vertices, surfaces);
 	}
 
 	void FileReader::Normalize(std::vector<Vertex>& vertices, std::vector<Surface>& surfaces) {

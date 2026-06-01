@@ -114,13 +114,19 @@ namespace viewer {
 	// ========== Scene ==========
 	// ===========================
 
-	Scene::Scene(const Figure& f) noexcept : figure_{f} {}
+	Scene::Scene() noexcept {}
 
-	Figure& Scene::getFigure() noexcept {
-		return figure_;
+	void Scene::addFigure(const Figure &figure) noexcept {
+		figures_.push_back(figure);
 	}
-	const Figure& Scene::getFigure() const noexcept {
-		return figure_;
+
+	Figure &Scene::getFigure(int number) {
+		if (number < 1 || number > figures_.size()) {
+			throw std::out_of_range("[Scene: getFigure] This number is out of range: " + number);
+		}
+
+		return figures_[number - 1];
 	}
+
 
 }

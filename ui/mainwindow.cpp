@@ -200,7 +200,7 @@ namespace viewer {
 	}
 
 	void MainWindow::loadScene(const QString& path) {
-		auto result = viewer_->LoadScene(path.toStdString());
+		auto result = viewer_->LoadFigure(path.toStdString());
 
 		if (result.isSuccess()) {
 			currentFileName_ = QFileInfo(path).fileName();
