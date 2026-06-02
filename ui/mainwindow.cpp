@@ -6,9 +6,13 @@
 namespace viewer {
 
 	MainWindow::MainWindow(QWidget *parent)
-	    : QMainWindow(parent)
-	    , ui(new Ui::MainWindow)
-	    , viewer_(nullptr)
+	: QMainWindow(parent)
+	, ui(new Ui::MainWindow)
+	, viewer_(nullptr)
+	, current_figure_(0)
+	, count_figures_(0)
+	, current_light_(0)
+	, count_lights_(1)
 	{
 		auto glWidget_ = new GLWidget(this);
 		ui->setupUi(this);
@@ -63,7 +67,7 @@ namespace viewer {
 			viewer_->getScene()->getFigure(current_figure_).translation() = Point3D(ui->spin_transX->value(), ui->spin_transY->value(), ui->spin_transZ->value());
 			viewer_->getScene()->getFigure(current_figure_).rotation() = Point3D(ui->spin_rotX->value(), ui->spin_rotY->value(), ui->spin_rotZ->value());
 			viewer_->getScene()->getFigure(current_figure_).scale() = Point3D(ui->spin_scaleX->value(), ui->spin_scaleY->value(), ui->spin_scaleZ->value());
-			glWidget_->setNewLightPosition(ui->light_transX->value(), ui->light_transY->value(), ui->light_transZ->value());
+			viewer_->getScene()->getLight(current_light_).position() = Point3D(ui->light_transX->value(), ui->light_transY->value(), ui->light_transZ->value());
 		};
 
 		// Соединяем все спинбоксы с обновлением
@@ -78,14 +82,16 @@ namespace viewer {
 		auto backColorPoint = viewer_->getScene()->backgroundColor();
 		auto vertColorPoint = viewer_->getScene()->getFigure(current_figure_).vertexInfo().color();
 		auto edgColorPoint = viewer_->getScene()->getFigure(current_figure_).edgeInfo().color();
+		auto lightColorPoint = viewer_->getScene()->getLight(current_light_).color();
 		QColor backColor = QColor(backColorPoint.x() * 255, backColorPoint.y() * 255, backColorPoint.z() * 255);
 		QColor vertColor = QColor(vertColorPoint.x() * 255, vertColorPoint.y() * 255, vertColorPoint.z() * 255);
 		QColor edgColor = QColor(edgColorPoint.x() * 255, edgColorPoint.y() * 255, edgColorPoint.z() * 255);
+		QColor lightColor = QColor(lightColorPoint.x() * 255, lightColorPoint.y() * 255, lightColorPoint.z() * 255);
 
 		ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(vertColor.name()));
 		ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(edgColor.name()));
 		ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
-		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getLightColor().name()));
+		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(lightColor.name()));
 
 		ui->spin_VertexSize->setValue(viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() * 100);
 		ui->spin_EdgeWidth->setValue(viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() * 1000);
@@ -349,7 +355,7 @@ namespace viewer {
 			float r = color.redF();
 			float g = color.greenF();
 			float b = color.blueF();
-			glWidget_->setNewLightColor(r, g, b);
+			viewer_->getScene()->getLight(current_light_).color() = Point3D(r, g, b);
 
 			ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}

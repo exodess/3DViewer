@@ -95,6 +95,8 @@ namespace viewer {
         QString currentFileName_; ///< Название последнего считанного файла
         int current_figure_; ///< Номер текущей фигуры в фокусе
         int count_figures_; ///< Количество фигур на сцене
+        int current_light_; ///< Номер текущего источника освещения в фокусе
+        int count_lights_; ///< Количество источников освещения
 
         QPoint lastPos_; ///< Последняя позиция мыши
     };

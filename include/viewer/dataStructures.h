@@ -46,6 +46,8 @@ namespace viewer {
 		SMOOTH_SHADING_MODEL, ///< Мягкое затенение
 	};
 
+#define LIGHT_DEFAULT_INTENSITY 0.5f
+
 	/**
 	@class Point3D
 	@brief Хранение координаты точки в трехмерном пространстве

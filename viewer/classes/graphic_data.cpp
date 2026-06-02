@@ -152,10 +152,24 @@ namespace viewer {
 	// ========== Scene ==========
 	// ===========================
 
-	Scene::Scene() noexcept : camera_(Camera()) {}
+	Scene::Scene() noexcept : camera_(Camera()) {
+		lights_.push_back(Light());
+	}
 
 	void Scene::addFigure(const Figure &figure) noexcept {
 		figures_.push_back(figure);
+	}
+
+	void Scene::addLight() noexcept {
+		lights_.push_back(Light());
+	}
+
+	Light &Scene::getLight(int number) {
+		if (number < 0 || number > lights_.size()) {
+			throw std::out_of_range("Scene: getLight] This number is out of range: " + number);
+		}
+
+		return lights_[number - 1];
 	}
 
 	Point3D &Scene::backgroundColor() noexcept {
@@ -174,5 +188,22 @@ namespace viewer {
 		return camera_;
 	}
 
+	// ===========================
+	// ========== Light ==========
+	// ===========================
+
+	Light::Light() noexcept : intensity_(LIGHT_DEFAULT_INTENSITY), color_(Point3D(1.0f, 1.0f, 1.0f)) {}
+
+	Point3D &Light::position() noexcept {
+		return position_;
+	}
+
+	float &Light::intensity() noexcept {
+		return intensity_;
+	}
+
+	Point3D &Light::color() noexcept {
+		return color_;
+	}
 
 }

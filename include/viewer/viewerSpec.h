@@ -29,6 +29,8 @@
 */
 
 #include "dataStructures.h"
+#include "viewerSpec.h"
+#include "viewerSpec.h"
 
 namespace viewer {
 
@@ -47,6 +49,7 @@ namespace viewer {
 
 	class Camera;
 	class Figure;
+	class Light;
 
 	class Surface;
 	class Vertex;
@@ -65,7 +68,7 @@ namespace viewer {
 	 * От этого класса наследуются Figure и Camera
 	*/
 	class BaseSceneObject {
-	private:
+	protected:
 		Point3D translationVector_; ///< Смещение объекта относительно центра координат
 		Point3D rotationVector_; ///< Поворот объекта относительно нулевого угла
 		Point3D scaleVector_ = Point3D(1.0f, 1.0f, 1.0f); ///< Масштаб объекта в трехмерном пространстве
@@ -513,6 +516,25 @@ namespace viewer {
 	};
 
 	// =====================================
+	// ===== Light (Источник освещения) ====
+	// =====================================
+
+	class Light {
+	private:
+		Point3D position_; ///< Координата источника освещения в пространстве (для направленных источников)
+		float intensity_; ///<
+		Point3D color_; ///< Цвет в формате RGB
+
+	public:
+		Light() noexcept; ///< Инициализация стандартного источника освещения
+
+		Point3D& position() noexcept; ///< Доступ к полю координаты объекта
+		float& intensity() noexcept; ///< Доступ к полю интенсивности объекта
+		Point3D& color() noexcept; ///< Доступ к полю цвета объекта
+
+	};
+
+	// =====================================
 	// ========== Scene (Сцена) ===========
 	// =====================================
 
@@ -526,9 +548,19 @@ namespace viewer {
 		Point3D backColor_; ///< Цвет фона
 		Camera camera_; ///< Камера сцены
 		std::vector<Figure> figures_; ///< Список фигур, которые в данный момент находятся на сцене
+		/**
+		 * @brief Список источников освещения, которые расположены на сцене.
+		 * Здесь хранится 1 глобальный и N направленных источников освещения
+		 */
+		std::vector<Light> lights_;
 
 	public:
-		Scene() noexcept; ///< Инициализация сцены в момент загрузки прогаммы
+		/**
+		 * @brief Инициализация сцены в момент загрузки прогаммы.
+		 * По умолчанию создается глобальный источник освещения и камера,
+		 * через которую будет происходить просмотр сцены
+		 */
+		Scene() noexcept;
 
 		/**
 		 * @brief Добавление фигуры на сцену для отрисовки
@@ -536,6 +568,15 @@ namespace viewer {
 		 */
 		void addFigure(const Figure& figure) noexcept;
 
+		/**
+		 * @brief Добавление нового направленного источника освещения на сцену
+		 */
+		void addLight() noexcept;
+
+		/**
+		 * @brief Доступ к информации о цвете фона сцены
+		 * @return Цвет в формате RGB
+		 */
 		Point3D& backgroundColor() noexcept;
 
 		/**
@@ -547,6 +588,15 @@ namespace viewer {
 		 * @return Ссылка на нужную фигуру
 		 */
 		Figure& getFigure(int number);
+
+		/**
+		 * @brief Получение источника освещения из списка, которого выбрал пользователь.
+		 * Позволяет изменять его характеристики, что даст другое отображение сцены
+		 * @param number Номер источника в списке (Каким по счету он был создан)
+		 * @note 0 - глобальный источник освещения, от 1 до n - направленные источники освещения
+		 * @return Ссылка на нужный направленный источник освещения
+		 */
+		Light& getLight(int number);
 
 		/**
 		 * @brief Доступ к камере сцены для изменения глобальных настроек представления сцены
