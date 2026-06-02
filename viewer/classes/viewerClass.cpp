@@ -58,4 +58,9 @@ namespace viewer {
 		return ViewerOperationResult(false, error_reader_);
 	}
 
+	Scene *Viewer::getScene() noexcept {
+		return scene_;
+	}
+
+
 }

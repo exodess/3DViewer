@@ -158,6 +158,10 @@ namespace viewer {
 		figures_.push_back(figure);
 	}
 
+	Point3D &Scene::backgroundColor() noexcept {
+		return backColor_;
+	}
+
 	Figure &Scene::getFigure(int number) {
 		if (number < 1 || number > figures_.size()) {
 			throw std::out_of_range("[Scene: getFigure] This number is out of range: " + number);

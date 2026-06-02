@@ -418,7 +418,7 @@ namespace viewer {
 		@param reader Читатель файлов
 		@param drawer Отрисовщик сцены
 		*/
-		Viewer(BaseFileReader*, BaseDrawerScene*) noexcept;
+		Viewer(BaseFileReader* reader, BaseDrawerScene* drawer) noexcept;
 
 		Viewer(const Viewer&) = delete;
 		Viewer& operator=(const Viewer&) = delete;
@@ -442,7 +442,7 @@ namespace viewer {
 		*/
 		ViewerOperationResult LoadFigure(std::string path);
 
-
+		Scene* getScene() noexcept;
 	};
 
 	/**
@@ -523,7 +523,8 @@ namespace viewer {
 	*/
 	class Scene {
 	private:
-		Camera camera_;
+		Point3D backColor_; ///< Цвет фона
+		Camera camera_; ///< Камера сцены
 		std::vector<Figure> figures_; ///< Список фигур, которые в данный момент находятся на сцене
 
 	public:
@@ -534,6 +535,8 @@ namespace viewer {
 		 * @param figure Загруженная из файла модель
 		 */
 		void addFigure(const Figure& figure) noexcept;
+
+		Point3D& backgroundColor() noexcept;
 
 		/**
 		 * @brief Получение фигуры из списка, которую выбрал пользователь. Это означает, что данная фигура
