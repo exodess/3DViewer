@@ -8,14 +8,13 @@ namespace viewer {
 	MainWindow::MainWindow(QWidget *parent)
 	    : QMainWindow(parent)
 	    , ui(new Ui::MainWindow)
-	    , glWidget_(nullptr)
 	    , viewer_(nullptr)
 	{
+		auto glWidget_ = new GLWidget(this);
 		ui->setupUi(this);
 		this->setMinimumSize(300, 650);
-
-		glWidget_ = new GLWidget(this, ui);
 		viewer_ = new Viewer(new FileReader(), glWidget_);
+		loadSettingsFromFile("settings_viewer.json");
 
 		ui->contentLayout->insertWidget(0, glWidget_, 1); // 1 - это stretch factor (растяжение)
 		connectSignals();
@@ -61,9 +60,9 @@ namespace viewer {
 		        this, &MainWindow::onEdgeTypeChanged);
 
 		auto updateTransform = [this]() {
-			glWidget_->setTranslation(ui->spin_transX->value(), ui->spin_transY->value(), ui->spin_transZ->value());
-			glWidget_->setRotation(ui->spin_rotX->value(), ui->spin_rotY->value(), ui->spin_rotZ->value());
-			glWidget_->setScale(ui->spin_scaleX->value(), ui->spin_scaleY->value(), ui->spin_scaleZ->value());
+			viewer_->getScene()->getFigure(current_figure_).translation() = Point3D(ui->spin_transX->value(), ui->spin_transY->value(), ui->spin_transZ->value());
+			viewer_->getScene()->getFigure(current_figure_).rotation() = Point3D(ui->spin_rotX->value(), ui->spin_rotY->value(), ui->spin_rotZ->value());
+			viewer_->getScene()->getFigure(current_figure_).scale() = Point3D(ui->spin_scaleX->value(), ui->spin_scaleY->value(), ui->spin_scaleZ->value());
 			glWidget_->setNewLightPosition(ui->light_transX->value(), ui->light_transY->value(), ui->light_transZ->value());
 		};
 
@@ -76,30 +75,189 @@ namespace viewer {
 		}
 
 		// Устанавливаем значения на кнопках:
-		ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getVertexColor().name()));
-		ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getEdgeColor().name()));
-		ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getBackgroundColor().name()));
+		auto backColorPoint = viewer_->getScene()->backgroundColor();
+		auto vertColorPoint = viewer_->getScene()->getFigure(current_figure_).vertexInfo().color();
+		auto edgColorPoint = viewer_->getScene()->getFigure(current_figure_).edgeInfo().color();
+		QColor backColor = QColor(backColorPoint.x() * 255, backColorPoint.y() * 255, backColorPoint.z() * 255);
+		QColor vertColor = QColor(vertColorPoint.x() * 255, vertColorPoint.y() * 255, vertColorPoint.z() * 255);
+		QColor edgColor = QColor(edgColorPoint.x() * 255, edgColorPoint.y() * 255, edgColorPoint.z() * 255);
+
+		ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(vertColor.name()));
+		ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(edgColor.name()));
+		ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
 		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(glWidget_->getLightColor().name()));
 
-		ui->spin_VertexSize->setValue(glWidget_->getVertexSize());
-		ui->spin_EdgeWidth->setValue(glWidget_->getEdgeSize());
-		if(glWidget_->getEdgeMode() == 0) {
+		ui->spin_VertexSize->setValue(viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() * 100);
+		ui->spin_EdgeWidth->setValue(viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() * 1000);
+		if(viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() == 0) {
 			ui->combo_EdgeType->setCurrentText("Сплошной");
 		}
 		else {
 			ui->combo_EdgeType->setCurrentText("Пунктир");
 		}
 
-		if(glWidget_->getVertexMode() == 0) {
+		if(viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() == 0) {
 			ui->combo_VertexType->setCurrentText("Нет");
 		}
-		else if(glWidget_->getVertexMode() == 1) {
+		else if(viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() == 1) {
 			ui->combo_VertexType->setCurrentText("Круг");
 		}
 		else {
 			ui->combo_VertexType->setCurrentText("Квадрат");
 		}
 
+	}
+
+	void MainWindow::mousePressEvent(QMouseEvent* event) {
+		lastPos_ = event->pos();
+	}
+
+	void MainWindow::mouseMoveEvent(QMouseEvent* event) {
+		float dx = event->position().x() - lastPos_.x();
+		float dy = event->position().y() - lastPos_.y();
+
+		if (event->buttons() & Qt::LeftButton) {
+			// Левая кнопка мыши - перемещение фигуры в фокусе
+
+			viewer_->getScene()->getFigure(current_figure_).translation().x() += dx * TRANSLATION_MOUSE_SENSITIVITY;
+			viewer_->getScene()->getFigure(current_figure_).translation().y() -= dy * TRANSLATION_MOUSE_SENSITIVITY;
+			viewer_->getScene()->getFigure(current_figure_).translation().z() = ui->spin_transZ->value();
+
+			ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x());
+			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y());
+		}
+
+		else if (event->buttons() & Qt::RightButton) {
+			// Правая кнопка мыши - вращение
+
+			viewer_->getScene()->getFigure(current_figure_).rotation().x() = static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360;
+			viewer_->getScene()->getFigure(current_figure_).rotation().y() = static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360;
+
+			ui->spin_rotX->setValue(static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360);
+			ui->spin_rotY->setValue(static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360);
+		}
+
+		lastPos_ = event->pos();
+		update();
+	}
+
+	void MainWindow::wheelEvent(QWheelEvent* event) {
+		// Колесико мыши - зум
+
+		float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
+		viewer_->getScene()->getCamera().translation().z() -= det * 0.5f;
+
+		update();
+	}
+
+	// ===========================================================
+	// ============= СОХРАНЕНИЕ И ЗАГРУЗКА НАСТРОЕК ==============
+	// ===========================================================
+
+	void MainWindow::saveSettingsToFile(const QString& filePath) {
+		QJsonObject settings;
+
+		settings["backgroundColor"] = colorToJson(backColor_);
+		settings["edgeColor"] = colorToJson(edgColor_);
+		settings["vertexColor"] = colorToJson(vertColor_);
+		settings["edgeSize"] = edgSize_;
+		settings["vertexSize"] = vertSize_;
+		settings["vertexDisplayType"] = static_cast<int>(vertMode_);
+		settings["edgeIsDashed"] = static_cast<int>(edgMode_);
+		settings["projectionType"] = static_cast<int>(projectionType_);
+		settings["displayType"] = static_cast<int>(displayType_);
+		settings["lightColor"] = colorToJson(lightColor_);
+
+		QJsonDocument doc(settings);
+		QFile file(filePath);
+
+		if (file.open(QIODevice::WriteOnly)) {
+			file.write(doc.toJson());
+			file.close();
+			std::cout << "[GLWidget] Настройки сохранены в файл: "
+		            << filePath.toStdString() << std::endl;
+		}
+		else {
+			std::cerr << "[GLWidget] Ошибка сохранения настроек в файл: "
+			          << filePath.toStdString() << std::endl;
+		}
+	}
+
+	QJsonObject MainWindow::colorToJson(const Point3D& color) noexcept {
+		QJsonObject obj;
+
+		obj["r"] = color.x;
+		obj["g"] = color.y;
+		obj["b"] = color.z;
+
+		return obj;
+	}
+
+	Point3D MainWindow::colorFromJson(const QJsonObject& obj) noexcept {
+
+		Point3D color;
+
+		color.x = static_cast<float>(obj["r"].toDouble());
+		color.y = static_cast<float>(obj["g"].toDouble());
+		color.z = static_cast<float>(obj["b"].toDouble());
+
+		return color;
+	}
+
+	void MainWindow::loadSettingsFromFile(const QString& filePath) {
+		QFile file(filePath);
+
+		if (!file.exists()) {
+			std::cout << "[GLWidget] Файл настроек не найден, используем значения по умолчанию" << std::endl;
+			return;
+		}
+
+		if (file.open(QIODevice::ReadOnly)) {
+			QByteArray data = file.readAll();
+			file.close();
+
+			QJsonDocument doc = QJsonDocument::fromJson(data);
+			QJsonObject settings = doc.object();
+
+			// Загрузка настроек
+			if (settings.contains("backgroundColor")) {
+			  backColor_ = colorFromJson(settings["backgroundColor"].toObject());
+			}
+			if (settings.contains("edgeColor")) {
+			  edgColor_ = colorFromJson(settings["edgeColor"].toObject());
+			}
+			if (settings.contains("vertexColor")) {
+			  vertColor_ = colorFromJson(settings["vertexColor"].toObject());
+			}
+			if (settings.contains("edgeSize")) {
+			  edgSize_ = static_cast<float>(settings["edgeSize"].toDouble());
+			}
+			if (settings.contains("vertexSize")) {
+			  vertSize_ = static_cast<float>(settings["vertexSize"].toDouble());
+			}
+			if (settings.contains("vertexDisplayType")) {
+			  vertMode_ = static_cast<VerticesMode>(settings["vertexDisplayType"].toInt());
+			}
+			if (settings.contains("edgeIsDashed")) {
+			  edgMode_ = static_cast<EdgesMode>(settings["edgeIsDashed"].toInt());
+			}
+			if (settings.contains("projectionType")) {
+			  projectionType_ = static_cast<ProjectionType>(settings["projectionType"].toInt());
+			}
+			if (settings.contains("displayType")) {
+				displayType_ = static_cast<DisplayType>(settings["displayType"].toInt());
+			}
+			if (settings.contains("lightColor")) {
+				lightColor_ = colorFromJson(settings["lightColor"].toObject());
+			}
+
+			std::cout << "[GLWidget] Настройки загружены из файла: "
+			          << filePath.toStdString() << std::endl;
+		}
+		else {
+			std::cerr << "[GLWidget] Ошибка загрузки настроек из файла: "
+			          << filePath.toStdString() << std::endl;
+		}
 	}
 
 	//Обработчик действия "Открыть файл"
@@ -121,25 +279,23 @@ namespace viewer {
 		if(index == 0) mode = VerticesMode::NONE;
 		else if(index == 1) mode = VerticesMode::CIRCLE;
 
-		glWidget_->setNewVerticesMode(mode);
+		viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() = mode;
 	}
 
 	void MainWindow::onEdgeTypeChanged(int index) {
 		// index: 0 - Сплошная, 1 - Пунктир
 		EdgesMode mode = (index == 1) ? EdgesMode::DASHED : EdgesMode::SOLID;
-		glWidget_->setNewEdgesMode(mode);
+		viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() = mode;
 	}
 
 	// Слот для изменения размера вершин
 	void MainWindow::onVertexSizeChanged(float value) {
-		// Передаем float в GLWidget (например, 10 -> 10.0f)
-		std::cout << "[MainWindow] Нажата кнопка для смены размера вершин...\n";
-		glWidget_->setNewVerticesSize(value / 100);
+		viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() = value / 100;
 	}
 
 	// Слот для изменения толщины ребер
 	void MainWindow::onEdgeWidthChanged(float value) {
-		glWidget_->setNewEdgesSize(value / 1000);
+		viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() = value / 1000.0;
 	}
 
 	// Слот для выбора цвета вершин
@@ -151,7 +307,7 @@ namespace viewer {
 			float r = static_cast<float>(color.redF());
 			float g = static_cast<float>(color.greenF());
 			float b = static_cast<float>(color.blueF());
-			glWidget_->setNewVerticesColor(r, g, b);
+			viewer_->getScene()->getFigure(current_figure_).vertexInfo().color() = Point3D(r, g, b);
 
 			// Меняем цвет самой кнопки для наглядности
 			ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
@@ -166,7 +322,7 @@ namespace viewer {
 			float r = static_cast<float>(color.redF());
 			float g = static_cast<float>(color.greenF());
 			float b = static_cast<float>(color.blueF());
-			glWidget_->setNewEdgesColor(r, g, b);
+			viewer_->getScene()->getFigure(current_figure_).edgeInfo().color() = Point3D(r, g, b);
 
 			ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}
@@ -180,7 +336,7 @@ namespace viewer {
 			float r = static_cast<float>(color.redF());
 			float g = static_cast<float>(color.greenF());
 			float b = static_cast<float>(color.blueF());
-			glWidget_->setNewBackgroundColor(r, g, b);
+			viewer_->getScene()->backgroundColor() = Point3D(r, g, b);
 
 			ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}
@@ -204,13 +360,15 @@ namespace viewer {
 
 		if (result.isSuccess()) {
 			currentFileName_ = QFileInfo(path).fileName();
+			count_figures_++;
+			current_figure_ = count_figures_;
 			viewer_->DrawScene();
-			int vertexCount_ = static_cast<int>(glWidget_->countVertices());
-			int edgeCount_ = static_cast<int>(glWidget_->countSurfaces());
+			auto vertCount = viewer_->getScene()->getFigure(current_figure_).getVertices().size();
+			int surfCount = viewer_->getScene()->getFigure(current_figure_).getSurfaces().size();
 			updateInfoLabels();
 			ui->statusbar->showMessage("Загружено: " + currentFileName_);
 			std::cout << "[MainWindow] Файл загружен: " << currentFileName_.toStdString()
-			          << " | Вершин: " << vertexCount_ << " | Поверхностей: " << edgeCount_ << "\n";
+			          << " | Вершин: " << vertCount << " | Поверхностей: " << surfCount << "\n";
 		}
 
 		else {
@@ -222,19 +380,19 @@ namespace viewer {
 
 	void MainWindow::updateInfoLabels() {
 		ui->label_FileInfo->setText("Файл: " + (currentFileName_.isEmpty() ? "не выбран" : currentFileName_));
-		ui->label_VertexCount->setText("Вершин: " + QString::number(static_cast<int>(glWidget_->countVertices())));
-		ui->label_EdgeCount->setText("Поверхностей: " + QString::number(static_cast<int>(glWidget_->countSurfaces())));
+		ui->label_VertexCount->setText("Вершин: " + QString::number(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).getVertices().size())));
+		ui->label_EdgeCount->setText("Поверхностей: " + QString::number(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).getSurfaces().size())));
 
-		if (glWidget_->getDisplayType() == DisplayType::WIREFRAME_MODEL)
+		if (viewer_->getScene()->getFigure(current_figure_).displayType() == DisplayType::WIREFRAME_MODEL)
 			ui->label_displayType->setText("Отображение только ребер и вершин");
-		else if (glWidget_->getDisplayType() == DisplayType::FLAT_SHADING_MODEL)
+		else if (viewer_->getScene()->getFigure(current_figure_).displayType() == DisplayType::FLAT_SHADING_MODEL)
 			ui->label_displayType->setText("Плоское затенение");
-		else if (glWidget_->getDisplayType() == DisplayType::SMOOTH_SHADING_MODEL)
+		else if (viewer_->getScene()->getFigure(current_figure_).displayType() == DisplayType::SMOOTH_SHADING_MODEL)
 			ui->label_displayType->setText("Мягкое затенение");
 
-		if (glWidget_->getProjectionType() == ProjectionType::ORTHOGRAPHIC)
+		if (viewer_->getScene()->getCamera().projectionType() == ProjectionType::ORTHOGRAPHIC)
 			ui->label_projectionType->setText("Параллельная проекция");
-		else if (glWidget_->getProjectionType() == ProjectionType::PERSPECTIVE)
+		else if (viewer_->getScene()->getCamera().projectionType() == ProjectionType::PERSPECTIVE)
 			ui->label_projectionType->setText("Центральная проекция");
 	}
 
@@ -249,32 +407,32 @@ namespace viewer {
 
 	void MainWindow::on_action_Orthographic_triggered() {
 
-		glWidget_->setNewProjectionType(ProjectionType::ORTHOGRAPHIC);
+		viewer_->getScene()->getCamera().projectionType() = ORTHOGRAPHIC;
 
 		ui->label_projectionType->setText("Параллельная проекция");
 	}
 
 	void MainWindow::on_action_Perspective_triggered() {
 
-		glWidget_->setNewProjectionType(ProjectionType::PERSPECTIVE);
+		viewer_->getScene()->getCamera().projectionType() = PERSPECTIVE;
 
 		ui->label_projectionType->setText("Центральная проекция");
 	}
 
 	void MainWindow::on_action_Wireframe_triggered() {
-		glWidget_->setNewDisplayType(DisplayType::WIREFRAME_MODEL);
+		viewer_->getScene()->getFigure(current_figure_).displayType() = WIREFRAME_MODEL;
 
 		ui->label_displayType->setText("Отображение только ребер и вершин");
 	}
 
 	void MainWindow::on_action_FlatShading_triggered() {
-		glWidget_->setNewDisplayType(DisplayType::FLAT_SHADING_MODEL);
+		viewer_->getScene()->getFigure(current_figure_).displayType() = FLAT_SHADING_MODEL;
 
 		ui->label_displayType->setText("Плоское затенение");
 	}
 
 	void MainWindow::on_action_SmoothShading_triggered() {
-		glWidget_->setNewDisplayType(DisplayType::SMOOTH_SHADING_MODEL);
+		viewer_->getScene()->getFigure(current_figure_).displayType() = SMOOTH_SHADING_MODEL;
 
 		ui->label_displayType->setText("Мягкое затенение");
 	}
@@ -283,7 +441,7 @@ namespace viewer {
 		QString fileName = QFileDialog::getSaveFileName(this, "Сохранить скриншот",
 														"", "Images (*.png *.jpg)");
 		if (!fileName.isEmpty()) {
-			glWidget_->saveImage(fileName);
+			// glWidget_->saveImage(fileName);
 			ui->statusbar->showMessage("Скриншот сохранен в файле " + fileName);
 		}
 	}
@@ -292,7 +450,7 @@ namespace viewer {
 		QString fileName = QFileDialog::getSaveFileName(this, "Сохранить анимацию",
 														"", "Animation (*.gif)");
 		if (!fileName.isEmpty()) {
-			glWidget_->startRecording(fileName, 10, 5);
+			// glWidget_->startRecording(fileName, 10, 5);
 			ui->statusbar->showMessage("Анимация сохранена в файле " + fileName);
 		}
 	}

@@ -28,52 +28,10 @@ namespace viewer {
         Q_OBJECT
 
     public:
-        GLWidget(QWidget* parent, Ui::MainWindow* ui);
+        GLWidget(QWidget* parent);
         ~GLWidget();
 
-        // Сохранение и загрузка настроек
-        void saveSettingsToFile(const QString& filePath);
-        void loadSettingsFromFile(const QString& filePath);
-
         void DrawScene(Scene* scene) override;
-        uint32_t countVertices() noexcept;
-        uint32_t countSurfaces() noexcept;
-
-        void setRotation(float x, float y, float z) noexcept;
-        void setTranslation(float x, float y, float z) noexcept;
-        void setScale(float x, float y, float z) noexcept;
-
-        void setNewVerticesSize(float) noexcept;
-        void setNewVerticesColor(float, float, float) noexcept;
-        void setNewVerticesMode(VerticesMode) noexcept;
-
-        void setNewEdgesSize(float) noexcept;
-        void setNewEdgesColor(float, float, float) noexcept;
-        void setNewEdgesMode(EdgesMode) noexcept;
-
-        void setNewModelMatrix() noexcept;
-        void setNewViewMatrix(float) noexcept;
-        void setNewProjectionType(ProjectionType type) noexcept;
-
-        void setNewAspectRatio(float) noexcept;
-        void setNewBackgroundColor(float r, float g, float b) noexcept;
-
-        void setNewLightPosition(float x, float y, float z) noexcept; ///< Смещение источника освещения
-        void setNewLightColor(float r, float g, float b) noexcept; ///< Изменение цвета источника света
-        void setNewDisplayType(DisplayType display_type) noexcept; ///< Смена режима отображения фигуры
-
-        // Геттеры для интерфейса
-        QColor getEdgeColor() noexcept;
-        QColor getVertexColor() noexcept;
-        QColor getBackgroundColor() noexcept;
-        QColor getLightColor() noexcept;
-        float getVertexSize() noexcept;
-        float getEdgeSize() noexcept;
-        Point3D getLightPosition() noexcept;
-        int getVertexMode() noexcept;
-        int getEdgeMode() noexcept;
-        int getDisplayType() noexcept;
-        int getProjectionType() noexcept;
 
         /**
          * @brief Сохранение текущего изображения в файл
@@ -133,10 +91,6 @@ namespace viewer {
         void paintGL() override;
         void resizeGL(int w, int h) override;
 
-        void mousePressEvent(QMouseEvent* event) override;
-        void mouseMoveEvent(QMouseEvent* event) override;
-        void wheelEvent(QWheelEvent* event) override;
-
         /**
          * @brief Захват текущего кадра для GIF
          * @details Устанавливает цвет фона, вызывает отрисовку,
@@ -146,21 +100,9 @@ namespace viewer {
 
     private:
         void compileShaders();
-        QJsonObject colorToJson(const Point3D& color) noexcept;
-        Point3D colorFromJson(const QJsonObject& jobject) noexcept;
 
-        Scene* scene_;
         ShaderProgram* shaderProgram_;
         Mesh* mesh_;
-
-        Ui::MainWindow* ui_;
-
-        // цвет фона
-        Point3D backColor_;
-
-        QPoint lastPos_; ///< Последняя позиция мыши
-        Point3D rotation_; ///< Вращение мыши относительно нулевого угла
-        Point3D translation_; ///< Перемещение мыши относительно последней позиции
 
         // GIF запись
         std::unique_ptr<GifRecorder> gif_recorder_;  ///< Рекордер GIF
