@@ -90,6 +90,20 @@ namespace viewer {
          */
         Point3D colorFromJson(const QJsonObject& jobject) noexcept;
 
+        /**
+         * @brief Преобразование вектора из Point3D в формат, понятный JSON
+         * @param pos Координата вектора в трехмерном постранстве, хранящаяся в виде структуры XYZ
+         * @return JSON формат, позволяющий хранить координату
+         */
+        QJsonObject positionToJson(const Point3D& pos) noexcept;
+
+        /**
+         * @brief Преобразование трехмерного вектора из JSON формата в Point3D, понятный программе
+         * @param jobject Координата вектора, хранящаяся в JSON формате
+         * @return Структура XYZ
+         */
+        Point3D positionFromJson(const QJsonObject& jobject) noexcept;
+
         Ui::MainWindow *ui; ///< Элементы UI программы
         Viewer *viewer_; ///< Менеджер ресурсов
         QString currentFileName_; ///< Название последнего считанного файла

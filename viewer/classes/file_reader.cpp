@@ -120,7 +120,7 @@ namespace viewer {
 		std::cout << surfaces.size() << " поверхностей, ";
 		std::cout << normals_coordinates.size() << " нормалей" << std::endl;
 
-		return Figure(vertices, surfaces);
+		return Figure(path, vertices, surfaces);
 	}
 
 	void FileReader::Normalize(std::vector<Vertex>& vertices, std::vector<Surface>& surfaces) {

@@ -163,16 +163,47 @@ namespace viewer {
 	void MainWindow::saveSettingsToFile(const QString& filePath) {
 		QJsonObject settings;
 
-		settings["backgroundColor"] = colorToJson(backColor_);
-		settings["edgeColor"] = colorToJson(edgColor_);
-		settings["vertexColor"] = colorToJson(vertColor_);
-		settings["edgeSize"] = edgSize_;
-		settings["vertexSize"] = vertSize_;
-		settings["vertexDisplayType"] = static_cast<int>(vertMode_);
-		settings["edgeIsDashed"] = static_cast<int>(edgMode_);
-		settings["projectionType"] = static_cast<int>(projectionType_);
-		settings["displayType"] = static_cast<int>(displayType_);
-		settings["lightColor"] = colorToJson(lightColor_);
+		// Сначала глобальные настройки сцены
+		settings["backgroundColor"] = colorToJson(viewer_->getScene()->backgroundColor());
+		settings["projectionType"] = viewer_->getScene()->getCamera().projectionType();
+
+		// Сохраняем настройки глобального освещения
+		QJsonObject globalLight_settings;
+		globalLight_settings["color"] = colorToJson(viewer_->getScene()->getLight(0).color());
+		globalLight_settings["intensity"] = viewer_->getScene()->getLight(0).intensity();
+		settings["globalLight"] = globalLight_settings;
+
+		// Сохраняем настройки каждой фигуры
+		for (auto i = 1; i <= count_figures_; ++i) {
+			QJsonObject figure_settings;
+
+			figure_settings["path"] = QString::fromStdString(viewer_->getScene()->getFigure(i).path());
+
+			figure_settings["translation"] = positionToJson(viewer_->getScene()->getFigure(i).translation());
+			figure_settings["rotation"] = positionToJson(viewer_->getScene()->getFigure(i).rotation());
+			figure_settings["scale"] = positionToJson(viewer_->getScene()->getFigure(i).scale());
+
+			figure_settings["vertexColor"] = colorToJson(viewer_->getScene()->getFigure(i).vertexInfo().color());
+			figure_settings["vertexSize"] = viewer_->getScene()->getFigure(i).vertexInfo().size();
+			figure_settings["vertexDisplayType"] = viewer_->getScene()->getFigure(i).vertexInfo().mode();
+			figure_settings["edgeColor"] = colorToJson(viewer_->getScene()->getFigure(i).edgeInfo().color());
+			figure_settings["edgeSize"] = viewer_->getScene()->getFigure(i).edgeInfo().size();
+			figure_settings["edgeIsDashed"] = viewer_->getScene()->getFigure(i).edgeInfo().mode();
+			figure_settings["edgeDisplayType"] = viewer_->getScene()->getFigure(i).displayType();
+
+			settings["figure " + i] = figure_settings;
+		}
+
+		// Сохраняем настройки каждого источника освещения
+		for (auto i = 1; i <= count_lights_; ++i) {
+			QJsonObject light_settings;
+
+			light_settings["position"] = positionToJson(viewer_->getScene()->getLight(i).position());
+			light_settings["intensity"] = viewer_->getScene()->getLight(i).intensity();
+			light_settings["color"] = colorToJson(viewer_->getScene()->getLight(i).color());
+
+			settings["light " + i];
+		}
 
 		QJsonDocument doc(settings);
 		QFile file(filePath);
@@ -185,6 +216,108 @@ namespace viewer {
 		}
 		else {
 			std::cerr << "[GLWidget] Ошибка сохранения настроек в файл: "
+			          << filePath.toStdString() << std::endl;
+		}
+	}
+
+	void MainWindow::loadSettingsFromFile(const QString& filePath) {
+		QFile file(filePath);
+
+		if (!file.exists()) {
+			std::cout << "[GLWidget] Файл настроек не найден, используем значения по умолчанию" << std::endl;
+			return;
+		}
+
+		if (file.open(QIODevice::ReadOnly)) {
+			QByteArray data = file.readAll();
+			file.close();
+
+			QJsonDocument doc = QJsonDocument::fromJson(data);
+			QJsonObject settings = doc.object();
+
+			// Загрузка глобальных настроек
+			if (settings.contains("backgroundColor")) {
+			  viewer_->getScene()->backgroundColor() = colorFromJson(settings["backgroundColor"].toObject());
+			}
+			if (settings.contains("projectionType")) {
+			  viewer_->getScene()->getCamera().projectionType() = static_cast<ProjectionType>(settings["projectionType"].toInt());
+			}
+
+			// Загрузка настроек глобального освещения
+			if (settings.contains("globalLight")) {
+				auto globalLight_settings = settings["globalLight"].toObject();
+
+				if (globalLight_settings.contains("color")) {
+					viewer_->getScene()->getLight(0).color() = colorFromJson(globalLight_settings["color"].toObject());
+				}
+
+				if (globalLight_settings.contains("intensity")) {
+					viewer_->getScene()->getLight(0).intensity() = static_cast<float>(settings["intensity"].toDouble());
+				}
+			}
+
+			// Загрузка настроек фигур
+			int i = 1;
+			while (settings.contains("figure " + i)) {
+				auto figure_settings = settings["figure " + i].toObject();
+
+				if (viewer_->LoadFigure(figure_settings["path"].toString().toStdString()).isSuccess()) {
+					if (figure_settings.contains("translation")) {
+						viewer_->getScene()->getFigure(i).translation() = positionFromJson(figure_settings["translation"].toObject());
+					}
+					if (figure_settings.contains("rotation")) {
+						viewer_->getScene()->getFigure(i).rotation() = positionFromJson(figure_settings["rotation"].toObject());
+					}
+					if (figure_settings.contains("scale")) {
+						viewer_->getScene()->getFigure(i).scale() = positionFromJson(figure_settings["scale"].toObject());
+					}
+					if (figure_settings.contains("vertexColor")) {
+						viewer_->getScene()->getFigure(i).vertexInfo().color() = colorFromJson(figure_settings["vertexColor"].toObject());
+					}
+					if (figure_settings.contains("vertexSize")) {
+						viewer_->getScene()->getFigure(i).vertexInfo().size() = figure_settings["vertexSize"].toDouble();
+					}
+					if (figure_settings.contains("vertexDisplayType")) {
+						viewer_->getScene()->getFigure(i).vertexInfo().mode() = static_cast<VerticesMode>(figure_settings["vertexDisplayType"].toInt());
+					}
+					if (figure_settings.contains("edgeColor")) {
+						viewer_->getScene()->getFigure(i).edgeInfo().color() = colorFromJson(figure_settings["edgeColor"].toObject());
+					}
+					if (figure_settings.contains("edgeSize")) {
+						viewer_->getScene()->getFigure(i).edgeInfo().size() = figure_settings["edgeSize"].toDouble();
+					}
+					if (figure_settings.contains("edgeDisplayType")) {
+						viewer_->getScene()->getFigure(i).edgeInfo().mode() = static_cast<EdgesMode>(figure_settings["edgeDisplayType"].toInt());
+					}
+
+					i++;
+				}
+			}
+
+			i = 1;
+			while (settings.contains("light " + i)) {
+				auto light_settings = settings["light " + i].toObject();
+
+				viewer_->getScene()->addLight();
+
+				if (light_settings.contains("position")) {
+					viewer_->getScene()->getLight(i).position() = positionFromJson(light_settings["position"].toObject());
+				}
+				if (light_settings.contains("color")) {
+					viewer_->getScene()->getLight(i).color() = colorFromJson(light_settings["color"].toObject());
+				}
+				if (light_settings.contains("intensity")) {
+					viewer_->getScene()->getLight(i).intensity() = static_cast<float>(settings["intensity"].toDouble());
+				}
+
+				i++;
+			}
+
+			std::cout << "[GLWidget] Настройки загружены из файла: "
+			          << filePath.toStdString() << std::endl;
+		}
+		else {
+			std::cerr << "[GLWidget] Ошибка загрузки настроек из файла: "
 			          << filePath.toStdString() << std::endl;
 		}
 	}
@@ -210,60 +343,24 @@ namespace viewer {
 		return color;
 	}
 
-	void MainWindow::loadSettingsFromFile(const QString& filePath) {
-		QFile file(filePath);
+	QJsonObject MainWindow::positionToJson(const Point3D& pos) noexcept {
+		QJsonObject obj;
 
-		if (!file.exists()) {
-			std::cout << "[GLWidget] Файл настроек не найден, используем значения по умолчанию" << std::endl;
-			return;
-		}
+		obj["x"] = pos.x();
+		obj["y"] = pos.y();
+		obj["z"] = pos.z();
 
-		if (file.open(QIODevice::ReadOnly)) {
-			QByteArray data = file.readAll();
-			file.close();
+		return obj;
+	}
 
-			QJsonDocument doc = QJsonDocument::fromJson(data);
-			QJsonObject settings = doc.object();
+	Point3D MainWindow::positionFromJson(const QJsonObject& obj) noexcept {
+		Point3D pos;
 
-			// Загрузка настроек
-			if (settings.contains("backgroundColor")) {
-			  backColor_ = colorFromJson(settings["backgroundColor"].toObject());
-			}
-			if (settings.contains("edgeColor")) {
-			  edgColor_ = colorFromJson(settings["edgeColor"].toObject());
-			}
-			if (settings.contains("vertexColor")) {
-			  vertColor_ = colorFromJson(settings["vertexColor"].toObject());
-			}
-			if (settings.contains("edgeSize")) {
-			  edgSize_ = static_cast<float>(settings["edgeSize"].toDouble());
-			}
-			if (settings.contains("vertexSize")) {
-			  vertSize_ = static_cast<float>(settings["vertexSize"].toDouble());
-			}
-			if (settings.contains("vertexDisplayType")) {
-			  vertMode_ = static_cast<VerticesMode>(settings["vertexDisplayType"].toInt());
-			}
-			if (settings.contains("edgeIsDashed")) {
-			  edgMode_ = static_cast<EdgesMode>(settings["edgeIsDashed"].toInt());
-			}
-			if (settings.contains("projectionType")) {
-			  projectionType_ = static_cast<ProjectionType>(settings["projectionType"].toInt());
-			}
-			if (settings.contains("displayType")) {
-				displayType_ = static_cast<DisplayType>(settings["displayType"].toInt());
-			}
-			if (settings.contains("lightColor")) {
-				lightColor_ = colorFromJson(settings["lightColor"].toObject());
-			}
+		pos.x = static_cast<float>(obj["x"].toDouble());
+		pos.y = static_cast<float>(obj["y"].toDouble());
+		pos.z = static_cast<float>(obj["z"].toDouble());
 
-			std::cout << "[GLWidget] Настройки загружены из файла: "
-			          << filePath.toStdString() << std::endl;
-		}
-		else {
-			std::cerr << "[GLWidget] Ошибка загрузки настроек из файла: "
-			          << filePath.toStdString() << std::endl;
-		}
+		return pos;
 	}
 
 	//Обработчик действия "Открыть файл"

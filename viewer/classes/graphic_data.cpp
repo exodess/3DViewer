@@ -98,8 +98,19 @@ namespace viewer {
 
 	Figure::Figure() noexcept : displayType_(DisplayType::WIREFRAME_MODEL) {}
 
-	Figure::Figure(const std::vector<Vertex>& vertices, const std::vector<Surface>& surfaces) noexcept
-		: vertices_{vertices}, surfaces_{surfaces}, displayType_(DisplayType::WIREFRAME_MODEL) {}
+	Figure::Figure(
+		const std::string& path,
+		const std::vector<Vertex>& vertices,
+		const std::vector<Surface>& surfaces) noexcept :
+	name_(path),
+	vertices_{vertices},
+	surfaces_{surfaces},
+	displayType_(DisplayType::WIREFRAME_MODEL) {}
+
+	const std::string& Figure::path() noexcept {
+		return name_;
+	}
+
 
 	const std::vector<Vertex>& Figure::getVertices() const noexcept {
 		return vertices_;

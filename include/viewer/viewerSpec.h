@@ -491,6 +491,7 @@ namespace viewer {
 	class Figure : public BaseSceneObject {
 
 	private:
+		std::string name_; ///< Путь до файла с фигурой
 		std::vector<Vertex> vertices_; ///< Множество вершин (координат в трехмерном пространстве)
 		std::vector<Surface> surfaces_; ///< Множество поверхностей (связей между вершинами)
 		DisplayType displayType_; ///< Хранит способ отображения фигуры на сцене
@@ -505,7 +506,13 @@ namespace viewer {
 		@param vertices Считанные вершины
 		@param Surfaces Считанные поверхности
 		*/
-		Figure(const std::vector<Vertex>& vertices, const std::vector<Surface>& Surfaces) noexcept;
+		Figure(const std::string& path, const std::vector<Vertex>& vertices, const std::vector<Surface>& Surfaces) noexcept;
+
+		/**
+		 * @brief Получение имени файла, из которого была считана текущая фигура
+		 * @return Абсолютный путь до файла
+		 */
+		const std::string& path() noexcept;
 
 		const std::vector<Vertex>& getVertices() const noexcept; ///< Доступ к списку вершин фигуры
 		const std::vector<Surface>& getSurfaces() const noexcept; ///< Доступ к списку поверхностей фигуры

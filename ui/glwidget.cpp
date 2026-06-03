@@ -34,8 +34,6 @@ namespace viewer {
 		if (gif_recorder_ && gif_recorder_->IsRecording()) {
 			gif_recorder_->StopRecording();
 		}
-
-		saveSettingsToFile("settings_viewer.json");
 	}
 
 	void GLWidget::initializeGL() {
