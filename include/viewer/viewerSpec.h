@@ -474,9 +474,15 @@ namespace viewer {
 
 		/**
 		 * @brief Метод для доступа к полю типу проекции сцены
-		 * @return Ссылка а
+		 * @return Информация о проекции
 		 */
 		ProjectionType& projectionType() noexcept;
+
+		/**
+		 * @brief Получение информации для загрузки ее в вершинный шейдер
+		 * @return Результирующая информация о камере
+		 */
+		CameraData getData(float aspect) noexcept;
 	};
 
 	// =====================================
@@ -497,6 +503,7 @@ namespace viewer {
 		DisplayType displayType_; ///< Хранит способ отображения фигуры на сцене
 		EdgeInfo edgInfo_; ///< Способ отображения ребер в фигуре
 		VertexInfo vertInfo_; ///< Способ отображения вершин в фигуре
+		MaterialData material_; ///< Характеристики материала, из которого состоит фигура
 
 	public:
 
@@ -520,6 +527,7 @@ namespace viewer {
 		DisplayType& displayType() noexcept; ///< Получение информации о том, как должна отрисовываться фигура
 		EdgeInfo& edgeInfo() noexcept; ///< Получение информации о способе представления ребер фигуры в каркасном режиме
 		VertexInfo& vertexInfo() noexcept; ///< Получение информации о способе представления вершин фигуры в каркасном режиме
+		MaterialData& material() noexcept; ///< Получение информации о характеристиках материала фигуры
 	};
 
 	// =====================================
@@ -539,6 +547,11 @@ namespace viewer {
 		float& intensity() noexcept; ///< Доступ к полю интенсивности объекта
 		Point3D& color() noexcept; ///< Доступ к полю цвета объекта
 
+		/**
+		 * @brief Получение информации для загрузки ее в шейдеры
+		 * @return Результирующая информация об источнике освещения
+		 */
+		LightData getData() noexcept;
 	};
 
 	// =====================================

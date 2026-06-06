@@ -132,6 +132,10 @@ namespace viewer {
 		return vertInfo_;
 	}
 
+	MaterialData &Figure::material() noexcept {
+		return material_;
+	}
+
 	// ===========================
 	// ========= Camera ==========
 	// ===========================
@@ -157,6 +161,24 @@ namespace viewer {
 
 	ProjectionType& Camera::projectionType() noexcept {
 		return type_;
+	}
+
+	CameraData Camera::getData(float aspect) noexcept {
+		static CameraData data;
+
+		TransformMatrix projectionMatrix = getProjectionMatrix(aspect);
+		TransformMatrix viewMatrix = getModelMatrix();
+
+		for (auto i = 0; i < 4; ++i) {
+			for (auto j = 0; j < 4; ++j) {
+				data.projectionMatrix_[i][j] = projectionMatrix(i, j);
+				data.viewMatrix_[i][j] = viewMatrix(i, j);
+			}
+		}
+
+		data.position_ = translation();
+
+		return data;
 	}
 
 	// ===========================
@@ -216,5 +238,14 @@ namespace viewer {
 	Point3D &Light::color() noexcept {
 		return color_;
 	}
+
+	LightData Light::getData() noexcept {
+		static LightData data;
+
+		data = { position_, intensity_, color_ };
+
+		return data;
+	}
+
 
 }
