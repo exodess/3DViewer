@@ -4,54 +4,11 @@
 
 namespace viewer {
 
+	std::map<std::string, int32_t> ShaderProgram::handler_location_;
+
 	// ==================================================
 	// =============== ПУБЛИЧНЫЕ МЕТОДЫ =================
 	// ==================================================
-
-	GLint ShaderProgram::getColorVerticesUniformLocation() noexcept
-		{ return uLoc_verticesColor_; }
-
-	GLint ShaderProgram::getSizeVerticesUniformLocation() noexcept
-		{ return uLoc_verticesSize_; }
-
-	GLint ShaderProgram::getModeVerticesUniformLocation() noexcept
-		{ return uLoc_verticesMode_; }
-
-	GLint ShaderProgram::getColorEdgesUniformLocation() noexcept
-		{ return uLoc_edgesColor_; }
-
-	GLint ShaderProgram::getSizeEdgesUniformLocation() noexcept
-		{ return uLoc_edgesSize_; }
-
-	GLint ShaderProgram::getModeEdgesUniformLocation() noexcept
-		{ return uLoc_edgesDashSize_; }
-
-	GLint ShaderProgram::getModelMatrixUniformLocation() noexcept
-		{ return uLoc_modelMatrix_; }
-
-	GLint ShaderProgram::getViewMatrixUniformLocation() noexcept
-		{ return uLoc_viewMatrix_; }
-
-	GLint ShaderProgram::getProjectionMatrixUniformLocation() noexcept
-		{ return uLoc_projectionMatrix_; }
-
-	GLint ShaderProgram::getNormalMatrixUniformLocation() noexcept
-		{ return uLoc_normalMatrix_; }
-
-	GLint ShaderProgram::getAspectRatioUniformLocation() noexcept
-		{ return uLoc_aspectRatio_; }
-
-	GLint ShaderProgram::getLightColorUniformLocation() noexcept
-		{ return uLoc_lightColor_; }
-
-	GLint ShaderProgram::getLightPositionUniformLocation() noexcept
-		{ return uLoc_lightPosition_; }
-
-	GLint ShaderProgram::getCameraPositionUniformLocation() noexcept
-		{ return uLoc_cameraPosition_; }
-
-	GLint ShaderProgram::getDisplayTypeUniformLocation() noexcept
-		{ return uLoc_displayType_; }
 
 	ShaderProgram::ShaderProgram(std::string vertShaderPath,
 	                             std::string geomShaderPath,
@@ -95,23 +52,6 @@ namespace viewer {
 		ProgramID_ = createShaderProgram(vertexShader, geometryShader, fragmentShader);
 		use();
 		std::cout << "Сохраняем индексы всех uniform, используемых в шейдерной программе" << std::endl;
-		uLoc_verticesColor_ = getUniformLocation(UNIFORM_VERTICES_COLOR);
-		uLoc_verticesSize_ = getUniformLocation(UNIFORM_VERTICES_SIZE);
-		uLoc_verticesMode_ = getUniformLocation(UNIFORM_VERTICES_MODE);
-		uLoc_edgesColor_ = getUniformLocation(UNIFORM_EDGES_COLOR);
-		uLoc_edgesSize_ = getUniformLocation(UNIFORM_EDGES_SIZE);
-		uLoc_edgesDashSize_ = getUniformLocation(UNIFORM_EDGES_MODE);
-
-		uLoc_modelMatrix_ = getUniformLocation(UNIFORM_MODEL_MATRIX);
-		uLoc_viewMatrix_ = getUniformLocation(UNIFORM_VIEW_MATRIX);
-		uLoc_projectionMatrix_ = getUniformLocation(UNIFORM_PROJECTION_MATRIX);
-		uLoc_normalMatrix_ = getUniformLocation(UNIFORM_NORMAL_MATRIX);
-		uLoc_aspectRatio_ = getUniformLocation(UNIFORM_ASPECT_RATIO);
-
-		uLoc_lightColor_ = getUniformLocation(UNIFORM_LIGHT_COLOR);
-		uLoc_lightPosition_ = getUniformLocation(UNIFORM_LIGHT_POSITION);
-		uLoc_cameraPosition_ = getUniformLocation(UNIFORM_CAMERA_POSITION);
-		uLoc_displayType_ = getUniformLocation(UNIFORM_DISPLAY_TYPE);
 	}
 
 	ShaderProgram::~ShaderProgram() {
@@ -133,7 +73,12 @@ namespace viewer {
 	// ==================================================
 
 	GLint ShaderProgram::getUniformLocation(char * name_uniform) noexcept {
+		if (handler_location_.contains(name_uniform)) {
+			return handler_location_[name_uniform];
+		}
+
 		GLint location = glGetUniformLocation(ProgramID_, name_uniform);
+		handler_location_[name_uniform] = location;
 
 		return location;
 	}

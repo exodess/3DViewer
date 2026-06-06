@@ -120,24 +120,8 @@ namespace viewer {
 	class ShaderProgram {
 
 	private:
+		static std::map<std::string, int32_t> handler_location_;
 		uint32_t ProgramID_; ///< Идентификатор шейдерной программы
-		int32_t uLoc_verticesColor_; ///< Идентификатор uniform'ы для загрузки цвета
-		int32_t uLoc_verticesSize_; ///< Идентификатор uniform'ы для загрузки размера вершин
-		int32_t uLoc_verticesMode_; ///< Идентификатор uniform'ы для загрузки размера вершин
-		int32_t uLoc_edgesColor_; ///< Идентификатор uniform'ы для загрузки цвета ребер
-		int32_t uLoc_edgesSize_; /// Идентификатор uniform'ы для загрузки размера ребер
-		int32_t uLoc_edgesDashSize_; ///< Идентификатор uniform'ы для загрузки размера штриха линии
-
-		int32_t uLoc_modelMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы модели
-		int32_t uLoc_viewMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы камеры
-		int32_t uLoc_projectionMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы проекции
-		int32_t uLoc_normalMatrix_; ///< Идентификатор uniform'ы для загрузки матрицы трансформации вектора нормали
-		int32_t uLoc_aspectRatio_; ///< Идентификатор uniform'ы для загрузки соотношения сторон области вывода фигуры
-
-		int32_t uLoc_lightColor_; ///< Идентификатор uniform'ы для загрузки цвета источника света на сцене
-		int32_t uLoc_lightPosition_; ///< Идентификатор uniform'ы для загрузки положения источника света на сцене
-		int32_t uLoc_cameraPosition_; ///< Идентификатор uniform'ы для загрузки положения камеры на сцене
-		int32_t uLoc_displayType_; ///< Идентификатор uniform'ы для загрузки режима отображения модели
 
 		/**
 		@brief Считывания исходного кода шейдера для его последующей компиляции
@@ -187,111 +171,6 @@ namespace viewer {
 		@brief Указание коду OpenGL использовать нашу созданную шейдерную программу
 		*/
 		void use() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки пользовательского цвета вершин\n
-		Необходимо для метода Mesh::loadVerticesColor()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t getColorVerticesUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки пользовательского размера вершин\n
-		Необходимо для метода Mesh::loadVerticesSize()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t getSizeVerticesUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки режима отображения вершин\n
-		Необходимо для метода Mesh::loadVerticesMode()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t getModeVerticesUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки пользовательского цвета ребер\n
-		Необходимо для метода Mesh::loadEdgesColor()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t getColorEdgesUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки размера ребер\n
-		Необходимо для метода Mesh::loadEdgesSize()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t getSizeEdgesUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки режима отображения ребер\n
-		Необходимо для метода Mesh::loadEdgesMode()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t getModeEdgesUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки матрицы модели\n
-		Необходимо для метода Mesh::loadModelMatrix()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t	getModelMatrixUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки матрицы камеры\n
-		Необходимо для метода Mesh::loadViewMatrix()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t	getViewMatrixUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки матрицы проекции\n
-		Необходимо для метода Mesh::loadProjectionMatrix()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t	getProjectionMatrixUniformLocation() noexcept;
-
-		/**
-		 * @brief Получает расположение uniform'ы для загрузки матрицы трансформации вектора нормали\n
-		 * Необходимо для метода Mesh::loadNormalMatrix()
-		 * @return Индекс формы, иначе -1, если такой формы не существует
-		 */
-		int32_t getNormalMatrixUniformLocation() noexcept;
-
-		/**
-		@brief Получает расположение uniform'ы для загрузки соотношения сторон экрана\n
-		Необходимо для метода Mesh::loadAspectRatio()
-		@return Индекс формы, иначе -1, если такой формы не существует
-		*/
-		int32_t getAspectRatioUniformLocation() noexcept;
-
-		/**
-		 * @brief Получает расположение uniform'ы для загрузки цвета источника света\n
-		 * Необходим для метода Mesh::loadLightColor()
-		 * @return Индекс формы, иначе -1, если такой формы не существует
-		 */
-		int32_t getLightColorUniformLocation() noexcept;
-
-		/**
-		 * @brief Получает расположение uniform'ы для загрузки координаты источника света в трехмерном пространстве\n
-		 * Необходим для метода Mesh::loadLightPosition()
-		 * @return Индекс формы, иначе -1, если такой формы не существует
-		 */
-		int32_t getLightPositionUniformLocation() noexcept;
-
-		/**
-		 * @brief Получает расположение uniform'ы для загрузки координаты камеры в трехмерном пространстве\n
-		 * Необходим для метода Mesh::loadCameraPosition()
-		 * @return Индекс формы, иначе -1, если такой формы не существует
-		 */
-		int32_t getCameraPositionUniformLocation() noexcept;
-
-		/**
-		 * @brief Получает расположение uniform'ы для загрузки режима отображения фигуры на экране\n
-		 * Необходим для метода Mesh::loadDisplayType()
-		 * @return Индекс формы, иначе -1, если такой формы не существует
-		 */
-		int32_t getDisplayTypeUniformLocation() noexcept;
 	};
 
 
@@ -405,7 +284,7 @@ namespace viewer {
 		@param size Пользовательское значение размера вершин
 		@param u_location Идентификатор uniform'ы
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getSizeVerticesUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation("UNIFORM_VERTICES_SIZE")
 		*/
 		bool loadVerticesSize(int32_t u_location, float size) noexcept;
 
@@ -414,7 +293,7 @@ namespace viewer {
 		@param r, g, b Пользовательское значение цвета в формате RGB
 		@param u_location Идентификатор uniform'ы
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getColorVerticesUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation("UNIFORM_VERTICES_COLOR")
 		*/
 		bool loadVerticesColor(int32_t u_location, float r, float g, float b) noexcept;
 
@@ -425,8 +304,7 @@ namespace viewer {
 		@param mode Режим отображения (нет, круг, квадрат)
 		@param u_sizelocation Идентификатор uniform'ы u_vertSize
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы u_sizelocation передается с помощью метода ShaderProgram::getSizeVerticesUniformLocation()
-		@note Идентификатор uniform'ы u_modelocation передается с помощью метода ShaderProgram::getModeVerticesUniformLocation()
+		@note Идентификатор uniform'ы u_sizelocation передается с помощью метода ShaderProgram::getUniformLocation("UNIFORM_VERTICES_MODE")
 		@warning Вызывается строго после loadVerticesSize()!
 		*/
 		bool loadVerticesMode(int32_t u_sizelocation, int32_t u_modelocation, VerticesMode mode) noexcept;
@@ -436,7 +314,7 @@ namespace viewer {
 		@param size Пользовательское значение размера ребер
 		@param u_location Идентификатор uniform'ы
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getSizeEdgesUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation("UNIFORM_EDGES_SIZE")
 		*/
 		bool loadEdgesSize(int32_t u_location, float size) noexcept;
 
@@ -445,7 +323,7 @@ namespace viewer {
 		@param r, g, b Пользовательское значение цвета в формате RGB
 		@param u_location Идентификатор uniform'ы
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getColorEdgesUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation("UNIFORM_EDGES_COLOR")
 		*/
 		bool loadEdgesColor(int32_t u_location, float r, float g, float b) noexcept;
 
@@ -454,7 +332,7 @@ namespace viewer {
 		@param mode Режим отображения (cплошная линия, пунктирная линия)
 		@param u_location Идентификатор uniform'ы u_dashMode
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getModeEdgesUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation("UNIFORM_EDGES_MODE")
 		*/
 		bool loadEdgesMode(int32_t u_location, EdgesMode mode) noexcept;
 
@@ -467,7 +345,7 @@ namespace viewer {
 		@param u_location Идентификатор uniform'ы
 		@param mtrx Матрица трансформации 4 * 4
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getModelMatrixUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_MODEL_MATRIX)
 		*/
 		bool loadModelMatrix(int32_t u_location, float mtrx[4][4]) noexcept;
 
@@ -477,7 +355,7 @@ namespace viewer {
 		@param u_location Идентификатор uniform'ы
 		@param mtrx Матрица трансформации 4 * 4
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getViewMatrixUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_VIEW_MATRIX)
 		*/
 		bool loadViewMatrix(int32_t u_location, float mtrx[4][4]) noexcept;
 
@@ -487,7 +365,7 @@ namespace viewer {
 		@param u_location Идентификатор uniform'ы
 		@param mtrx Матрица трансформации 4 * 4
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getProjectionMatrixUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_PROJECTION_MATRIX)
 		*/
 		bool loadProjectionMatrix(int32_t u_location, float mtrx[4][4]) noexcept;
 
@@ -497,7 +375,7 @@ namespace viewer {
 		 * @param u_location Идентификатор uniform'ы
 		 * @param mtrx Матрица трансформации 3*3
 		 * @return true, если uniform'а существует, иначе false
-		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getNormalMatrixUniformLocation()
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_NORMAL_MATRIX)
 		 * @warning Матрица трансформации имеет размер 3*3, в отличие от остальных методов!
 		 */
 		bool loadNormalMatrix(int32_t u_location, float mtrx[3][3]) noexcept;
@@ -508,7 +386,7 @@ namespace viewer {
 		@param u_location Идентификатор uniform'ы
 		@param ratio Коэффиициент width / height
 		@return true, если uniform'а существует, иначе false
-		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getAspectRatioUniformLocation()
+		@note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_ASPECT_RATIO)
 		*/
 		bool loadAspectRatio(int32_t u_location, float ratio) noexcept;
 
@@ -518,7 +396,7 @@ namespace viewer {
 		 * @param u_location Идентификатор uniform'ы
 		 * @param r, g, b Пользовательский цвет источника света в формате RGB
 		 * @return true, если uniform'а существует, иначе false
-		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getLightColorUniformLocation()
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_LIGHT_COLOR)
 		 */
 		bool loadLightColor(int32_t u_location, float r, float g, float b) noexcept;
 
@@ -528,7 +406,7 @@ namespace viewer {
 		 * @param u_location Идентификатор uniform'ы
 		 * @param position Координата источника света в формате (X, Y, Z)
 		 * @return true, если uniform'а существует, иначе false
-		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getLightPositionUniformLocation()
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_LIGHT_POSITION)
 		 */
 		bool loadLightPosition(int32_t u_location, float x, float y, float z) noexcept;
 
@@ -538,7 +416,7 @@ namespace viewer {
 		 * @param u_location Идентификатор uniform'ы
 		 * @param position Координата источника света в формате (X, Y, Z)
 		 * @return true, если uniform'а существует, иначе false
-		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getCameraPositionUniformLocation()
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_CAMERA_POSITION)
 		 */
 		bool loadCameraPosition(int32_t u_location, float x, float y, float z) noexcept;
 
@@ -548,7 +426,7 @@ namespace viewer {
 		 * @param u_location Идентификатор uniform'ы
 		 * @param displayType Тип отображения объекта
 		 * @return true, если uniform'а существует, иначе false
-		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getDisplayTypeUniformLocation()
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_DISPLAY_TYPE)
 		 */
 		bool loadDisplayType(int32_t u_location, DisplayType displayType) noexcept;
 
