@@ -49,39 +49,44 @@ namespace viewer {
 		connect(ui->btn_VertexColor, &QPushButton::clicked, this, &MainWindow::on_btn_VertexColor_clicked);
 		connect(ui->btn_EdgeColor, &QPushButton::clicked, this, &MainWindow::on_btn_EdgeColor_clicked);
 		connect(ui->btn_LightColor, &QPushButton::clicked, this, &MainWindow::on_btn_LightColor_clicked);
-
-		// Соединяем Спинбоксы размеров
-		connect(ui->spin_VertexSize, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		        this, &MainWindow::onVertexSizeChanged);
-
-		connect(ui->spin_EdgeWidth, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-		        this, &MainWindow::onEdgeWidthChanged);
+		connect(ui->btn_AddLight, &QPushButton::clicked, this, &MainWindow::on_btn_AddLight_clicked);
 
 		// СОЕДИНЕНИЕ ВЫПАДАЮЩИХ СПИСКОВ
-		connect(ui->combo_VertexType, QOverload<int>::of(&QComboBox::currentIndexChanged),
-		        this, &MainWindow::onVertexTypeChanged);
-		connect(ui->combo_EdgeType, QOverload<int>::of(&QComboBox::currentIndexChanged),
-		        this, &MainWindow::onEdgeTypeChanged);
+		connect(ui->combo_VertexType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onVertexTypeChanged);
+		connect(ui->combo_EdgeType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onEdgeTypeChanged);
+		connect(ui->combo_LightSelect, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onLightChanged);
+		connect(ui->combo_FigureSelect, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onFigureChanged);
 
 		auto updateTransform = [this]() {
-			viewer_->getScene()->getFigure(current_figure_).translation() = Point3D(ui->spin_transX->value(), ui->spin_transY->value(), ui->spin_transZ->value());
-			viewer_->getScene()->getFigure(current_figure_).rotation() = Point3D(ui->spin_rotX->value(), ui->spin_rotY->value(), ui->spin_rotZ->value());
-			viewer_->getScene()->getFigure(current_figure_).scale() = Point3D(ui->spin_scaleX->value(), ui->spin_scaleY->value(), ui->spin_scaleZ->value());
+			if (count_figures_ > 0) {
+				viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() = ui->spin_VertexSize->value() / 100;
+				viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() = ui->spin_EdgeWidth->value() / 1000.0;
+				viewer_->getScene()->getFigure(current_figure_).translation() = Point3D(ui->spin_transX->value(), ui->spin_transY->value(), ui->spin_transZ->value());
+				viewer_->getScene()->getFigure(current_figure_).rotation() = Point3D(ui->spin_rotX->value(), ui->spin_rotY->value(), ui->spin_rotZ->value());
+				viewer_->getScene()->getFigure(current_figure_).scale() = Point3D(ui->spin_scaleX->value(), ui->spin_scaleY->value(), ui->spin_scaleZ->value());
+			}
 			viewer_->getScene()->getLight(current_light_).position() = Point3D(ui->light_transX->value(), ui->light_transY->value(), ui->light_transZ->value());
+			viewer_->getScene()->getLight(current_light_).intensity() = ui->light_intensity->value();
 		};
 
-		// Соединяем все спинбоксы с обновлением
-		for(auto s : {ui->spin_transX, ui->spin_transY, ui->spin_transZ,
-		              ui->spin_rotX, ui->spin_rotY, ui->spin_rotZ,
-		              ui->spin_scaleX, ui->spin_scaleY, ui->spin_scaleZ,
-		              ui->light_transX, ui->light_transY, ui->light_transZ}) {
+		// СОЕДИНЕНИЕ ВСЕХ СПИНБОКСОВ
+		for(auto s : {
+			ui->spin_transX, ui->spin_transY, ui->spin_transZ,
+			ui->spin_rotX, ui->spin_rotY, ui->spin_rotZ,
+			ui->spin_scaleX, ui->spin_scaleY, ui->spin_scaleZ,
+			ui->light_transX, ui->light_transY, ui->light_transZ,
+			ui->spin_VertexSize, ui->spin_EdgeWidth, ui->light_intensity}) {
 		    connect(s, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, updateTransform);
 		}
 
-		// Устанавливаем значения на кнопках:
-		auto backColorPoint = viewer_->getScene()->backgroundColor();
+		setFigureValues();
+		setLightValues();
+	}
 
+	void MainWindow::setFigureValues() noexcept {
 		if (current_figure_ > 0) {
+			// Устанавливаем значения на кнопках:
+			auto backColorPoint = viewer_->getScene()->backgroundColor();
 			auto vertColorPoint = viewer_->getScene()->getFigure(current_figure_).vertexInfo().color();
 			auto edgColorPoint = viewer_->getScene()->getFigure(current_figure_).edgeInfo().color();
 			auto lightColorPoint = viewer_->getScene()->getLight(current_light_).color();
@@ -113,9 +118,36 @@ namespace viewer {
 			else {
 				ui->combo_VertexType->setCurrentText("Квадрат");
 			}
-
 		}
 	}
+
+	void MainWindow::setLightValues() noexcept {
+		if (current_light_ == 0) {
+			ui->label_LightPos->setVisible(false);
+			ui->light_transX->setVisible(false);
+			ui->light_transY->setVisible(false);
+			ui->light_transZ->setVisible(false);
+		}
+
+		else {
+			ui->label_LightPos->setVisible(true);
+			ui->light_transX->setVisible(true);
+			ui->light_transY->setVisible(true);
+			ui->light_transZ->setVisible(true);
+
+			ui->light_transX->setValue(viewer_->getScene()->getLight(current_light_).position().x);
+			ui->light_transY->setValue(viewer_->getScene()->getLight(current_light_).position().y);
+			ui->light_transZ->setValue(viewer_->getScene()->getLight(current_light_).position().z);
+		}
+
+		ui->light_intensity->setValue(viewer_->getScene()->getLight(current_light_).intensity());
+
+		auto color = viewer_->getScene()->getLight(current_light_).color();
+		QColor qcolor = QColor(color.x * 255, color.y * 255, color.z * 255);
+
+		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(qcolor.name()));
+	}
+
 
 	void MainWindow::mousePressEvent(QMouseEvent* event) {
 		lastPos_ = event->pos();
@@ -147,7 +179,7 @@ namespace viewer {
 		}
 
 		lastPos_ = event->pos();
-		update();
+		viewer_->DrawScene();
 	}
 
 	void MainWindow::wheelEvent(QWheelEvent* event) {
@@ -156,7 +188,7 @@ namespace viewer {
 		float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
 		viewer_->getScene()->getCamera().translation().z -= det * 0.5f;
 
-		update();
+		viewer_->DrawScene();
 	}
 
 	// ===========================================================
@@ -366,17 +398,6 @@ namespace viewer {
 		return pos;
 	}
 
-	//Обработчик действия "Открыть файл"
-	void MainWindow::on_action_Open_triggered() {
-		QString fileName = QFileDialog::getOpenFileName(
-	        this, "Открыть 3D модель", QString(),
-	        "OBJ Files (*.obj *.vobj);;All Files (*)");
-
-		if (!fileName.isEmpty()) {
-			loadScene(fileName);
-		}
-	}
-
 	// Слоты для ComboBox
 	void MainWindow::onVertexTypeChanged(int index) {
 		// index: 0 - Нет, 1 - Круг, 2 - Квадрат
@@ -394,14 +415,16 @@ namespace viewer {
 		viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() = mode;
 	}
 
-	// Слот для изменения размера вершин
-	void MainWindow::onVertexSizeChanged(float value) {
-		viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() = value / 100;
+	void MainWindow::onLightChanged(int value) {
+		current_light_ = value;
+
+		setLightValues();
 	}
 
-	// Слот для изменения толщины ребер
-	void MainWindow::onEdgeWidthChanged(float value) {
-		viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() = value / 1000.0;
+	void MainWindow::onFigureChanged(int value) {
+		current_figure_ = value;
+
+		setFigureValues();
 	}
 
 	// Слот для выбора цвета вершин
@@ -443,6 +466,7 @@ namespace viewer {
 			float g = static_cast<float>(color.greenF());
 			float b = static_cast<float>(color.blueF());
 			viewer_->getScene()->backgroundColor() = Point3D(r, g, b);
+			viewer_->DrawScene();
 
 			ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}
@@ -459,6 +483,14 @@ namespace viewer {
 
 			ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}
+	}
+
+	void MainWindow::on_btn_AddLight_clicked() {
+		count_lights_++;
+		viewer_->getScene()->addLight();
+		ui->combo_LightSelect->addItem(QString("Источник %1").arg(viewer_->getScene()->countLights()));
+
+		ui->combo_LightSelect->setCurrentIndex(count_lights_ - 1);
 	}
 
 	void MainWindow::loadScene(const QString& path) {
@@ -502,43 +534,62 @@ namespace viewer {
 			ui->label_projectionType->setText("Центральная проекция");
 	}
 
+	//Обработчик действия "Открыть файл"
+	void MainWindow::on_action_Open_triggered() {
+		QString fileName = QFileDialog::getOpenFileName(
+			this, "Открыть 3D модель", QString(),
+			"OBJ Files (*.obj *.vobj);;All Files (*)");
+
+		if (!fileName.isEmpty()) {
+			loadScene(fileName);
+			ui->groupBox_Figure->setVisible(true);
+			ui->combo_FigureSelect->addItem(QString("Фигура %1").arg(viewer_->getScene()->countFigures()));
+		}
+	}
+
 	void MainWindow::on_action_Exit_triggered() {
 		std::cout << "[MainWindow] Выход из приложения\n";
 		close();
 	}
 
-	// ============================================
-	// ============ МЕТОДЫ ПРОЕКЦИИ  ==============
-	// ============================================
-
 	void MainWindow::on_action_Orthographic_triggered() {
-
 		viewer_->getScene()->getCamera().projectionType() = ORTHOGRAPHIC;
 
 		ui->label_projectionType->setText("Параллельная проекция");
 	}
 
 	void MainWindow::on_action_Perspective_triggered() {
-
 		viewer_->getScene()->getCamera().projectionType() = PERSPECTIVE;
 
 		ui->label_projectionType->setText("Центральная проекция");
 	}
 
 	void MainWindow::on_action_Wireframe_triggered() {
-		viewer_->getScene()->getFigure(current_figure_).displayType() = WIREFRAME_MODEL;
+		if (current_figure_ > 0) {
+			viewer_->getScene()->getFigure(current_figure_).displayType() = WIREFRAME_MODEL;
+			ui->groupBox_Edges->setVisible(true);
+			ui->groupBox_Vertices->setVisible(true);
+		}
 
 		ui->label_displayType->setText("Отображение только ребер и вершин");
 	}
 
 	void MainWindow::on_action_FlatShading_triggered() {
-		viewer_->getScene()->getFigure(current_figure_).displayType() = FLAT_SHADING_MODEL;
+		if (current_figure_ > 0) {
+			viewer_->getScene()->getFigure(current_figure_).displayType() = FLAT_SHADING_MODEL;
+			ui->groupBox_Edges->setVisible(false);
+			ui->groupBox_Vertices->setVisible(false);
+		}
 
 		ui->label_displayType->setText("Плоское затенение");
 	}
 
 	void MainWindow::on_action_SmoothShading_triggered() {
-		viewer_->getScene()->getFigure(current_figure_).displayType() = SMOOTH_SHADING_MODEL;
+		if (current_figure_ > 0) {
+			viewer_->getScene()->getFigure(current_figure_).displayType() = SMOOTH_SHADING_MODEL;
+			ui->groupBox_Edges->setVisible(false);
+			ui->groupBox_Vertices->setVisible(false);
+		}
 
 		ui->label_displayType->setText("Мягкое затенение");
 	}

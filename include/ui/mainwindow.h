@@ -48,16 +48,18 @@ namespace viewer {
         void on_action_SaveScreenshot_triggered();
         void on_action_SaveGif_triggered();
 
-        // Кнопки для смены цветов
+        // Обработка нажатия кнопок
         void on_btn_VertexColor_clicked();
         void on_btn_EdgeColor_clicked();
         void on_btn_BackgroundColor_clicked();
         void on_btn_LightColor_clicked();
+        void on_btn_AddLight_clicked();
 
+        // Обработка выпадающих списков
         void onVertexTypeChanged(int value);
-        void onVertexSizeChanged(float value);
-        void onEdgeWidthChanged(float value);
         void onEdgeTypeChanged(int value);
+        void onLightChanged(int value);
+        void onFigureChanged(int value);
 
     private:
         void loadScene(const QString& path);
@@ -103,6 +105,16 @@ namespace viewer {
          * @return Структура XYZ
          */
         Point3D positionFromJson(const QJsonObject& jobject) noexcept;
+
+        /**
+         * @brief Устанавливает значения на интерфейсе в зоне настройки текущей фигуры
+         */
+        void setFigureValues() noexcept;
+
+        /**
+         * @brief
+         */
+        void setLightValues() noexcept;
 
         Ui::MainWindow *ui; ///< Элементы UI программы
         Viewer *viewer_; ///< Менеджер ресурсов

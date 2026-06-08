@@ -258,6 +258,7 @@ namespace viewer {
 		std::cout << " | Вершин: " << scene->countVertices();
 		std::cout << " | Поверхностей: " << scene->countSurfaces() << std::endl;
 
+		update();
 		doneCurrent();
 	}
 

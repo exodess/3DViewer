@@ -66,7 +66,6 @@ public:
     QDoubleSpinBox *light_intensity;
 
     QPushButton *btn_LightColor;
-    QPushButton *btn_RemoveLight;
 
     int lightCounter = 0;
 
@@ -75,6 +74,8 @@ public:
     // ================================================================
     QGroupBox *groupBox_Figure;
     QVBoxLayout *figureLayout;
+
+    QComboBox *combo_FigureSelect;
 
     // Вершины (сворачиваемая)
     QGroupBox *groupBox_Vertices;
@@ -117,7 +118,7 @@ public:
     // ================================================================
     //  ЗОНА 3 — ОБЩИЕ НАСТРОЙКИ
     // ================================================================
-    QGroupBox   *groupBox_General;
+    QGroupBox *groupBox_General;
     QVBoxLayout *generalLayout;
 
     // Фон
@@ -214,22 +215,22 @@ public:
 
         // Прокручиваемая боковая панель
         scrollArea_Settings = new QScrollArea(centralWidget);
-        scrollArea_Settings->setFixedWidth(260);
+        scrollArea_Settings->setFixedWidth(300);
         scrollArea_Settings->setWidgetResizable(true);
         scrollArea_Settings->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         scrollArea_Settings->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         scrollArea_Settings->setFrameShape(QFrame::StyledPanel);
 
         scrollContents = new QWidget();
-        scrollLayout   = new QVBoxLayout(scrollContents);
+        scrollLayout = new QVBoxLayout(scrollContents);
         scrollLayout->setContentsMargins(6, 6, 6, 6);
         scrollLayout->setSpacing(8);
 
         // ============================================================
         //  ЗОНА 1 — ИСТОЧНИКИ ОСВЕЩЕНИЯ
         // ============================================================
-        groupBox_Lights = new QGroupBox("💡 Источники освещения");
-        lightsLayout    = new QVBoxLayout(groupBox_Lights);
+        groupBox_Lights = new QGroupBox("Источники освещения");
+        lightsLayout = new QVBoxLayout(groupBox_Lights);
         lightsLayout->setContentsMargins(6, 8, 6, 6);
         lightsLayout->setSpacing(5);
 
@@ -244,6 +245,7 @@ public:
 
         combo_LightSelect = new QComboBox();
         combo_LightSelect->setToolTip("Выберите источник для настройки");
+        combo_LightSelect->addItem("Фоновое освещение");
         lightsControlLayout->addWidget(combo_LightSelect);
 
         lightSettingsWidget = new QWidget();
@@ -255,7 +257,9 @@ public:
         lightSettingsLayout->addWidget(label_LightPos);
         lightPosLayout = new QHBoxLayout();
         light_transX = light_transY = light_transZ = nullptr;
-        light_transX = new QDoubleSpinBox(); light_transY = new QDoubleSpinBox(); light_transZ = new QDoubleSpinBox();
+        light_transX = new QDoubleSpinBox();
+        light_transY = new QDoubleSpinBox();
+        light_transZ = new QDoubleSpinBox();
         for (auto *s : {light_transX, light_transY, light_transZ}) {
             s->setRange(-100.0, 100.0); s->setSingleStep(0.1); s->setDecimals(2);
             lightPosLayout->addWidget(s);
@@ -265,47 +269,35 @@ public:
         label_LightIntensity = new QLabel("Интенсивность:");
         lightSettingsLayout->addWidget(label_LightIntensity);
         light_intensity = new QDoubleSpinBox();
-        light_intensity->setRange(0.0, 10.0); light_intensity->setValue(1.0);
-        light_intensity->setSingleStep(0.1);  light_intensity->setDecimals(2);
+        light_intensity->setRange(0.0, 1.0);
+        light_intensity->setSingleStep(0.05);
+        light_intensity->setDecimals(2);
         lightSettingsLayout->addWidget(light_intensity);
 
-        btn_LightColor  = new QPushButton("Цвет источника");
-        btn_RemoveLight = new QPushButton("− Удалить источник");
+        btn_LightColor = new QPushButton("Цвет источника");
         lightSettingsLayout->addWidget(btn_LightColor);
-        lightSettingsLayout->addWidget(btn_RemoveLight);
 
         lightsControlLayout->addWidget(lightSettingsWidget);
         lightsLayout->addWidget(lightsControlWidget);
-        lightsControlWidget->setVisible(false);
-
-        QObject::connect(btn_AddLight, &QPushButton::clicked, [this]() {
-            ++lightCounter;
-            combo_LightSelect->addItem(QString("Источник %1").arg(lightCounter));
-            if (!lightsControlWidget->isVisible())
-                lightsControlWidget->setVisible(true);
-            combo_LightSelect->setCurrentIndex(combo_LightSelect->count() - 1);
-        });
-        QObject::connect(btn_RemoveLight, &QPushButton::clicked, [this]() {
-            int idx = combo_LightSelect->currentIndex();
-            if (idx < 0) return;
-            combo_LightSelect->removeItem(idx);
-            if (combo_LightSelect->count() == 0)
-                lightsControlWidget->setVisible(false);
-        });
+        lightsControlWidget->setVisible(true);
 
         scrollLayout->addWidget(groupBox_Lights);
 
         // ============================================================
         //  ЗОНА 2 — ФИГУРА
         // ============================================================
-        groupBox_Figure = new QGroupBox("🔷 Фигура");
-        figureLayout    = new QVBoxLayout(groupBox_Figure);
+        groupBox_Figure = new QGroupBox("Фигура");
+        figureLayout = new QVBoxLayout(groupBox_Figure);
         figureLayout->setContentsMargins(6, 8, 6, 6);
         figureLayout->setSpacing(6);
 
+        combo_FigureSelect = new QComboBox();
+        combo_FigureSelect->setToolTip("Выберите фигуру для настройки");
+        figureLayout->addWidget(combo_FigureSelect);
+
         // Вершины
         groupBox_Vertices = new QGroupBox("Вершины");
-        verticesLayout    = new QVBoxLayout(groupBox_Vertices);
+        verticesLayout = new QVBoxLayout(groupBox_Vertices);
         verticesLayout->setContentsMargins(4, 4, 4, 4);
 
         // Строка-заголовок с кнопкой-переключателем
@@ -313,12 +305,11 @@ public:
         btn_CollapseVertices->setFixedSize(20, 20);
         btn_CollapseVertices->setFlat(true);
         btn_CollapseVertices->setToolTip("Свернуть / Развернуть");
-        {
-            auto *headerRow = new QHBoxLayout();
-            headerRow->addStretch();
-            headerRow->addWidget(btn_CollapseVertices);
-            verticesLayout->addLayout(headerRow);
-        }
+
+        auto *headerVertRow = new QHBoxLayout();
+        headerVertRow->addStretch();
+        headerVertRow->addWidget(btn_CollapseVertices);
+        verticesLayout->addLayout(headerVertRow);
 
         // Содержимое секции
         verticesContent = new QWidget();
@@ -344,7 +335,7 @@ public:
         connectCollapseButton(btn_CollapseVertices, verticesContent);
         figureLayout->addWidget(groupBox_Vertices);
 
-        // --- Рёбра ---
+        // Рёбра
         groupBox_Edges = new QGroupBox("Рёбра");
         edgesLayout = new QVBoxLayout(groupBox_Edges);
         edgesLayout->setContentsMargins(4, 4, 4, 4);
@@ -353,14 +344,13 @@ public:
         btn_CollapseEdges->setFixedSize(20, 20);
         btn_CollapseEdges->setFlat(true);
         btn_CollapseEdges->setToolTip("Свернуть / Развернуть");
-        {
-            auto *headerRow = new QHBoxLayout();
-            headerRow->addStretch();
-            headerRow->addWidget(btn_CollapseEdges);
-            edgesLayout->addLayout(headerRow);
-        }
 
-        edgesContent       = new QWidget();
+        auto *headerEdgRow = new QHBoxLayout();
+        headerEdgRow->addStretch();
+        headerEdgRow->addWidget(btn_CollapseEdges);
+        edgesLayout->addLayout(headerEdgRow);
+
+        edgesContent = new QWidget();
         edgesContentLayout = new QVBoxLayout(edgesContent);
         edgesContentLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -431,11 +421,14 @@ public:
         figureLayout->addWidget(groupBox_Transform);
         scrollLayout->addWidget(groupBox_Figure);
 
+        // Зона фигуры скрыта до открытия файла
+        groupBox_Figure->setVisible(false);
+
         // ============================================================
         //  ЗОНА 3 — ОБЩИЕ НАСТРОЙКИ
         // ============================================================
-        groupBox_General = new QGroupBox("⚙ Общие настройки");
-        generalLayout    = new QVBoxLayout(groupBox_General);
+        groupBox_General = new QGroupBox("Общие настройки");
+        generalLayout = new QVBoxLayout(groupBox_General);
         generalLayout->setContentsMargins(6, 8, 6, 6);
         generalLayout->setSpacing(5);
 
