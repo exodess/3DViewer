@@ -3,11 +3,17 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QDoubleSpinBox>
+#include <QtWidgets/QFrame>
 #include <QtWidgets/QGroupBox>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QVBoxLayout>
@@ -31,23 +37,58 @@ public:
     QVBoxLayout *mainVerticalLayout;
     QHBoxLayout *contentLayout;
 
-    // Справа: Панель настроек
-    QGroupBox *groupBox_Settings;
-    QVBoxLayout *settingsLayout;
+    // Прокручиваемая боковая панель
+    QScrollArea *scrollArea_Settings;   // сам скролл-виджет
+    QWidget *scrollContents;        // внутренний контейнер
+    QVBoxLayout *scrollLayout;          // вертикальный слой внутри
 
-    // --- Секция вершин (сворачиваемая) ---
-    QGroupBox  *groupBox_Vertices;     // checkable groupbox = встроенный toggle
+    // ================================================================
+    //  ЗОНА 1 — ИСТОЧНИКИ ОСВЕЩЕНИЯ
+    // ================================================================
+    QGroupBox *groupBox_Lights;
+    QVBoxLayout *lightsLayout;
+
+    QPushButton *btn_AddLight;
+
+    QWidget *lightsControlWidget;
+    QVBoxLayout *lightsControlLayout;
+
+    QComboBox *combo_LightSelect;
+
+    QWidget *lightSettingsWidget;
+    QVBoxLayout *lightSettingsLayout;
+
+    QLabel *label_LightPos;
+    QHBoxLayout *lightPosLayout;
+    QDoubleSpinBox *light_transX, *light_transY, *light_transZ;
+
+    QLabel *label_LightIntensity;
+    QDoubleSpinBox *light_intensity;
+
+    QPushButton *btn_LightColor;
+    QPushButton *btn_RemoveLight;
+
+    int lightCounter = 0;
+
+    // ================================================================
+    //  ЗОНА 2 — ФИГУРА
+    // ================================================================
+    QGroupBox *groupBox_Figure;
+    QVBoxLayout *figureLayout;
+
+    // Вершины (сворачиваемая)
+    QGroupBox *groupBox_Vertices;
     QVBoxLayout *verticesLayout;
-    QWidget    *verticesContent;       // контейнер содержимого
+    QWidget *verticesContent;
     QVBoxLayout *verticesContentLayout;
-    QPushButton *btn_CollapseVertices; // кнопка ▾/▸
+    QPushButton *btn_CollapseVertices;
 
     QPushButton *btn_VertexColor;
     QDoubleSpinBox *spin_VertexSize;
     QComboBox *combo_VertexType;
 
-    // --- Секция рёбер (сворачиваемая) ---
-    QGroupBox  *groupBox_Edges;
+    // Рёбра (сворачиваемая)
+    QGroupBox *groupBox_Edges;
     QVBoxLayout *edgesLayout;
     QWidget *edgesContent;
     QVBoxLayout *edgesContentLayout;
@@ -56,20 +97,45 @@ public:
     QPushButton *btn_EdgeColor;
     QDoubleSpinBox *spin_EdgeWidth;
     QComboBox *combo_EdgeType;
-    QPushButton *btn_BackgroundColor;
 
     // Трансформация фигуры
-    QHBoxLayout *rotLayout;
-    QDoubleSpinBox *spin_rotX, *spin_rotY, *spin_rotZ;
+    QGroupBox *groupBox_Transform;
+    QVBoxLayout *transformLayout;
+
+    QLabel *label_FigTrans;
     QHBoxLayout *transLayout;
     QDoubleSpinBox *spin_transX, *spin_transY, *spin_transZ;
+
+    QLabel *label_FigRot;
+    QHBoxLayout *rotLayout;
+    QDoubleSpinBox *spin_rotX, *spin_rotY, *spin_rotZ;
+
+    QLabel *label_FigScale;
     QHBoxLayout *scaleLayout;
     QDoubleSpinBox *spin_scaleX, *spin_scaleY, *spin_scaleZ;
 
-    // Настройка источника света
-    QHBoxLayout *lightLayout;
-    QDoubleSpinBox *light_transX, *light_transY, *light_transZ;
-    QPushButton *btn_LightColor;
+    // ================================================================
+    //  ЗОНА 3 — ОБЩИЕ НАСТРОЙКИ
+    // ================================================================
+    QGroupBox   *groupBox_General;
+    QVBoxLayout *generalLayout;
+
+    // Фон
+    QPushButton *btn_BackgroundColor;
+
+    // Камера — перемещение
+    QLabel *label_CamTrans;
+    QHBoxLayout *camTransLayout;
+    QDoubleSpinBox *spin_camTransX, *spin_camTransY, *spin_camTransZ;
+
+    // Камера — вращение
+    QLabel *label_CamRot;
+    QHBoxLayout *camRotLayout;
+    QDoubleSpinBox *spin_camRotX, *spin_camRotY, *spin_camRotZ;
+
+    // Камера — масштаб (zoom)
+    QLabel *label_CamZoom;
+    QDoubleSpinBox *spin_camZoom;
 
     // Нижняя информационная панель
     QHBoxLayout *infoLayout;
@@ -89,23 +155,43 @@ public:
     QStatusBar *statusbar;
 
     // ----------------------------------------------------------------
-    //  Вспомогательная функция: подключает кнопку-переключатель
-    //  к QWidget-контейнеру внутри groupbox.
+    //  Вспомогательная: кнопка-переключатель для сворачиваемых секций
     // ----------------------------------------------------------------
     static void connectCollapseButton(QPushButton *btn, QWidget *content) {
-        // Лямбда переключает видимость и меняет символ кнопки
         QObject::connect(btn, &QPushButton::clicked, [btn, content]() {
-            bool visible = !content->isVisible();
-            content->setVisible(visible);
-            btn->setText(visible ? "▾" : "▸");
+            bool v = !content->isVisible();
+            content->setVisible(v);
+            btn->setText(v ? "▾" : "▸");
         });
+    }
+
+    // ----------------------------------------------------------------
+    //  Вспомогательная: создаёт горизонтальный ряд XYZ spinbox-ов
+    // ----------------------------------------------------------------
+    static QHBoxLayout* makeXYZRow(QDoubleSpinBox *&sx, QDoubleSpinBox *&sy,
+                                   QDoubleSpinBox *&sz,
+                                   double lo, double hi,
+                                   double step, double defVal = 0.0)
+    {
+        auto *row = new QHBoxLayout();
+        sx = new QDoubleSpinBox();
+        sy = new QDoubleSpinBox();
+        sz = new QDoubleSpinBox();
+        for (QDoubleSpinBox * const &s : {sx, sy, sz}) {
+            s->setRange(lo, hi);
+            s->setSingleStep(step);
+            s->setValue(defVal);
+            s->setDecimals(2);
+            row->addWidget(s);
+        }
+        return row;
     }
 
     void setupUi(QMainWindow *MainWindow) {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName("MainWindow");
         MainWindow->resize(1200, 800);
-        MainWindow->setMinimumSize(300, 650);
+        MainWindow->setMinimumSize(400, 500);
 
         // Инициализация действий
         action_Open = new QAction(MainWindow);
@@ -119,43 +205,106 @@ public:
         action_SaveGif = new QAction(MainWindow);
         action_SaveScreenshot = new QAction(MainWindow);
 
+        // Центральный виджет
         centralWidget = new QWidget(MainWindow);
         mainVerticalLayout = new QVBoxLayout(centralWidget);
 
         // Создаем горизонтальный слой для разделения контента
         contentLayout = new QHBoxLayout();
 
-        // Панель настроек (будет справа)
-        groupBox_Settings = new QGroupBox("Настройки вида", centralWidget);
-        groupBox_Settings->setFixedWidth(250);
-        settingsLayout = new QVBoxLayout(groupBox_Settings);
+        // Прокручиваемая боковая панель
+        scrollArea_Settings = new QScrollArea(centralWidget);
+        scrollArea_Settings->setFixedWidth(260);
+        scrollArea_Settings->setWidgetResizable(true);
+        scrollArea_Settings->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        scrollArea_Settings->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        scrollArea_Settings->setFrameShape(QFrame::StyledPanel);
 
-        // =============================================
+        scrollContents = new QWidget();
+        scrollLayout   = new QVBoxLayout(scrollContents);
+        scrollLayout->setContentsMargins(6, 6, 6, 6);
+        scrollLayout->setSpacing(8);
 
-        // ===========================
-        // --- НАСТРОЙКА ОСВЕЩЕНИЯ ---
-        // ===========================
-        settingsLayout->addWidget(new QLabel("--- ИСТОЧНИК СВЕТА ---"));
-        lightLayout = new QHBoxLayout();
-        light_transX = new QDoubleSpinBox();
-        light_transY = new QDoubleSpinBox();
-        light_transZ = new QDoubleSpinBox();
-        for (auto s : {light_transX, light_transY, light_transZ}) {
-            s->setRange(-10.0, 10.0);
-            s->setSingleStep(0.1);
-            lightLayout->addWidget(s);
+        // ============================================================
+        //  ЗОНА 1 — ИСТОЧНИКИ ОСВЕЩЕНИЯ
+        // ============================================================
+        groupBox_Lights = new QGroupBox("💡 Источники освещения");
+        lightsLayout    = new QVBoxLayout(groupBox_Lights);
+        lightsLayout->setContentsMargins(6, 8, 6, 6);
+        lightsLayout->setSpacing(5);
+
+        btn_AddLight = new QPushButton("+ Добавить источник");
+        lightsLayout->addWidget(btn_AddLight);
+
+        // Контейнер (скрыт пока нет источников)
+        lightsControlWidget = new QWidget();
+        lightsControlLayout = new QVBoxLayout(lightsControlWidget);
+        lightsControlLayout->setContentsMargins(0, 4, 0, 0);
+        lightsControlLayout->setSpacing(4);
+
+        combo_LightSelect = new QComboBox();
+        combo_LightSelect->setToolTip("Выберите источник для настройки");
+        lightsControlLayout->addWidget(combo_LightSelect);
+
+        lightSettingsWidget = new QWidget();
+        lightSettingsLayout = new QVBoxLayout(lightSettingsWidget);
+        lightSettingsLayout->setContentsMargins(0, 2, 0, 2);
+        lightSettingsLayout->setSpacing(4);
+
+        label_LightPos = new QLabel("Положение (X / Y / Z):");
+        lightSettingsLayout->addWidget(label_LightPos);
+        lightPosLayout = new QHBoxLayout();
+        light_transX = light_transY = light_transZ = nullptr;
+        light_transX = new QDoubleSpinBox(); light_transY = new QDoubleSpinBox(); light_transZ = new QDoubleSpinBox();
+        for (auto *s : {light_transX, light_transY, light_transZ}) {
+            s->setRange(-100.0, 100.0); s->setSingleStep(0.1); s->setDecimals(2);
+            lightPosLayout->addWidget(s);
         }
-        settingsLayout->addLayout(lightLayout);
+        lightSettingsLayout->addLayout(lightPosLayout);
 
-        btn_LightColor = new QPushButton("Цвет источника света");
-        settingsLayout->addWidget(btn_LightColor);
+        label_LightIntensity = new QLabel("Интенсивность:");
+        lightSettingsLayout->addWidget(label_LightIntensity);
+        light_intensity = new QDoubleSpinBox();
+        light_intensity->setRange(0.0, 10.0); light_intensity->setValue(1.0);
+        light_intensity->setSingleStep(0.1);  light_intensity->setDecimals(2);
+        lightSettingsLayout->addWidget(light_intensity);
 
-        settingsLayout->addSpacing(20);
+        btn_LightColor  = new QPushButton("Цвет источника");
+        btn_RemoveLight = new QPushButton("− Удалить источник");
+        lightSettingsLayout->addWidget(btn_LightColor);
+        lightSettingsLayout->addWidget(btn_RemoveLight);
 
-        // =======================================
-        // --- ВЕРШИНЫ (сворачиваемая секция) ---
-        // =======================================
-        groupBox_Vertices = new QGroupBox("ВЕРШИНЫ", centralWidget);
+        lightsControlLayout->addWidget(lightSettingsWidget);
+        lightsLayout->addWidget(lightsControlWidget);
+        lightsControlWidget->setVisible(false);
+
+        QObject::connect(btn_AddLight, &QPushButton::clicked, [this]() {
+            ++lightCounter;
+            combo_LightSelect->addItem(QString("Источник %1").arg(lightCounter));
+            if (!lightsControlWidget->isVisible())
+                lightsControlWidget->setVisible(true);
+            combo_LightSelect->setCurrentIndex(combo_LightSelect->count() - 1);
+        });
+        QObject::connect(btn_RemoveLight, &QPushButton::clicked, [this]() {
+            int idx = combo_LightSelect->currentIndex();
+            if (idx < 0) return;
+            combo_LightSelect->removeItem(idx);
+            if (combo_LightSelect->count() == 0)
+                lightsControlWidget->setVisible(false);
+        });
+
+        scrollLayout->addWidget(groupBox_Lights);
+
+        // ============================================================
+        //  ЗОНА 2 — ФИГУРА
+        // ============================================================
+        groupBox_Figure = new QGroupBox("🔷 Фигура");
+        figureLayout    = new QVBoxLayout(groupBox_Figure);
+        figureLayout->setContentsMargins(6, 8, 6, 6);
+        figureLayout->setSpacing(6);
+
+        // Вершины
+        groupBox_Vertices = new QGroupBox("Вершины");
         verticesLayout    = new QVBoxLayout(groupBox_Vertices);
         verticesLayout->setContentsMargins(4, 4, 4, 4);
 
@@ -172,7 +321,7 @@ public:
         }
 
         // Содержимое секции
-        verticesContent       = new QWidget();
+        verticesContent = new QWidget();
         verticesContentLayout = new QVBoxLayout(verticesContent);
         verticesContentLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -193,15 +342,11 @@ public:
 
         verticesLayout->addWidget(verticesContent);
         connectCollapseButton(btn_CollapseVertices, verticesContent);
+        figureLayout->addWidget(groupBox_Vertices);
 
-        settingsLayout->addWidget(groupBox_Vertices);
-        settingsLayout->addSpacing(10);
-
-        // =====================================
-        // --- РЁБРА (сворачиваемая секция) ---
-        // =====================================
-        groupBox_Edges  = new QGroupBox("РЁБРА", centralWidget);
-        edgesLayout     = new QVBoxLayout(groupBox_Edges);
+        // --- Рёбра ---
+        groupBox_Edges = new QGroupBox("Рёбра");
+        edgesLayout = new QVBoxLayout(groupBox_Edges);
         edgesLayout->setContentsMargins(4, 4, 4, 4);
 
         btn_CollapseEdges = new QPushButton("▾");
@@ -236,14 +381,16 @@ public:
 
         edgesLayout->addWidget(edgesContent);
         connectCollapseButton(btn_CollapseEdges, edgesContent);
+        figureLayout->addWidget(groupBox_Edges);
 
-        settingsLayout->addWidget(groupBox_Edges);
-        settingsLayout->addSpacing(20);
+        // Трансформация фигуры
+        groupBox_Transform = new QGroupBox("Трансформация");
+        transformLayout = new QVBoxLayout(groupBox_Transform);
+        transformLayout->setContentsMargins(4, 6, 4, 6);
+        transformLayout->setSpacing(4);
 
-        // ===========================
-        // ПЕРЕМЕЩЕНИЕ (Translation)
-        // ===========================
-        settingsLayout->addWidget(new QLabel("--- ПЕРЕМЕЩЕНИЕ ФИГУРЫ ---"));
+        label_FigTrans = new QLabel("Перемещение (X / Y / Z):");
+        transformLayout->addWidget(label_FigTrans);
         transLayout = new QHBoxLayout();
         spin_transX = new QDoubleSpinBox();
         spin_transY = new QDoubleSpinBox();
@@ -253,12 +400,10 @@ public:
             s->setSingleStep(0.1);
             transLayout->addWidget(s);
         }
-        settingsLayout->addLayout(transLayout);
+        transformLayout->addLayout(transLayout);
 
-        // ===========================
-        // --- ПОВОРОТ (Rotation) ---
-        // ===========================
-        settingsLayout->addWidget(new QLabel("--- ПОВОРОТ ФИГУРЫ ---"));
+        label_FigRot = new QLabel("Поворот (X / Y / Z):");
+        transformLayout->addWidget(label_FigRot);
         rotLayout = new QHBoxLayout();
         spin_rotX = new QDoubleSpinBox();
         spin_rotY = new QDoubleSpinBox();
@@ -267,12 +412,10 @@ public:
             s->setRange(-360.0, 360.0);
             rotLayout->addWidget(s);
         }
-        settingsLayout->addLayout(rotLayout);
+        transformLayout->addLayout(rotLayout);
 
-        // ===========================
-        //      МАСШТАБ (Scale)
-        // ===========================
-        settingsLayout->addWidget(new QLabel("--- МАСШТАБ ФИГУРЫ ---"));
+        label_FigScale = new QLabel("Масштаб (X / Y / Z):");
+        transformLayout->addWidget(label_FigScale);
         scaleLayout = new QHBoxLayout();
         spin_scaleX = new QDoubleSpinBox();
         spin_scaleY = new QDoubleSpinBox();
@@ -283,23 +426,63 @@ public:
             s->setSingleStep(0.1);
             scaleLayout->addWidget(s);
         }
-        settingsLayout->addLayout(scaleLayout);
+        transformLayout->addLayout(scaleLayout);
 
-        settingsLayout->addSpacing(20);
+        figureLayout->addWidget(groupBox_Transform);
+        scrollLayout->addWidget(groupBox_Figure);
 
-        // --- СЕКЦИЯ ОБЩИХ НАСТРОЕК ---
-        settingsLayout->addWidget(new QLabel("--- ОБЩИЕ ---"));
+        // ============================================================
+        //  ЗОНА 3 — ОБЩИЕ НАСТРОЙКИ
+        // ============================================================
+        groupBox_General = new QGroupBox("⚙ Общие настройки");
+        generalLayout    = new QVBoxLayout(groupBox_General);
+        generalLayout->setContentsMargins(6, 8, 6, 6);
+        generalLayout->setSpacing(5);
+
         btn_BackgroundColor = new QPushButton("Цвет фона");
-        settingsLayout->addWidget(btn_BackgroundColor);
+        generalLayout->addWidget(btn_BackgroundColor);
 
-        // =========================================
+        // Камера — перемещение
+        label_CamTrans = new QLabel("Камера — перемещение (X / Y / Z):");
+        label_CamTrans->setWordWrap(true);
+        generalLayout->addWidget(label_CamTrans);
+        camTransLayout = new QHBoxLayout();
+        spin_camTransX = spin_camTransY = spin_camTransZ = nullptr;
+        spin_camTransX = new QDoubleSpinBox(); spin_camTransY = new QDoubleSpinBox(); spin_camTransZ = new QDoubleSpinBox();
+        for (auto *s : {spin_camTransX, spin_camTransY, spin_camTransZ}) {
+            s->setRange(-1000.0, 1000.0); s->setSingleStep(0.5); s->setDecimals(2);
+            camTransLayout->addWidget(s);
+        }
+        generalLayout->addLayout(camTransLayout);
 
-        settingsLayout->addStretch(); // Пружина вниз
+        // Камера — вращение
+        label_CamRot = new QLabel("Камера — вращение (X / Y / Z):");
+        label_CamRot->setWordWrap(true);
+        generalLayout->addWidget(label_CamRot);
+        camRotLayout = new QHBoxLayout();
+        spin_camRotX = spin_camRotY = spin_camRotZ = nullptr;
+        spin_camRotX = new QDoubleSpinBox(); spin_camRotY = new QDoubleSpinBox(); spin_camRotZ = new QDoubleSpinBox();
+        for (auto *s : {spin_camRotX, spin_camRotY, spin_camRotZ}) {
+            s->setRange(-360.0, 360.0); s->setSingleStep(1.0); s->setDecimals(1);
+            camRotLayout->addWidget(s);
+        }
+        generalLayout->addLayout(camRotLayout);
 
-        // Добавляем панель в горизонтальный слой
-        contentLayout->addWidget(groupBox_Settings);
+        // Камера — масштаб
+        label_CamZoom = new QLabel("Камера — масштаб:");
+        generalLayout->addWidget(label_CamZoom);
+        spin_camZoom = new QDoubleSpinBox();
+        spin_camZoom->setRange(0.01, 100.0); spin_camZoom->setValue(1.0); spin_camZoom->setSingleStep(0.1); spin_camZoom->setDecimals(2);
+        generalLayout->addWidget(spin_camZoom);
 
-        // Добавляем горизонтальный слой в главный вертикальный
+        scrollLayout->addWidget(groupBox_General);
+
+        // Пружина в конце, чтобы секции прижимались к верху
+        scrollLayout->addStretch();
+
+        // Собираем панель прокрутки
+        scrollArea_Settings->setWidget(scrollContents);
+        contentLayout->addWidget(scrollArea_Settings);
         mainVerticalLayout->addLayout(contentLayout);
 
         // ===========================
@@ -379,7 +562,7 @@ public:
 
     QFrame* createSeparator() {
         QFrame *line = new QFrame();
-        line->setFrameShape(QFrame::VLine);
+        line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
         line->setStyleSheet("background-color: #000;");
         return line;
