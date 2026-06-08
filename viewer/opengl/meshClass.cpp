@@ -2,7 +2,6 @@
 #include <glad/glad.h>
 
 namespace viewer {
-
 	GLuint Mesh::countVertices() noexcept {
 		return count_vertices_;
 	}
@@ -15,6 +14,9 @@ namespace viewer {
 		vao_{VAO()},
 		vbo_{BO(GL_ARRAY_BUFFER)},
 		ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
+		cameraUBO_{UBO(sizeof(CameraData), 0)},
+		lightUBO_{UBO(sizeof(LightData), 1)},
+		materialUBO_{UBO(sizeof(MaterialData), 2)},
 		count_vertices_{0},
 		count_surfaces_{0} {
 
@@ -78,14 +80,14 @@ namespace viewer {
 		std::cout << "\n";
 	}
 
-	bool Mesh::loadVerticesColor(GLint uniform_location, float r, float g, float b) noexcept {
+	bool Mesh::loadVerticesColor(GLint uniform_location, const Point3D& color) noexcept {
 
 		if(uniform_location == -1) {
 			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
 			return false;
 		}
 
-		glUniform3f(uniform_location, r, g, b);
+		glUniform3f(uniform_location, color.x, color.y, color.z);
 
 		return true;
 	}
@@ -135,14 +137,14 @@ namespace viewer {
 		return true;
 	}
 
-	bool Mesh::loadEdgesColor(GLint uniform_location, float r, float g, float b) noexcept {
+	bool Mesh::loadEdgesColor(GLint uniform_location, const Point3D& color) noexcept {
 
 		if(uniform_location == -1) {
 			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
 			return false;
 		}
 
-		glUniform3f(uniform_location, r, g, b);
+		glUniform3f(uniform_location, color.x, color.y, color.z);
 
 		return true;
 	}
@@ -183,43 +185,35 @@ namespace viewer {
 		return true;
 	}
 
-	bool Mesh::loadModelMatrix(GLint uniform_location, float mtrx[4][4]) noexcept {
+	bool Mesh::loadModelMatrix(GLint uniform_location, TransformMatrix modelMatrix) noexcept {
 
 		if(uniform_location == -1) {
 			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
 			return false;
 		}
 
-		glUniformMatrix4fv(uniform_location, 1, GL_TRUE, &mtrx[0][0]);
-		return true;
-	}
-
-	bool Mesh::loadViewMatrix(GLint uniform_location, float mtrx[4][4]) noexcept {
-
-		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
-			return false;
+		float mtrx[4][4];
+		for (auto i = 0; i < 4; ++i) {
+			for (auto j = 0; j < 4; ++j) {
+				mtrx[i][j] = modelMatrix(i, j);
+			}
 		}
 
 		glUniformMatrix4fv(uniform_location, 1, GL_TRUE, &mtrx[0][0]);
 		return true;
 	}
 
-	bool Mesh::loadProjectionMatrix(GLint uniform_location, float mtrx[4][4]) noexcept {
-
-		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
-			return false;
-		}
-
-		glUniformMatrix4fv(uniform_location, 1, GL_TRUE, &mtrx[0][0]);
-		return true;
-	}
-
-	bool Mesh::loadNormalMatrix(GLint uniform_location, float mtrx[3][3]) noexcept {
+	bool Mesh::loadNormalMatrix(GLint uniform_location, TransformMatrix modelMatrix) noexcept {
 		if (uniform_location == -1) {
 			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
 			return false;
+		}
+
+		float mtrx[3][3];
+		for (auto i = 0; i < 3; ++i) {
+			for (auto j = 0; j < 3; ++j) {
+				mtrx[i][j] = modelMatrix(i, j);
+			}
 		}
 
 		glUniformMatrix3fv(uniform_location, 1, GL_TRUE, &mtrx[0][0]);
@@ -238,36 +232,6 @@ namespace viewer {
 		return true;
 	}
 
-	bool Mesh::loadLightColor(int32_t u_location, float r, float g, float b) noexcept {
-		if (u_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
-			return false;
-		}
-
-		glUniform3f(u_location, r, g, b);
-		return true;
-	}
-
-	bool Mesh::loadLightPosition(int32_t u_location, float x, float y, float z) noexcept {
-		if (u_location == -1) {
-			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
-			return false;
-		}
-
-		glUniform3f(u_location, x, y, z);
-		return true;
-	}
-
-	bool Mesh::loadCameraPosition(int32_t u_location, float x, float y, float z) noexcept {
-		if (u_location == -1) {
-			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
-			return false;
-		}
-
-		glUniform3f(u_location, x, y, z);
-		return true;
-	}
-
 	bool Mesh::loadDisplayType(int32_t u_location, DisplayType displayType) noexcept {
 		if (u_location == -1) {
 			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
@@ -278,13 +242,31 @@ namespace viewer {
 		return true;
 	}
 
+	void Mesh::loadMaterialStructure(const MaterialData &material) noexcept {
+		materialUBO_.loadSub(&material, sizeof(MaterialData), 0);
+	}
+
+	void Mesh::loadCameraStructure(const CameraData &cameraInfo) noexcept {
+		cameraUBO_.loadSub(&cameraInfo.projectionMatrix_[0][0], sizeof(float) * 16, 0);
+		cameraUBO_.loadSub(&cameraInfo.viewMatrix_[0][0], sizeof(float) * 16, sizeof(float) * 16);
+		cameraUBO_.loadSub(&cameraInfo.position_, sizeof(Point3D), 2 * sizeof(float) * 16);
+	}
+
+	void Mesh::loadLightStructure(const LightData &lightInfo) noexcept {
+		lightUBO_.loadSub(&lightInfo.position_, sizeof(Point3D), 0);
+		lightUBO_.loadSub(&lightInfo.intensity_, sizeof(float), sizeof(Point3D));
+		lightUBO_.loadSub(&lightInfo.color_, sizeof(Point3D), sizeof(Point3D) + sizeof(float));
+	}
 
 	void Mesh::render() noexcept {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		vao_.use();
 		glDrawElements(GL_TRIANGLES, count_surfaces_ * 3, GL_UNSIGNED_INT, nullptr);
 
 		VAO::disable();
+	}
+
+	void Mesh::clear() noexcept {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	
 }
