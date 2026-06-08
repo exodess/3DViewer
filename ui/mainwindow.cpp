@@ -83,10 +83,10 @@ namespace viewer {
 		auto vertColorPoint = viewer_->getScene()->getFigure(current_figure_).vertexInfo().color();
 		auto edgColorPoint = viewer_->getScene()->getFigure(current_figure_).edgeInfo().color();
 		auto lightColorPoint = viewer_->getScene()->getLight(current_light_).color();
-		QColor backColor = QColor(backColorPoint.x() * 255, backColorPoint.y() * 255, backColorPoint.z() * 255);
-		QColor vertColor = QColor(vertColorPoint.x() * 255, vertColorPoint.y() * 255, vertColorPoint.z() * 255);
-		QColor edgColor = QColor(edgColorPoint.x() * 255, edgColorPoint.y() * 255, edgColorPoint.z() * 255);
-		QColor lightColor = QColor(lightColorPoint.x() * 255, lightColorPoint.y() * 255, lightColorPoint.z() * 255);
+		QColor backColor = QColor(backColorPoint.x * 255, backColorPoint.y * 255, backColorPoint.z * 255);
+		QColor vertColor = QColor(vertColorPoint.x * 255, vertColorPoint.y * 255, vertColorPoint.z * 255);
+		QColor edgColor = QColor(edgColorPoint.x * 255, edgColorPoint.y * 255, edgColorPoint.z * 255);
+		QColor lightColor = QColor(lightColorPoint.x * 255, lightColorPoint.y * 255, lightColorPoint.z * 255);
 
 		ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(vertColor.name()));
 		ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(edgColor.name()));
@@ -125,19 +125,19 @@ namespace viewer {
 		if (event->buttons() & Qt::LeftButton) {
 			// Левая кнопка мыши - перемещение фигуры в фокусе
 
-			viewer_->getScene()->getFigure(current_figure_).translation().x() += dx * TRANSLATION_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getFigure(current_figure_).translation().y() -= dy * TRANSLATION_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getFigure(current_figure_).translation().z() = ui->spin_transZ->value();
+			viewer_->getScene()->getFigure(current_figure_).translation().x += dx * TRANSLATION_MOUSE_SENSITIVITY;
+			viewer_->getScene()->getFigure(current_figure_).translation().y -= dy * TRANSLATION_MOUSE_SENSITIVITY;
+			viewer_->getScene()->getFigure(current_figure_).translation().z = ui->spin_transZ->value();
 
-			ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x());
-			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y());
+			ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x);
+			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y);
 		}
 
 		else if (event->buttons() & Qt::RightButton) {
 			// Правая кнопка мыши - вращение
 
-			viewer_->getScene()->getFigure(current_figure_).rotation().x() = static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360;
-			viewer_->getScene()->getFigure(current_figure_).rotation().y() = static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360;
+			viewer_->getScene()->getFigure(current_figure_).rotation().x = static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360;
+			viewer_->getScene()->getFigure(current_figure_).rotation().y = static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360;
 
 			ui->spin_rotX->setValue(static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360);
 			ui->spin_rotY->setValue(static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360);
@@ -151,7 +151,7 @@ namespace viewer {
 		// Колесико мыши - зум
 
 		float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
-		viewer_->getScene()->getCamera().translation().z() -= det * 0.5f;
+		viewer_->getScene()->getCamera().translation().z -= det * 0.5f;
 
 		update();
 	}
@@ -346,9 +346,9 @@ namespace viewer {
 	QJsonObject MainWindow::positionToJson(const Point3D& pos) noexcept {
 		QJsonObject obj;
 
-		obj["x"] = pos.x();
-		obj["y"] = pos.y();
-		obj["z"] = pos.z();
+		obj["x"] = pos.x;
+		obj["y"] = pos.y;
+		obj["z"] = pos.z;
 
 		return obj;
 	}
