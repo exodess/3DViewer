@@ -72,7 +72,7 @@ namespace viewer {
 
 	// загрузка данных в буфер
 	void BO::load(const void* mem, int size, GLuint mode) noexcept{
-
+		use();
 		// mode - указание для драйвера, как лучше использовать буфер
 		glBufferData(type_, size, mem, mode);
 
@@ -96,6 +96,26 @@ namespace viewer {
 		glBindBuffer(type_, boID_);
 	}
 
+	// ==============================================
+	// ================== КЛАСС UBO =================
+	// ==============================================
+
+	UBO::UBO(int size, int binding) noexcept : BO(GL_UNIFORM_BUFFER, 0, size) {
+		rebind(binding);
+	}
+
+	UBO::UBO(const void* data, int size, int binding) noexcept : BO(GL_UNIFORM_BUFFER, data, size) {
+		rebind(binding);
+	}
+
+	void UBO::rebind(int binding) noexcept {
+		glBindBufferBase(type_, binding, boID_);
+	}
+
+	void UBO::loadSub(const void* mem, int size, int offset) noexcept {
+		use();
+		glBufferSubData(type_, offset, size, mem);
+	}
 
 	// ==============================================
 	// ================== КЛАСС VAO =================
