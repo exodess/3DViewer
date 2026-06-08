@@ -82,11 +82,11 @@ namespace viewer {
 
 	TransformMatrix BaseSceneObject::getModelMatrix() noexcept {
 		TransformMatrix scaleMatrix = TransformMatrixBuilder::CreateScaleMatrix(
-			scaleVector_.x(), scaleVector_.y(), scaleVector_.z());
+			scaleVector_.x, scaleVector_.y, scaleVector_.z);
 		TransformMatrix rotationMatrix = TransformMatrixBuilder::CreateRotationMatrix(
-			rotationVector_.x(), rotationVector_.y(), rotationVector_.z());
+			rotationVector_.x, rotationVector_.y, rotationVector_.z);
 		TransformMatrix translationMatrix = TransformMatrixBuilder::CreateMoveMatrix(
-			translationVector_.x(), translationVector_.y(), translationVector_.z());
+			translationVector_.x, translationVector_.y, translationVector_.z);
 
 		return translationMatrix * rotationMatrix * scaleMatrix;
 	}
@@ -219,6 +219,35 @@ namespace viewer {
 
 	Camera &Scene::getCamera() noexcept {
 		return camera_;
+	}
+
+	int Scene::countVertices() noexcept {
+		int count = 0;
+
+		for (auto& f : figures_) {
+			count += f.getVertices().size();
+		}
+
+		return count;
+	}
+
+	int Scene::countSurfaces() noexcept {
+		int count = 0;
+
+		for (auto& f : figures_) {
+			count += f.getSurfaces().size();
+		}
+
+		return count;
+	}
+
+	int Scene::countFigures() noexcept {
+		return figures_.size();
+	}
+
+	int Scene::countLights() noexcept {
+		// Первый объект в списке - фоновое освещение
+		return lights_.size() - 1;
 	}
 
 	// ===========================

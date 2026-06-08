@@ -80,38 +80,41 @@ namespace viewer {
 
 		// Устанавливаем значения на кнопках:
 		auto backColorPoint = viewer_->getScene()->backgroundColor();
-		auto vertColorPoint = viewer_->getScene()->getFigure(current_figure_).vertexInfo().color();
-		auto edgColorPoint = viewer_->getScene()->getFigure(current_figure_).edgeInfo().color();
-		auto lightColorPoint = viewer_->getScene()->getLight(current_light_).color();
-		QColor backColor = QColor(backColorPoint.x * 255, backColorPoint.y * 255, backColorPoint.z * 255);
-		QColor vertColor = QColor(vertColorPoint.x * 255, vertColorPoint.y * 255, vertColorPoint.z * 255);
-		QColor edgColor = QColor(edgColorPoint.x * 255, edgColorPoint.y * 255, edgColorPoint.z * 255);
-		QColor lightColor = QColor(lightColorPoint.x * 255, lightColorPoint.y * 255, lightColorPoint.z * 255);
 
-		ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(vertColor.name()));
-		ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(edgColor.name()));
-		ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
-		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(lightColor.name()));
+		if (current_figure_ > 0) {
+			auto vertColorPoint = viewer_->getScene()->getFigure(current_figure_).vertexInfo().color();
+			auto edgColorPoint = viewer_->getScene()->getFigure(current_figure_).edgeInfo().color();
+			auto lightColorPoint = viewer_->getScene()->getLight(current_light_).color();
+			QColor backColor = QColor(backColorPoint.x * 255, backColorPoint.y * 255, backColorPoint.z * 255);
+			QColor vertColor = QColor(vertColorPoint.x * 255, vertColorPoint.y * 255, vertColorPoint.z * 255);
+			QColor edgColor = QColor(edgColorPoint.x * 255, edgColorPoint.y * 255, edgColorPoint.z * 255);
+			QColor lightColor = QColor(lightColorPoint.x * 255, lightColorPoint.y * 255, lightColorPoint.z * 255);
 
-		ui->spin_VertexSize->setValue(viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() * 100);
-		ui->spin_EdgeWidth->setValue(viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() * 1000);
-		if(viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() == 0) {
-			ui->combo_EdgeType->setCurrentText("Сплошной");
-		}
-		else {
-			ui->combo_EdgeType->setCurrentText("Пунктир");
-		}
+			ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(vertColor.name()));
+			ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(edgColor.name()));
+			ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
+			ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(lightColor.name()));
 
-		if(viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() == 0) {
-			ui->combo_VertexType->setCurrentText("Нет");
-		}
-		else if(viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() == 1) {
-			ui->combo_VertexType->setCurrentText("Круг");
-		}
-		else {
-			ui->combo_VertexType->setCurrentText("Квадрат");
-		}
+			ui->spin_VertexSize->setValue(viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() * 100);
+			ui->spin_EdgeWidth->setValue(viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() * 1000);
+			if(viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() == 0) {
+				ui->combo_EdgeType->setCurrentText("Сплошной");
+			}
+			else {
+				ui->combo_EdgeType->setCurrentText("Пунктир");
+			}
 
+			if(viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() == 0) {
+				ui->combo_VertexType->setCurrentText("Нет");
+			}
+			else if(viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() == 1) {
+				ui->combo_VertexType->setCurrentText("Круг");
+			}
+			else {
+				ui->combo_VertexType->setCurrentText("Квадрат");
+			}
+
+		}
 	}
 
 	void MainWindow::mousePressEvent(QMouseEvent* event) {
