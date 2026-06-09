@@ -23,12 +23,18 @@ namespace viewer {
 		ui->contentLayout->insertWidget(0, glWidget_, 1); // 1 - это stretch factor (растяжение)
 		connectSignals();
 
+		setFigureValues();
+		setLightValues();
+		setGeneralValues();
+
 		std::cout << "[MainWindow] Инициализация завершена\n";
 	}
 
 	MainWindow::~MainWindow() {
-		if (viewer_) { delete viewer_; }
-		delete ui;
+		saveSettingsToFile("settings_viewer.json");
+
+		if (viewer_) delete viewer_;
+		if (ui) delete ui;
 	}
 
 	void MainWindow::connectSignals() noexcept {
@@ -78,30 +84,25 @@ namespace viewer {
 			ui->spin_VertexSize, ui->spin_EdgeWidth, ui->light_intensity}) {
 		    connect(s, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, updateTransform);
 		}
-
-		setFigureValues();
-		setLightValues();
 	}
 
 	void MainWindow::setFigureValues() noexcept {
 		if (current_figure_ > 0) {
 			// Устанавливаем значения на кнопках:
-			auto backColorPoint = viewer_->getScene()->backgroundColor();
 			auto vertColorPoint = viewer_->getScene()->getFigure(current_figure_).vertexInfo().color();
 			auto edgColorPoint = viewer_->getScene()->getFigure(current_figure_).edgeInfo().color();
 			auto lightColorPoint = viewer_->getScene()->getLight(current_light_).color();
-			QColor backColor = QColor(backColorPoint.x * 255, backColorPoint.y * 255, backColorPoint.z * 255);
 			QColor vertColor = QColor(vertColorPoint.x * 255, vertColorPoint.y * 255, vertColorPoint.z * 255);
 			QColor edgColor = QColor(edgColorPoint.x * 255, edgColorPoint.y * 255, edgColorPoint.z * 255);
 			QColor lightColor = QColor(lightColorPoint.x * 255, lightColorPoint.y * 255, lightColorPoint.z * 255);
 
 			ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(vertColor.name()));
 			ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(edgColor.name()));
-			ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
 			ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(lightColor.name()));
 
 			ui->spin_VertexSize->setValue(viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() * 100);
 			ui->spin_EdgeWidth->setValue(viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() * 1000);
+
 			if(viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() == 0) {
 				ui->combo_EdgeType->setCurrentText("Сплошной");
 			}
@@ -118,6 +119,20 @@ namespace viewer {
 			else {
 				ui->combo_VertexType->setCurrentText("Квадрат");
 			}
+
+			ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x);
+			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y);
+			ui->spin_transZ->setValue(viewer_->getScene()->getFigure(current_figure_).translation().z);
+
+			ui->spin_rotX->setValue(viewer_->getScene()->getFigure(current_figure_).rotation().x);
+			ui->spin_rotY->setValue(viewer_->getScene()->getFigure(current_figure_).rotation().y);
+			ui->spin_rotZ->setValue(viewer_->getScene()->getFigure(current_figure_).rotation().z);
+
+			ui->spin_scaleX->setValue(viewer_->getScene()->getFigure(current_figure_).scale().x);
+			ui->spin_scaleY->setValue(viewer_->getScene()->getFigure(current_figure_).scale().y);
+			ui->spin_scaleZ->setValue(viewer_->getScene()->getFigure(current_figure_).scale().z);
+
+			updateInfoLabels();
 		}
 	}
 
@@ -148,6 +163,12 @@ namespace viewer {
 		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(qcolor.name()));
 	}
 
+	void MainWindow::setGeneralValues() noexcept {
+		auto backColorPoint = viewer_->getScene()->backgroundColor();
+		QColor backColor = QColor(backColorPoint.x * 255, backColorPoint.y * 255, backColorPoint.z * 255);
+		ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
+	}
+
 
 	void MainWindow::mousePressEvent(QMouseEvent* event) {
 		lastPos_ = event->pos();
@@ -157,7 +178,7 @@ namespace viewer {
 		float dx = event->position().x() - lastPos_.x();
 		float dy = event->position().y() - lastPos_.y();
 
-		if (event->buttons() & Qt::LeftButton) {
+		if (event->buttons() & Qt::LeftButton && current_figure_ > 0) {
 			// Левая кнопка мыши - перемещение фигуры в фокусе
 
 			viewer_->getScene()->getFigure(current_figure_).translation().x += dx * TRANSLATION_MOUSE_SENSITIVITY;
@@ -168,7 +189,7 @@ namespace viewer {
 			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y);
 		}
 
-		else if (event->buttons() & Qt::RightButton) {
+		else if (event->buttons() & Qt::RightButton && current_figure_) {
 			// Правая кнопка мыши - вращение
 
 			viewer_->getScene()->getFigure(current_figure_).rotation().x = static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360;
@@ -185,10 +206,12 @@ namespace viewer {
 	void MainWindow::wheelEvent(QWheelEvent* event) {
 		// Колесико мыши - зум
 
-		float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
-		viewer_->getScene()->getCamera().translation().z -= det * 0.5f;
+		if (current_figure_ > 0) {
+			float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
+			viewer_->getScene()->getCamera().translation().z -= det * 0.5f;
 
-		viewer_->DrawScene();
+			viewer_->DrawScene();
+		}
 	}
 
 	// ===========================================================
@@ -226,7 +249,7 @@ namespace viewer {
 			figure_settings["edgeIsDashed"] = viewer_->getScene()->getFigure(i).edgeInfo().mode();
 			figure_settings["edgeDisplayType"] = viewer_->getScene()->getFigure(i).displayType();
 
-			settings["figure " + i] = figure_settings;
+			settings[QString("figure %1").arg(i)] = figure_settings;
 		}
 
 		// Сохраняем настройки каждого источника освещения
@@ -237,7 +260,7 @@ namespace viewer {
 			light_settings["intensity"] = viewer_->getScene()->getLight(i).intensity();
 			light_settings["color"] = colorToJson(viewer_->getScene()->getLight(i).color());
 
-			settings["light " + i];
+			settings[QString("light %1").arg(i)] = light_settings;
 		}
 
 		QJsonDocument doc(settings);
@@ -422,7 +445,8 @@ namespace viewer {
 	}
 
 	void MainWindow::onFigureChanged(int value) {
-		current_figure_ = value;
+		current_figure_ = value + 1;
+		std::cout << "Смена на фигуру " << current_figure_ << " из " << count_figures_ << std::endl;
 
 		setFigureValues();
 	}
@@ -498,7 +522,7 @@ namespace viewer {
 
 		if (result.isSuccess()) {
 			currentFileName_ = QFileInfo(path).fileName();
-			count_figures_++;
+			count_figures_ += 1;
 			current_figure_ = count_figures_;
 			viewer_->DrawScene();
 			auto vertCount = viewer_->getScene()->getFigure(current_figure_).getVertices().size();
@@ -544,6 +568,7 @@ namespace viewer {
 			loadScene(fileName);
 			ui->groupBox_Figure->setVisible(true);
 			ui->combo_FigureSelect->addItem(QString("Фигура %1").arg(viewer_->getScene()->countFigures()));
+			ui->combo_FigureSelect->setCurrentIndex(count_figures_ - 1);
 		}
 	}
 

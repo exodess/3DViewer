@@ -112,9 +112,14 @@ namespace viewer {
         void setFigureValues() noexcept;
 
         /**
-         * @brief
+         * @brief Устанавливает значения на интерфейсе в зоне настройки текущего источника освещения
          */
         void setLightValues() noexcept;
+
+        /**
+         * @brief Устанавливает значения на интерфейсе общих настроек
+         */
+        void setGeneralValues() noexcept;
 
         Ui::MainWindow *ui; ///< Элементы UI программы
         Viewer *viewer_; ///< Менеджер ресурсов
