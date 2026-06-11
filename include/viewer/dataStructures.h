@@ -213,6 +213,18 @@ namespace viewer {
 		float projectionMatrix_[4][4]; ///< Матрица проекции камеры
 		float viewMatrix_[4][4]; ///< Матрица вида (матрица модели, созданная с настройками камеры)
 		Point3D position_; ///< Координата камеры на сцене (смещение относительно начала координат)
+
+		CameraData() noexcept : projectionMatrix_{0}, viewMatrix_{0} {}
+		CameraData(const CameraData& other) {
+			for (auto i = 0; i < 4; ++i) {
+				for (auto j = 0; j < 4; ++j) {
+					projectionMatrix_[i][j] = other.projectionMatrix_[i][j];
+					viewMatrix_[i][j] = other.viewMatrix_[i][j];
+				}
+			}
+
+			position_ = other.position_;
+		}
 	};
 
 	struct LightData {
