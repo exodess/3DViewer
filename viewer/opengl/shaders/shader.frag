@@ -1,5 +1,6 @@
 #version 430 core
 
+#define MAX_LIGHTS 5
 out vec4 FragColor;
 
 // значения из геометрического шейдера
@@ -8,12 +9,20 @@ in float vLineDist;
 flat in int vIsPoint;
 flat in int displayType; // 0 - каркасная модель, 1 - плоское затенение, 2 - мягкое затенение
 
+layout(std430, binding = 2) buffer Material {
+	vec3 base_color; // Цвет материала
+	float roughness; // Шероховатость поверхности
+	float metallic; // Металличность поверхности
+	float refractive; // Коэффициент преломления
+	float reflectivity; // Коэффициент отражения
+	float alpha; // Коэффициент прозрачности
+} u_MaterialStruct;
+
 uniform vec3 u_lightColor; // цвет источника света
 uniform vec3 u_vertColor; // цвет вершин
 uniform int u_isVertCircle; // 1 - круг, 0 - квадрат
 uniform vec3 u_edgesColor; // цвет ребер
 uniform float u_dashSize; // размер штриха (0 для сплошной)
-
 
 // значения из вершинного шейдера
 in vec3 Camera_v;
@@ -67,5 +76,9 @@ void main() {
 		vec3 res = (0.1 + diffuse + 0.5 * specular) * u_lightColor;
 		FragColor = vec4(res, 1.0);
 
+	}
+
+	else if(displayType == 3) {
+		// Ray-tracing
 	}
 }
