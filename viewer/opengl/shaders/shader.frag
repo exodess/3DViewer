@@ -18,13 +18,15 @@ layout(std430, binding = 2) buffer Material {
 	float alpha; // Коэффициент прозрачности
 } b_MaterialStruct;
 
+struct LightData {
+	vec3 position; // Координата источника света
+	float intensity; // Интенсивность
+	vec3 color; // Цвет источника света
+};
+
 // Структура, хранящая информацию обо всех источниках освещения
 layout(std430, binding = 1) buffer LightsBuffer {
-	struct LightData {
-		vec3 position; // Координата источника света
-		float intensity; // Интенсивность
-		vec3 color; // Цвет источника света
-	} lights[MAX_POINT_LIGHTS + 1];
+	LightData lights[MAX_POINT_LIGHTS + 1];
 } b_LightStruct;
 
 uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
@@ -74,10 +76,10 @@ void main() {
 			float diffuse = max(dot(Light_v, N), 0.0);
 
 			// Накапливаем освещение: (коэффициент * цветИсточника * интенсивность)
-			diffuseAccum += diff * b_LightStruct.lights[i].color * b_LightStruct.lights[i].intensity;
+			diffuseAccum += diffuse * b_LightStruct.lights[i].color * b_LightStruct.lights[i].intensity;
 		}
 
-		vec3 res = b_LightStruct.lights[0].color * (ambient + diffuseAccum);
+		vec3 res = ambient + diffuseAccum;
 		FragColor = vec4(res, 1.0);
 	}
 
