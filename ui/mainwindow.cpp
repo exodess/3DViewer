@@ -11,7 +11,7 @@ namespace viewer {
 	, viewer_(nullptr)
 	, current_figure_(0)
 	, count_figures_(0)
-	, current_light_(0)
+	, current_light_(1)
 	, count_lights_(1)
 	{
 		auto glWidget_ = new GLWidget(this);
@@ -137,23 +137,9 @@ namespace viewer {
 	}
 
 	void MainWindow::setLightValues() noexcept {
-		if (current_light_ == 0) {
-			ui->label_LightPos->setVisible(false);
-			ui->light_transX->setVisible(false);
-			ui->light_transY->setVisible(false);
-			ui->light_transZ->setVisible(false);
-		}
-
-		else {
-			ui->label_LightPos->setVisible(true);
-			ui->light_transX->setVisible(true);
-			ui->light_transY->setVisible(true);
-			ui->light_transZ->setVisible(true);
-
-			ui->light_transX->setValue(viewer_->getScene()->getLight(current_light_).position().x);
-			ui->light_transY->setValue(viewer_->getScene()->getLight(current_light_).position().y);
-			ui->light_transZ->setValue(viewer_->getScene()->getLight(current_light_).position().z);
-		}
+		ui->light_transX->setValue(viewer_->getScene()->getLight(current_light_).position().x);
+		ui->light_transY->setValue(viewer_->getScene()->getLight(current_light_).position().y);
+		ui->light_transZ->setValue(viewer_->getScene()->getLight(current_light_).position().z);
 
 		ui->light_intensity->setValue(viewer_->getScene()->getLight(current_light_).intensity());
 
@@ -227,12 +213,12 @@ namespace viewer {
 
 		// Сохраняем настройки глобального освещения
 		QJsonObject globalLight_settings;
-		globalLight_settings["color"] = colorToJson(viewer_->getScene()->getLight(0).color());
-		globalLight_settings["intensity"] = viewer_->getScene()->getLight(0).intensity();
+		globalLight_settings["color"] = colorToJson(viewer_->getScene()->getLight(1).color());
+		globalLight_settings["intensity"] = viewer_->getScene()->getLight(1).intensity();
 		settings["globalLight"] = globalLight_settings;
 
 		// Сохраняем настройки каждой фигуры
-		for (auto i = 1; i <= count_figures_; ++i) {
+		for (auto i = 2; i <= count_figures_; ++i) {
 			QJsonObject figure_settings;
 
 			figure_settings["path"] = QString::fromStdString(viewer_->getScene()->getFigure(i).path());
@@ -439,7 +425,7 @@ namespace viewer {
 	}
 
 	void MainWindow::onLightChanged(int value) {
-		current_light_ = value;
+		current_light_ = value + 1;
 
 		setLightValues();
 	}
