@@ -16,7 +16,7 @@ layout(std430, binding = 2) buffer Material {
 	float refractive; // Коэффициент преломления
 	float reflectivity; // Коэффициент отражения
 	float alpha; // Коэффициент прозрачности
-} u_MaterialStruct;
+} b_MaterialStruct;
 
 uniform vec3 u_lightColor; // цвет источника света
 uniform vec3 u_vertColor; // цвет вершин

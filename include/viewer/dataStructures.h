@@ -49,10 +49,11 @@ namespace viewer {
 #define LIGHT_DEFAULT_INTENSITY 0.5f
 
 	/**
-	@class Point3D
-	@brief Хранение координаты точки в трехмерном пространстве
+	* @class Point3D
+	* @brief Хранение координаты точки в трехмерном пространстве.
+	* Выравнивание до 16 байт необходимо для правильной загрузки в шейдерный буфер
 	*/
-	struct Point3D {
+	struct alignas(16) Point3D {
 
 		float x, y, z;
 

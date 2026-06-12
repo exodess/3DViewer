@@ -17,27 +17,21 @@ namespace viewer {
 
 	// создание пустого буфера
 	BO::BO(GLenum type) noexcept : type_{type}  {
-
 		// создание буфера необходимого типа
 		glGenBuffers(1, &boID_);
 		use();
 
 		handler_count[boID_] = 1;
-
 	}
 
 	// Создание буфера с загрузкой в него данных
 	BO::BO(GLenum type, const void* mem, int size) noexcept : BO(type) {
-
 		// загружаем туда данные
 		load(mem, size, GL_STATIC_DRAW);
-
 	}
 
 	BO::BO(const BO& other) noexcept : boID_{other.boID_}, type_{other.type_} {
-
 		handler_count[boID_]++; // теперь этим дескриптором пользуется еще один буфер
-
 	}
 
 	// Удаление буфера
@@ -50,11 +44,9 @@ namespace viewer {
 			}
 			boID_ = 0;
 		}
-
 	}
 
 	BO& BO::operator=(const BO& other) noexcept {
-
 		// если буферы используют разные дескрипторы
 		if(boID_ != other.boID_) {
 
@@ -67,7 +59,6 @@ namespace viewer {
 		type_ = other.type_; // все равно меняем тип буфера
 
 		return *this;
-
 	}
 
 	// загрузка данных в буфер
@@ -92,27 +83,28 @@ namespace viewer {
 
 	// Привязка элементного буфера
 	void BO::use() noexcept {
-
 		glBindBuffer(type_, boID_);
 	}
 
 	// ==============================================
-	// ================== КЛАСС UBO =================
+	// ================== КЛАСС SSBO ================
 	// ==============================================
 
-	UBO::UBO(int size, int binding) noexcept : BO(GL_UNIFORM_BUFFER, 0, size) {
+	SSBO::SSBO(int size, int binding) noexcept : BO(GL_SHADER_STORAGE_BUFFER) {
+		load(nullptr, size, GL_DYNAMIC_DRAW);
 		rebind(binding);
 	}
 
-	UBO::UBO(const void* data, int size, int binding) noexcept : BO(GL_UNIFORM_BUFFER, data, size) {
+	SSBO::SSBO(const void* data, int size, int binding) noexcept : BO(GL_SHADER_STORAGE_BUFFER) {
+		load(data, size, GL_DYNAMIC_DRAW);
 		rebind(binding);
 	}
 
-	void UBO::rebind(int binding) noexcept {
+	void SSBO::rebind(int binding) noexcept {
 		glBindBufferBase(type_, binding, boID_);
 	}
 
-	void UBO::loadSub(const void* mem, int size, int offset) noexcept {
+	void SSBO::loadSub(const void* mem, int size, int offset) noexcept {
 		use();
 		glBufferSubData(type_, offset, size, mem);
 	}

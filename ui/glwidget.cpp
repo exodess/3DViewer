@@ -2,8 +2,6 @@
 
 namespace viewer {
 
-	static float global_matrix[4][4];
-
 	GLWidget::GLWidget(QWidget* parent)
 	    : QOpenGLWidget(parent)
 	    , shaderProgram_(nullptr)
@@ -52,7 +50,7 @@ namespace viewer {
 	void GLWidget::resizeGL(int w, int h) {
 		glViewport(0, 0, w, h);
 		mesh_->loadAspectRatio(
-			shaderProgram_->getUniformLocation(UNIFORM_ASPECT_RATIO),
+			shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
 			w / h);
 	}
 
@@ -193,13 +191,15 @@ namespace viewer {
 		makeCurrent();
 		Mesh::clear();
 
+		glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
 		mesh_->loadAspectRatio(
-			shaderProgram_->getUniformLocation(UNIFORM_ASPECT_RATIO),
+			shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
 			width() / height()
 			);
 		mesh_->loadCameraStructure(scene->getCamera().getData(width() / height()));
-		glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
-		// Здесь должна быть загрузка фонового освещения
+		mesh_->loadCountActiveLight(
+			shaderProgram_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+			scene->countLights());
 
 		// Сначала загружаем источники освещения
 		for (auto i = 0; i < scene->countLights(); ++i) {
@@ -212,13 +212,13 @@ namespace viewer {
 
 			mesh_->loadData(current_figure);
 			mesh_->loadDisplayType(
-				shaderProgram_->getUniformLocation(UNIFORM_DISPLAY_TYPE),
+				shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
 				current_figure.displayType());
 			mesh_->loadModelMatrix(
-				shaderProgram_->getUniformLocation(UNIFORM_MODEL_MATRIX),
+				shaderProgram_->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 				current_figure.getModelMatrix());
 			mesh_->loadNormalMatrix(
-				shaderProgram_->getUniformLocation(UNIFORM_NORMAL_MATRIX),
+				shaderProgram_->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
 				current_figure.getModelMatrix());
 
 			if (current_figure.displayType() == WIREFRAME_MODEL) {
@@ -226,39 +226,39 @@ namespace viewer {
 
 				// Размер, цвет и форма отображения вершин
 				mesh_->loadVerticesSize(
-					shaderProgram_->getUniformLocation(UNIFORM_VERTICES_SIZE),
+					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
 					current_figure.vertexInfo().size());
 				mesh_->loadVerticesColor(
-					shaderProgram_->getUniformLocation(UNIFORM_VERTICES_COLOR),
+					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
 					current_figure.vertexInfo().color());
 				mesh_->loadVerticesMode(
-					shaderProgram_->getUniformLocation(UNIFORM_VERTICES_SIZE),
-					shaderProgram_->getUniformLocation(UNIFORM_VERTICES_MODE),
+					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
+					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_MODE),
 					current_figure.vertexInfo().mode());
 
 				// Размер, цвет и способ отображения ребер
 				mesh_->loadEdgesSize(
-					shaderProgram_->getUniformLocation(UNIFORM_EDGES_SIZE),
+					shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_SIZE),
 					current_figure.edgeInfo().size());
 				mesh_->loadEdgesColor(
-					shaderProgram_->getUniformLocation(UNIFORM_VERTICES_COLOR),
+					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
 					current_figure.edgeInfo().color());
 				mesh_->loadEdgesMode(
-					shaderProgram_->getUniformLocation(UNIFORM_EDGES_MODE),
+					shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_MODE),
 					current_figure.edgeInfo().mode());
 			}
 			else {
 				mesh_->loadMaterialStructure(current_figure.material());
 			}
+			update();
 		}
 
 		std::cout << "[GLWidget] Сцена отрисована. ";
 		std::cout << "Фигур: " << scene->countFigures();
-		std::cout << " | Источников освещения: 1 + " << scene->countLights();
+		std::cout << " | Источников освещения: " << scene->countLights();
 		std::cout << " | Вершин: " << scene->countVertices();
 		std::cout << " | Поверхностей: " << scene->countSurfaces() << std::endl;
 
-		update();
 		doneCurrent();
 	}
 

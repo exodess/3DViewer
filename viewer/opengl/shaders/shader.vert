@@ -9,16 +9,16 @@ layout(std430, binding = 0) buffer Camera {
     mat4 projection; // Матрица проекции камеры
     mat4 view; // Матрица вида камеры
     vec3 position; // Координата камеры
-} u_CameraStruct;
+} b_CameraStruct;
 
 // Структура, хранящая информацию обо всех источниках освещения
-layout(std340, binding = 1) buffer LightsBuffer {
+layout(std430, binding = 1) buffer LightsBuffer {
     struct LightData {
         vec3 position; // Координата источника света
         float intensity; // Интенсивность
         vec3 color; // Цвет источника света
     } lights[MAX_POINT_LIGHTS + 1];
-} u_LightStruct;
+} b_LightStruct;
 
 uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
 uniform mat4 u_modelMatrix; // матрица модели
@@ -32,10 +32,10 @@ out vec3 Normal_vertex; // Трансформированная нормаль
 void main() {
     vec4 P = u_modelMatrix * vec4(inPosition, 1.0); // трансформация вершины
 
-    Camera_vertex = normalize(u_CameraStruct.position - P.xyz);
-    Light_vertex = normalize(u_LightStruct.position - P.xyz);
+    Camera_vertex = normalize(b_CameraStruct.position - P.xyz);
+    Light_vertex = normalize(b_LightStruct.position - P.xyz);
     Vertex_view = P.xyz;
     Normal_vertex = normalize(u_normalMatrix * inNormal);
 
-    gl_Position = u_CameraStruct.projection * u_CameraStruct.view * P;
+    gl_Position = b_CameraStruct.projection * b_CameraStruct.view * P;
 }

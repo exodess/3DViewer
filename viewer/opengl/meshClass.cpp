@@ -14,9 +14,9 @@ namespace viewer {
 		vao_{VAO()},
 		vbo_{BO(GL_ARRAY_BUFFER)},
 		ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
-		cameraUBO_{UBO(sizeof(CameraData), 0)},
-		lightUBO_{UBO(sizeof(LightData), 1)},
-		materialUBO_{UBO(sizeof(MaterialData), 2)},
+		ssboCamera_{SSBO(sizeof(CameraData), 0)},
+		ssboLights_{SSBO(sizeof(LightData), 1)},
+		ssboMaterial_{SSBO(sizeof(MaterialData), 2)},
 		count_vertices_{0},
 		count_surfaces_{0} {
 
@@ -209,10 +209,11 @@ namespace viewer {
 			return false;
 		}
 
+		auto normalMatrix = modelMatrix.inverse().transpose();
 		float mtrx[3][3];
 		for (auto i = 0; i < 3; ++i) {
 			for (auto j = 0; j < 3; ++j) {
-				mtrx[i][j] = modelMatrix(i, j);
+				mtrx[i][j] = normalMatrix(i, j);
 			}
 		}
 
@@ -242,20 +243,25 @@ namespace viewer {
 		return true;
 	}
 
+	bool Mesh::loadCountActiveLight(int32_t u_location, int count) noexcept {
+		if (u_location == -1) {
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND" << std::endl;
+			return false;
+		}
+
+		glUniform1i(u_location, count);
+	}
+
 	void Mesh::loadMaterialStructure(const MaterialData &material) noexcept {
-		materialUBO_.loadSub(&material, sizeof(MaterialData), 0);
+		ssboMaterial_.loadSub(&material, sizeof(MaterialData), 0);
 	}
 
 	void Mesh::loadCameraStructure(const CameraData &cameraInfo) noexcept {
-		cameraUBO_.loadSub(&cameraInfo.projectionMatrix_[0][0], sizeof(float) * 16, 0);
-		cameraUBO_.loadSub(&cameraInfo.viewMatrix_[0][0], sizeof(float) * 16, sizeof(float) * 16);
-		cameraUBO_.loadSub(&cameraInfo.position_, sizeof(Point3D), 2 * sizeof(float) * 16);
+		ssboCamera_.loadSub(&cameraInfo, sizeof(CameraData), 0);
 	}
 
 	void Mesh::loadLightStructure(const LightData &lightInfo) noexcept {
-		lightUBO_.loadSub(&lightInfo.position_, sizeof(Point3D), 0);
-		lightUBO_.loadSub(&lightInfo.intensity_, sizeof(float), sizeof(Point3D));
-		lightUBO_.loadSub(&lightInfo.color_, sizeof(Point3D), sizeof(Point3D) + sizeof(float));
+		ssboLights_.loadSub(&lightInfo, sizeof(LightData), 0);
 	}
 
 	void Mesh::render() noexcept {

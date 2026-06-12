@@ -65,6 +65,11 @@
 #define UNIFORM_DISPLAY_TYPE "u_displayType"
 
 /**
+ * @brief Имя uniform переменной в вершинном шейдере для загрузки количества направленных источников освещениия на сцене
+ */
+#define UNIFORM_ACTIVE_LIGHTS "u_activePointLights"
+
+/**
 @brief Классы для управления логикой проекта реализованы внутри пространства имен viewer
 */
 namespace viewer {
@@ -168,7 +173,7 @@ namespace viewer {
 		@brief Определяет тип буфера
 		- Для VBO - GL_ARRAY_BUFFER
 		- Для EBO - GL_ELEMENT_ARRAY_BUFFER
-		- Для UBO - GL_UNIFORM_BUFFER
+		- Для SSBO - GL_SHADER_STORAGE_BUFFER
 		*/
 		uint32_t type_;
 
@@ -186,26 +191,26 @@ namespace viewer {
 	}; // class BO
 
 	/**
-	 * @class UBO
-	 * @brief Класс uniform буфера, который нужен для загрузки данных в uniform структуры,
+	 * @class SSBO
+	 * @brief Класс шейдерного буфера (Shader Storage Buffer Object), который нужен для загрузки данных в буферы хранения,
 	 * такие как u_CameraStruct, u_LightStruct, u_ModelStruct в фрагментарном и вершинном шейдерах
 	 */
-	class UBO : public BO {
+	class SSBO : public BO {
 	public:
 		/**
-		 * @brief Создание пустого uniform буфера заданного размера с автоматической привязкой
+		 * @brief Создание пустого шейдерного буфера заданного размера с автоматической привязкой
 		 * @param size Необходимый размер буфера
 		 * @param binding Привязка буфера
 		 */
-		UBO(int size, int binding) noexcept;
+		SSBO(int size, int binding) noexcept;
 
 		/**
-		 * @brief Создание uniform буфера заданного размера с автоматической привязкой и загрузка в него данных
+		 * @brief Создание шейдерного буфера заданного размера с автоматической привязкой и загрузка в него данных
 		 * @param data Адрес первой ячейки памяти, по которой находятся данные
 		 * @param size Размер данных, которые нужно загрузить в буфер
 		 * @param binding Привязка uniform буфера
 		 */
-		UBO(const void* data, int size, int binding) noexcept;
+		SSBO(const void* data, int size, int binding) noexcept;
 
 		/**
 		 * @brief Перепривязка буфера
@@ -214,7 +219,7 @@ namespace viewer {
 		void rebind(int binding) noexcept;
 
 		/**
-		 * @brief Загрузка данных в uniform буфер
+		 * @brief Загрузка данных в шейдерный буфер
 		 * @param mem Адрес первой ячейки памяти, по которой расположены данные
 		 * @param size Размер данных, которые нужно загрузить в буфер
 		 * @param offset Отступ от начала буфера
@@ -271,9 +276,9 @@ namespace viewer {
 		VAO vao_; ///< Объект
 		BO vbo_; ///< Объект буфера вершин для непосредственного хранения вершин
 		BO ebo_; ///< Объект буфера индексов
-		UBO cameraUBO_; ///< Uniform буфер камеры
-		UBO lightUBO_; ///< Uniform буфер источника освещения
-		UBO materialUBO_; ///< Uniform буфер материала фигуры
+		SSBO ssboCamera_; ///< Uniform буфер камеры
+		SSBO ssboLights_; ///< Uniform буфер источника освещения
+		SSBO ssboMaterial_; ///< Uniform буфер материала фигуры
 
 		uint32_t count_vertices_; ///< Количество вершин в фигуре
 		uint32_t count_surfaces_; ///< Количество поверхностей в вершине
@@ -391,6 +396,15 @@ namespace viewer {
 		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_DISPLAY_TYPE)
 		 */
 		bool loadDisplayType(int32_t u_location, DisplayType displayType) noexcept;
+
+		/**
+		 * @brief Задает количество направленных источников освещения на сцене
+		 * @param u_location Идентификатор uniform'ы
+		 * @param count Количество направленных источников освещения
+		 * @return true, если uniform'а существует, иначе false
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_ACTIVE_LIGHTS)
+		 */
+		bool loadCountActiveLight(int32_t u_location, int count) noexcept;
 
 		/**
 		 * @brief Задает характеристики поверхности фигуры
