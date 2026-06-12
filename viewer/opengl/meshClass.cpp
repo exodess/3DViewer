@@ -83,7 +83,7 @@ namespace viewer {
 	bool Mesh::loadVerticesColor(GLint uniform_location, const Point3D& color) noexcept {
 
 		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_vertColor" << std::endl;
 			return false;
 		}
 
@@ -95,7 +95,7 @@ namespace viewer {
 	bool Mesh::loadVerticesSize(GLint uniform_location, float size) noexcept {
 
 		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::GEOMETRY_SHADER::UNIFORM_NOT_FOUND: u_vertSize" << std::endl;
 			return false;
 		}
 
@@ -124,8 +124,12 @@ namespace viewer {
 		else
 			message_mode = "[error_mode]";
 
-		if(u_modeloc == -1 || u_sizeloc == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+		if(u_modeloc == -1) {
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_isVertCircle" << std::endl;
+			return false;
+		}
+		if (u_sizeloc == -1) {
+			std::cout << "ERROR::SHADER::GEOMETRY_SHADER::UNIFORM_NOT_FOUND: u_vertSize" << std::endl;
 			return false;
 		}
 
@@ -140,7 +144,7 @@ namespace viewer {
 	bool Mesh::loadEdgesColor(GLint uniform_location, const Point3D& color) noexcept {
 
 		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_edgesColor" << std::endl;
 			return false;
 		}
 
@@ -152,7 +156,7 @@ namespace viewer {
 	bool Mesh::loadEdgesSize(GLint uniform_location, float size) noexcept {
 
 		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::GEOMETRY_SHADER::UNIFORM_NOT_FOUND: u_edgesSize" << std::endl;
 			return false;
 		}
 
@@ -176,7 +180,7 @@ namespace viewer {
 			message_mode = "[error_mode]";
 
 		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_dashSize" << std::endl;
 			return false;
 		}
 
@@ -188,7 +192,7 @@ namespace viewer {
 	bool Mesh::loadModelMatrix(GLint uniform_location, TransformMatrix modelMatrix) noexcept {
 
 		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND: u_modelMatrix" << std::endl;
 			return false;
 		}
 
@@ -205,7 +209,7 @@ namespace viewer {
 
 	bool Mesh::loadNormalMatrix(GLint uniform_location, TransformMatrix modelMatrix) noexcept {
 		if (uniform_location == -1) {
-			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND: u_normalMatrix" << std::endl;
 			return false;
 		}
 
@@ -225,7 +229,7 @@ namespace viewer {
 	bool Mesh::loadAspectRatio(GLint uniform_location, float ratio) noexcept {
 
 		if(uniform_location == -1) {
-			std::cout << "ERROR::SHADER::VERTEX_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::GEOMETRY_SHADER::UNIFORM_NOT_FOUND: u_aspectRatio" << std::endl;
 			return false;
 		}
 
@@ -235,7 +239,7 @@ namespace viewer {
 
 	bool Mesh::loadDisplayType(int32_t u_location, DisplayType displayType) noexcept {
 		if (u_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND\n" << std::endl;
+			std::cout << "ERROR::SHADER::GEOMETRY_SHADER::UNIFORM_NOT_FOUND: u_displayType" << std::endl;
 			return false;
 		}
 
@@ -245,7 +249,7 @@ namespace viewer {
 
 	bool Mesh::loadCountActiveLight(int32_t u_location, int count) noexcept {
 		if (u_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND" << std::endl;
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_activePointLights" << std::endl;
 			return false;
 		}
 
