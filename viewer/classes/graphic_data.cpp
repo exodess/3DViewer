@@ -96,7 +96,9 @@ namespace viewer {
 	// ===========================
 
 
-	Figure::Figure() noexcept : displayType_(DisplayType::WIREFRAME_MODEL) {}
+	Figure::Figure() noexcept :
+	displayType_(DisplayType::WIREFRAME_MODEL),
+	material_(Point3D(), 0.5f, 0.0f, 0.5f, 0.5f, 0.0f) {}
 
 	Figure::Figure(
 		const std::string& path,
@@ -105,7 +107,8 @@ namespace viewer {
 	name_(path),
 	vertices_{vertices},
 	surfaces_{surfaces},
-	displayType_(DisplayType::WIREFRAME_MODEL) {}
+	displayType_(DisplayType::WIREFRAME_MODEL),
+	material_(Point3D(), 0.5f, 0.0f, 0.5f, 0.5f, 0.0f) {}
 
 	const std::string& Figure::path() noexcept {
 		return name_;
@@ -185,7 +188,7 @@ namespace viewer {
 	// ========== Scene ==========
 	// ===========================
 
-	Scene::Scene() noexcept : camera_(Camera()) {
+	Scene::Scene() noexcept : backColor_(Point3D(1.0, 1.0f, 1.0f)), camera_(Camera()) {
 		lights_.push_back(Light());
 	}
 
@@ -198,7 +201,7 @@ namespace viewer {
 	}
 
 	Light &Scene::getLight(int number) {
-		if (number < 0 || number > lights_.size()) {
+		if (number < 1 || number > lights_.size()) {
 			throw std::out_of_range("Scene: getLight] This number is out of range: " + number);
 		}
 
@@ -220,6 +223,19 @@ namespace viewer {
 	Camera &Scene::getCamera() noexcept {
 		return camera_;
 	}
+
+	std::vector<LightData> Scene::getSceneLightsData() noexcept {
+		std::vector<LightData> scene_lights(countLights());
+
+		for (auto i = 0; i < countLights(); ++i) {
+			auto data = getLight(i + 1).getData();
+
+			scene_lights.push_back(data);
+		}
+
+		return scene_lights;
+	}
+
 
 	int Scene::countVertices() noexcept {
 		int count = 0;
@@ -246,8 +262,8 @@ namespace viewer {
 	}
 
 	int Scene::countLights() noexcept {
-		// Первый объект в списке - фоновое освещение
-		return lights_.size() - 1;
+		// 1 Фоновое освещение + (n - 1) направленных источников
+		return lights_.size();
 	}
 
 	// ===========================

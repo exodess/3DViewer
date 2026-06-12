@@ -18,18 +18,15 @@ flat out int vIsPoint;
 flat out int displayType;
 
 in vec3 Camera_vertex[];
-in vec3 Light_vertex[];
 in vec3 Vertex_view[];
 in vec3 Normal_vertex[];
 
 out vec3 Camera_v;
-out vec3 Light_v;
 out vec3 Vertex_v;
 out vec3 Normal_v;
 
 void setLightSettings(int index) {
     Camera_v = Camera_vertex[index];
-    Light_v = Light_vertex[index];
     Vertex_v = Vertex_view[index];
     Normal_v = Normal_vertex[index];
 
