@@ -419,10 +419,10 @@ namespace viewer {
 		void loadCameraStructure(const CameraData& cameraInfo) noexcept;
 
 		/**
-		 * @brief Задает характеристики источника освещения (для глобального и направленного одинаково)
-		 * @param lightInfo Информация об источнике освещения
+		 * @brief Задает характеристики всех источников освещения на сцене (фоновый и направленные вместе)
+		 * @param sceneLightsData Информация об источниках освещения
 		 */
-		void loadLightStructure(const LightData& lightInfo) noexcept;
+		void loadLightStructure(const std::vector<LightData>& sceneLightsData) noexcept;
 
 		static void clear() noexcept; ///< Очищает буфер кадра
 

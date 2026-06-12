@@ -250,6 +250,7 @@ namespace viewer {
 		}
 
 		glUniform1i(u_location, count);
+		return true;
 	}
 
 	void Mesh::loadMaterialStructure(const MaterialData &material) noexcept {
@@ -260,8 +261,8 @@ namespace viewer {
 		ssboCamera_.loadSub(&cameraInfo, sizeof(CameraData), 0);
 	}
 
-	void Mesh::loadLightStructure(const LightData &lightInfo) noexcept {
-		ssboLights_.loadSub(&lightInfo, sizeof(LightData), 0);
+	void Mesh::loadLightStructure(const std::vector<LightData>& scene_lights_data) noexcept {
+		ssboLights_.loadSub(&scene_lights_data, sizeof(LightData) * scene_lights_data.size(), 0);
 	}
 
 	void Mesh::render() noexcept {

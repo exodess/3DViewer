@@ -306,11 +306,11 @@ namespace viewer {
 				auto globalLight_settings = settings["globalLight"].toObject();
 
 				if (globalLight_settings.contains("color")) {
-					viewer_->getScene()->getLight(0).color() = colorFromJson(globalLight_settings["color"].toObject());
+					viewer_->getScene()->getLight(1).color() = colorFromJson(globalLight_settings["color"].toObject());
 				}
 
 				if (globalLight_settings.contains("intensity")) {
-					viewer_->getScene()->getLight(0).intensity() = static_cast<float>(settings["intensity"].toDouble());
+					viewer_->getScene()->getLight(1).intensity() = static_cast<float>(settings["intensity"].toDouble());
 				}
 			}
 
@@ -352,7 +352,7 @@ namespace viewer {
 				}
 			}
 
-			i = 1;
+			i = 2;
 			while (settings.contains("light " + i)) {
 				auto light_settings = settings["light " + i].toObject();
 

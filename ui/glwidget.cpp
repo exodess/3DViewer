@@ -201,10 +201,8 @@ namespace viewer {
 			shaderProgram_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
 			scene->countLights());
 
-		// Сначала загружаем источники освещения
-		for (auto i = 0; i < scene->countLights(); ++i) {
-			mesh_->loadLightStructure(scene->getLight(i + 1).getData());
-		}
+		// Сначала загружаем информацию об освещении сцены
+		mesh_->loadLightStructure(scene->getSceneLightsData());
 
 		// Загружаем данные фигур и поочередно их отрисовываем
 		for (auto i = 0; i < scene->countFigures(); ++i) {
