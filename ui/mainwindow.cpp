@@ -178,11 +178,11 @@ namespace viewer {
 		else if (event->buttons() & Qt::RightButton && current_figure_) {
 			// Правая кнопка мыши - вращение
 
-			viewer_->getScene()->getFigure(current_figure_).rotation().x = static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360;
-			viewer_->getScene()->getFigure(current_figure_).rotation().y = static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360;
+			viewer_->getScene()->getFigure(current_figure_).rotation().x += static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360;
+			viewer_->getScene()->getFigure(current_figure_).rotation().y += static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360;
 
-			ui->spin_rotX->setValue(static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360);
-			ui->spin_rotY->setValue(static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360);
+			ui->spin_rotX->setValue(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).rotation().x) % 360);
+			ui->spin_rotY->setValue(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).rotation().y) % 360);
 		}
 
 		lastPos_ = event->pos();
@@ -194,7 +194,7 @@ namespace viewer {
 
 		if (current_figure_ > 0) {
 			float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getCamera().translation().z -= det * 0.5f;
+			viewer_->getScene()->getCamera().translation().z -= det;
 
 			viewer_->DrawScene();
 		}
@@ -508,15 +508,12 @@ namespace viewer {
 
 		if (result.isSuccess()) {
 			currentFileName_ = QFileInfo(path).fileName();
-			count_figures_ += 1;
+			count_figures_ ++;
 			current_figure_ = count_figures_;
 			viewer_->DrawScene();
-			auto vertCount = viewer_->getScene()->getFigure(current_figure_).getVertices().size();
-			int surfCount = viewer_->getScene()->getFigure(current_figure_).getSurfaces().size();
+
 			updateInfoLabels();
 			ui->statusbar->showMessage("Загружено: " + currentFileName_);
-			std::cout << "[MainWindow] Файл загружен: " << currentFileName_.toStdString()
-			          << " | Вершин: " << vertCount << " | Поверхностей: " << surfCount << "\n";
 		}
 
 		else {
@@ -580,9 +577,15 @@ namespace viewer {
 			viewer_->getScene()->getFigure(current_figure_).displayType() = WIREFRAME_MODEL;
 			ui->groupBox_Edges->setVisible(true);
 			ui->groupBox_Vertices->setVisible(true);
+
+			ui->groupBox_Lights->setVisible(false);
+
+			ui->label_displayType->setText("Отображение только ребер и вершин");
 		}
 
-		ui->label_displayType->setText("Отображение только ребер и вершин");
+		else {
+			ui->statusbar->showMessage("Для начала загрузите фигуру");
+		}
 	}
 
 	void MainWindow::on_action_FlatShading_triggered() {
@@ -590,9 +593,15 @@ namespace viewer {
 			viewer_->getScene()->getFigure(current_figure_).displayType() = FLAT_SHADING_MODEL;
 			ui->groupBox_Edges->setVisible(false);
 			ui->groupBox_Vertices->setVisible(false);
+
+			ui->groupBox_Lights->setVisible(true);
+
+			ui->label_displayType->setText("Плоское затенение");
 		}
 
-		ui->label_displayType->setText("Плоское затенение");
+		else {
+			ui->statusbar->showMessage("Для начала загрузите фигуру");
+		}
 	}
 
 	void MainWindow::on_action_SmoothShading_triggered() {
@@ -600,9 +609,15 @@ namespace viewer {
 			viewer_->getScene()->getFigure(current_figure_).displayType() = SMOOTH_SHADING_MODEL;
 			ui->groupBox_Edges->setVisible(false);
 			ui->groupBox_Vertices->setVisible(false);
+
+			ui->groupBox_Lights->setVisible(true);
+
+			ui->label_displayType->setText("Мягкое затенение");
 		}
 
-		ui->label_displayType->setText("Мягкое затенение");
+		else {
+			ui->statusbar->showMessage("Для начала загрузите фигуру");
+		}
 	}
 
 	void MainWindow::on_action_SaveScreenshot_triggered() {
