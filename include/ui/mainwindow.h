@@ -54,6 +54,7 @@ namespace viewer {
         void on_btn_BackgroundColor_clicked();
         void on_btn_LightColor_clicked();
         void on_btn_AddLight_clicked();
+        void on_btn_MaterialColor_clicked();
 
         // Обработка выпадающих списков
         void onVertexTypeChanged(int value);

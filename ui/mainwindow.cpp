@@ -3,6 +3,10 @@
 #include <QColorDialog> // Обязательно для диалога выбора цвета
 #include <iostream>
 
+// Ошибка: при смене фигуры прошлые настройки передаются другой фигуре. \
+// Возможно, это связанно с тем, что при загрузке нового значения срабатывает сигнал,
+// и все оставшиеся значения присваиваются новой фигуре
+
 namespace viewer {
 
 	MainWindow::MainWindow(QWidget *parent)
@@ -56,6 +60,7 @@ namespace viewer {
 		connect(ui->btn_EdgeColor, &QPushButton::clicked, this, &MainWindow::on_btn_EdgeColor_clicked);
 		connect(ui->btn_LightColor, &QPushButton::clicked, this, &MainWindow::on_btn_LightColor_clicked);
 		connect(ui->btn_AddLight, &QPushButton::clicked, this, &MainWindow::on_btn_AddLight_clicked);
+		connect(ui->btn_MaterialColor, &QPushButton::clicked, this, &MainWindow::on_btn_MaterialColor_clicked);
 
 		// СОЕДИНЕНИЕ ВЫПАДАЮЩИХ СПИСКОВ
 		connect(ui->combo_VertexType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onVertexTypeChanged);
@@ -73,6 +78,8 @@ namespace viewer {
 			}
 			viewer_->getScene()->getLight(current_light_).position() = Point3D(ui->light_transX->value(), ui->light_transY->value(), ui->light_transZ->value());
 			viewer_->getScene()->getLight(current_light_).intensity() = ui->light_intensity->value();
+
+			viewer_->DrawScene();
 		};
 
 		// СОЕДИНЕНИЕ ВСЕХ СПИНБОКСОВ
@@ -82,7 +89,27 @@ namespace viewer {
 			ui->spin_scaleX, ui->spin_scaleY, ui->spin_scaleZ,
 			ui->light_transX, ui->light_transY, ui->light_transZ,
 			ui->spin_VertexSize, ui->spin_EdgeWidth, ui->light_intensity}) {
-		    connect(s, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, updateTransform);
+
+			connect(s, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, updateTransform);
+		}
+
+		auto updateMaterial = [this]() {
+			if (current_figure_ > 0) {
+				viewer_->getScene()->getFigure(current_figure_).material().roughness() = ui->roughnessSlider->value() / 100.0;
+				viewer_->getScene()->getFigure(current_figure_).material().metallic() = ui->metallicSlider->value() / 100.0;
+				viewer_->getScene()->getFigure(current_figure_).material().refractive() = ui->refractiveSlider->value() / 100.0;
+				viewer_->getScene()->getFigure(current_figure_).material().reflectivity() = ui->reflectivitySlider->value() / 100.0;
+				viewer_->getScene()->getFigure(current_figure_).material().alpha() = ui->alphaSlider->value() / 100.0;
+			}
+
+			viewer_->DrawScene();
+		};
+
+		for (auto s : {
+			ui->roughnessSlider, ui->metallicSlider, ui->refractiveSlider,
+			ui->reflectivitySlider, ui->alphaSlider }) {
+
+			connect(s, QOverload<int>::of(&QSlider::valueChanged), this, updateMaterial);
 		}
 	}
 
@@ -120,6 +147,18 @@ namespace viewer {
 				ui->combo_VertexType->setCurrentText("Квадрат");
 			}
 
+			// Настройка области материалов
+			Point3D materialColor = viewer_->getScene()->getFigure(current_figure_).material().color();
+			QColor color = QColor(materialColor.x, materialColor.y, materialColor.z);
+			ui->btn_MaterialColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
+
+			ui->roughnessSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().roughness() * 100);
+			ui->metallicSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().metallic() * 100);
+			ui->refractiveSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().refractive() * 100);
+			ui->reflectivitySlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().reflectivity() * 100);
+			ui->alphaSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().alpha() * 100);
+
+			// ТРАНСФОРМАЦИЯ ФИГУРЫ
 			ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x);
 			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y);
 			ui->spin_transZ->setValue(viewer_->getScene()->getFigure(current_figure_).translation().z);
@@ -503,6 +542,20 @@ namespace viewer {
 		ui->combo_LightSelect->setCurrentIndex(count_lights_ - 1);
 	}
 
+	void MainWindow::on_btn_MaterialColor_clicked() {
+		QColor color = QColorDialog::getColor(Qt::blue, this, "Выберите цвет источника освещения");
+
+		if (color.isValid()) {
+			float r = color.redF();
+			float g = color.greenF();
+			float b = color.blueF();
+
+			viewer_->getScene()->getFigure(current_figure_).material().color() = Point3D(r, g, b);
+			ui->btn_MaterialColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
+		}
+	}
+
+
 	void MainWindow::loadScene(const QString& path) {
 		auto result = viewer_->LoadFigure(path.toStdString());
 
@@ -579,6 +632,7 @@ namespace viewer {
 			ui->groupBox_Vertices->setVisible(true);
 
 			ui->groupBox_Lights->setVisible(false);
+			ui->groupBox_Material->setVisible(false);
 
 			ui->label_displayType->setText("Отображение только ребер и вершин");
 		}
@@ -595,6 +649,7 @@ namespace viewer {
 			ui->groupBox_Vertices->setVisible(false);
 
 			ui->groupBox_Lights->setVisible(true);
+			ui->groupBox_Material->setVisible(false);
 
 			ui->label_displayType->setText("Плоское затенение");
 		}
@@ -611,6 +666,7 @@ namespace viewer {
 			ui->groupBox_Vertices->setVisible(false);
 
 			ui->groupBox_Lights->setVisible(true);
+			ui->groupBox_Material->setVisible(true);
 
 			ui->label_displayType->setText("Мягкое затенение");
 		}

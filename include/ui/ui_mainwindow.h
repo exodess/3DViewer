@@ -18,6 +18,7 @@
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include <QSlider>
 
 QT_BEGIN_NAMESPACE
 
@@ -98,6 +99,20 @@ public:
     QPushButton *btn_EdgeColor;
     QDoubleSpinBox *spin_EdgeWidth;
     QComboBox *combo_EdgeType;
+
+    // Настройки материала фигуры
+    QGroupBox *groupBox_Material;
+    QVBoxLayout *materialLayout;
+    QWidget *materialContent;
+    QVBoxLayout *materialContentLayout;
+
+    QPushButton *btn_MaterialColor;
+
+    QSlider *roughnessSlider;
+    QSlider *metallicSlider;
+    QSlider *refractiveSlider;
+    QSlider *reflectivitySlider;
+    QSlider *alphaSlider;
 
     // Трансформация фигуры
     QGroupBox *groupBox_Transform;
@@ -186,6 +201,26 @@ public:
             row->addWidget(s);
         }
         return row;
+    }
+
+    static void createSlider(QSlider *&s, QVBoxLayout *layout) {
+        s = new QSlider(Qt::Horizontal);
+
+        s->setRange(0, 100);
+        s->setStyleSheet(
+            "QSlider::groove:horizontal {"
+            "   border: 1px solid #444;"
+            "   background: #333;" // Цвет пустой части
+            "   height: 10px;"
+            "}"
+            "QSlider::sub-page:horizontal {"
+            "   background: #4a82c9;" // Цвет заполненной части (синий)
+            "}"
+            "QSlider::handle:horizontal {"
+            "   background: #eee;" // Цвет самого ползунка-бегунка
+            "   width: 12px;"
+            "}");
+        layout->addWidget(s);
     }
 
     void setupUi(QMainWindow *MainWindow) {
@@ -372,6 +407,34 @@ public:
         edgesLayout->addWidget(edgesContent);
         connectCollapseButton(btn_CollapseEdges, edgesContent);
         figureLayout->addWidget(groupBox_Edges);
+
+        // Материал фигуры
+
+        groupBox_Material = new QGroupBox("Материалы");
+        materialLayout = new QVBoxLayout(groupBox_Material);
+        materialLayout->setContentsMargins(4, 6, 4, 6);
+        materialLayout->setSpacing(4);
+
+        btn_MaterialColor = new QPushButton("Базовый цвет");
+        materialLayout->addWidget(btn_MaterialColor);
+
+        materialLayout->addWidget(new QLabel("Шероховатость"));
+        createSlider(roughnessSlider, materialLayout);
+
+        materialLayout->addWidget(new QLabel("Металличность"));
+        createSlider(metallicSlider, materialLayout);
+
+        materialLayout->addWidget(new QLabel("Преломление"));
+        createSlider(refractiveSlider, materialLayout);
+
+        materialLayout->addWidget(new QLabel("Отражение"));
+        createSlider(reflectivitySlider, materialLayout);
+
+        materialLayout->addWidget(new QLabel("Прозрачность"));
+        createSlider(alphaSlider, materialLayout);
+
+        groupBox_Material->setVisible(false);
+        figureLayout->addWidget(groupBox_Material);
 
         // Трансформация фигуры
         groupBox_Transform = new QGroupBox("Трансформация");
