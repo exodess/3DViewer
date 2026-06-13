@@ -123,12 +123,20 @@ namespace viewer {
 			QColor edgColor = QColor(edgColorPoint.x * 255, edgColorPoint.y * 255, edgColorPoint.z * 255);
 			QColor lightColor = QColor(lightColorPoint.x * 255, lightColorPoint.y * 255, lightColorPoint.z * 255);
 
+			float vertSize = viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() * 100;
+			float edgeSize = viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() * 1000;
+
+			MaterialData mat = viewer_->getScene()->getFigure(current_figure_).material();
+			Point3D translFigure = viewer_->getScene()->getFigure(current_figure_).translation();
+			Point3D rotFigure = viewer_->getScene()->getFigure(current_figure_).rotation();
+			Point3D scaleFigure = viewer_->getScene()->getFigure(current_figure_).scale();
+
 			ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(vertColor.name()));
 			ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(edgColor.name()));
 			ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(lightColor.name()));
 
-			ui->spin_VertexSize->setValue(viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() * 100);
-			ui->spin_EdgeWidth->setValue(viewer_->getScene()->getFigure(current_figure_).edgeInfo().size() * 1000);
+			ui->spin_VertexSize->setValue(vertSize);
+			ui->spin_EdgeWidth->setValue(edgeSize);
 
 			if(viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() == 0) {
 				ui->combo_EdgeType->setCurrentText("Сплошной");
@@ -148,42 +156,44 @@ namespace viewer {
 			}
 
 			// Настройка области материалов
-			Point3D materialColor = viewer_->getScene()->getFigure(current_figure_).material().color();
+			Point3D materialColor = mat.color();
 			QColor color = QColor(materialColor.x, materialColor.y, materialColor.z);
 			ui->btn_MaterialColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 
-			ui->roughnessSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().roughness() * 100);
-			ui->metallicSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().metallic() * 100);
-			ui->refractiveSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().refractive() * 100);
-			ui->reflectivitySlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().reflectivity() * 100);
-			ui->alphaSlider->setValue(viewer_->getScene()->getFigure(current_figure_).material().alpha() * 100);
+			ui->roughnessSlider->setValue(mat.roughness() * 100);
+			ui->metallicSlider->setValue(mat.metallic() * 100);
+			ui->refractiveSlider->setValue(mat.refractive() * 100);
+			ui->reflectivitySlider->setValue(mat.reflectivity() * 100);
+			ui->alphaSlider->setValue(mat.alpha() * 100);
 
 			// ТРАНСФОРМАЦИЯ ФИГУРЫ
-			ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x);
-			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y);
-			ui->spin_transZ->setValue(viewer_->getScene()->getFigure(current_figure_).translation().z);
+			ui->spin_transX->setValue(translFigure.x);
+			ui->spin_transY->setValue(translFigure.y);
+			ui->spin_transZ->setValue(translFigure.z);
 
-			ui->spin_rotX->setValue(viewer_->getScene()->getFigure(current_figure_).rotation().x);
-			ui->spin_rotY->setValue(viewer_->getScene()->getFigure(current_figure_).rotation().y);
-			ui->spin_rotZ->setValue(viewer_->getScene()->getFigure(current_figure_).rotation().z);
+			ui->spin_rotX->setValue(rotFigure.x);
+			ui->spin_rotY->setValue(rotFigure.y);
+			ui->spin_rotZ->setValue(rotFigure.z);
 
-			ui->spin_scaleX->setValue(viewer_->getScene()->getFigure(current_figure_).scale().x);
-			ui->spin_scaleY->setValue(viewer_->getScene()->getFigure(current_figure_).scale().y);
-			ui->spin_scaleZ->setValue(viewer_->getScene()->getFigure(current_figure_).scale().z);
+			ui->spin_scaleX->setValue(scaleFigure.x);
+			ui->spin_scaleY->setValue(scaleFigure.y);
+			ui->spin_scaleZ->setValue(scaleFigure.z);
 
 			updateInfoLabels();
 		}
 	}
 
 	void MainWindow::setLightValues() noexcept {
-		ui->light_transX->setValue(viewer_->getScene()->getLight(current_light_).position().x);
-		ui->light_transY->setValue(viewer_->getScene()->getLight(current_light_).position().y);
-		ui->light_transZ->setValue(viewer_->getScene()->getLight(current_light_).position().z);
-
-		ui->light_intensity->setValue(viewer_->getScene()->getLight(current_light_).intensity());
-
+		float intensity = viewer_->getScene()->getLight(current_light_).intensity();
+		Point3D posLight = viewer_->getScene()->getLight(current_light_).position();
 		auto color = viewer_->getScene()->getLight(current_light_).color();
 		QColor qcolor = QColor(color.x * 255, color.y * 255, color.z * 255);
+
+		ui->light_transX->setValue(posLight.x);
+		ui->light_transY->setValue(posLight.y);
+		ui->light_transZ->setValue(posLight.z);
+
+		ui->light_intensity->setValue(intensity);
 
 		ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(qcolor.name()));
 	}
@@ -455,12 +465,15 @@ namespace viewer {
 		else if(index == 1) mode = VerticesMode::CIRCLE;
 
 		viewer_->getScene()->getFigure(current_figure_).vertexInfo().mode() = mode;
+		viewer_->DrawScene();
 	}
 
 	void MainWindow::onEdgeTypeChanged(int index) {
 		// index: 0 - Сплошная, 1 - Пунктир
 		EdgesMode mode = (index == 1) ? EdgesMode::DASHED : EdgesMode::SOLID;
+
 		viewer_->getScene()->getFigure(current_figure_).edgeInfo().mode() = mode;
+		viewer_->DrawScene();
 	}
 
 	void MainWindow::onLightChanged(int value) {
@@ -486,6 +499,7 @@ namespace viewer {
 			float g = static_cast<float>(color.greenF());
 			float b = static_cast<float>(color.blueF());
 			viewer_->getScene()->getFigure(current_figure_).vertexInfo().color() = Point3D(r, g, b);
+			viewer_->DrawScene();
 
 			// Меняем цвет самой кнопки для наглядности
 			ui->btn_VertexColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
@@ -501,6 +515,7 @@ namespace viewer {
 			float g = static_cast<float>(color.greenF());
 			float b = static_cast<float>(color.blueF());
 			viewer_->getScene()->getFigure(current_figure_).edgeInfo().color() = Point3D(r, g, b);
+			viewer_->DrawScene();
 
 			ui->btn_EdgeColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}
@@ -529,6 +544,7 @@ namespace viewer {
 			float g = color.greenF();
 			float b = color.blueF();
 			viewer_->getScene()->getLight(current_light_).color() = Point3D(r, g, b);
+			viewer_->DrawScene();
 
 			ui->btn_LightColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}
@@ -538,6 +554,7 @@ namespace viewer {
 		count_lights_++;
 		viewer_->getScene()->addLight();
 		ui->combo_LightSelect->addItem(QString("Источник %1").arg(viewer_->getScene()->countLights()));
+		viewer_->DrawScene();
 
 		ui->combo_LightSelect->setCurrentIndex(count_lights_ - 1);
 	}
@@ -551,6 +568,8 @@ namespace viewer {
 			float b = color.blueF();
 
 			viewer_->getScene()->getFigure(current_figure_).material().color() = Point3D(r, g, b);
+			viewer_->DrawScene();
+
 			ui->btn_MaterialColor->setStyleSheet(QString("background-color: %1").arg(color.name()));
 		}
 	}
@@ -615,12 +634,14 @@ namespace viewer {
 
 	void MainWindow::on_action_Orthographic_triggered() {
 		viewer_->getScene()->getCamera().projectionType() = ORTHOGRAPHIC;
+		viewer_->DrawScene();
 
 		ui->label_projectionType->setText("Параллельная проекция");
 	}
 
 	void MainWindow::on_action_Perspective_triggered() {
 		viewer_->getScene()->getCamera().projectionType() = PERSPECTIVE;
+		viewer_->DrawScene();
 
 		ui->label_projectionType->setText("Центральная проекция");
 	}
@@ -635,6 +656,8 @@ namespace viewer {
 			ui->groupBox_Material->setVisible(false);
 
 			ui->label_displayType->setText("Отображение только ребер и вершин");
+
+			viewer_->DrawScene();
 		}
 
 		else {
@@ -652,6 +675,8 @@ namespace viewer {
 			ui->groupBox_Material->setVisible(false);
 
 			ui->label_displayType->setText("Плоское затенение");
+
+			viewer_->DrawScene();
 		}
 
 		else {
@@ -669,6 +694,8 @@ namespace viewer {
 			ui->groupBox_Material->setVisible(true);
 
 			ui->label_displayType->setText("Мягкое затенение");
+
+			viewer_->DrawScene();
 		}
 
 		else {
