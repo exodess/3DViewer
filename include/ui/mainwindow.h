@@ -45,6 +45,7 @@ namespace viewer {
         void on_action_Wireframe_triggered();
         void on_action_FlatShading_triggered();
         void on_action_SmoothShading_triggered();
+        void on_action_RayTracing_triggered();
         void on_action_SaveScreenshot_triggered();
         void on_action_SaveGif_triggered();
 

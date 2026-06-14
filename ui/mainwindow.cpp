@@ -51,6 +51,7 @@ namespace viewer {
 		connect(ui->action_Wireframe, &QAction::triggered, this, &MainWindow::on_action_Wireframe_triggered);
 		connect(ui->action_FlatShading, &QAction::triggered, this, &MainWindow::on_action_FlatShading_triggered);
 		connect(ui->action_SmoothShading, &QAction::triggered, this, &MainWindow::on_action_SmoothShading_triggered);
+		connect(ui->action_RayTracing, &QAction::triggered, this, &MainWindow::on_action_RayTracing_triggered);
 		connect(ui->action_SaveScreenshot, &QAction::triggered, this, &MainWindow::on_action_SaveScreenshot_triggered);
 		connect(ui->action_SaveGif, &QAction::triggered, this, &MainWindow::on_action_SaveGif_triggered);
 
@@ -484,7 +485,6 @@ namespace viewer {
 
 	void MainWindow::onFigureChanged(int value) {
 		current_figure_ = value + 1;
-		std::cout << "Смена на фигуру " << current_figure_ << " из " << count_figures_ << std::endl;
 
 		setFigureValues();
 	}
@@ -606,6 +606,8 @@ namespace viewer {
 			ui->label_displayType->setText("Плоское затенение");
 		else if (viewer_->getScene()->getFigure(current_figure_).displayType() == DisplayType::SMOOTH_SHADING_MODEL)
 			ui->label_displayType->setText("Мягкое затенение");
+		else if (viewer_->getScene()->getFigure(current_figure_).displayType() == RAY_TRACING)
+			ui->label_displayType->setText("Трассировка лучей");
 
 		if (viewer_->getScene()->getCamera().projectionType() == ProjectionType::ORTHOGRAPHIC)
 			ui->label_projectionType->setText("Параллельная проекция");
@@ -702,6 +704,25 @@ namespace viewer {
 			ui->statusbar->showMessage("Для начала загрузите фигуру");
 		}
 	}
+
+	void MainWindow::on_action_RayTracing_triggered() {
+		if (current_figure_ > 0) {
+			viewer_->getScene()->getFigure(current_figure_).displayType() = RAY_TRACING;
+			ui->groupBox_Edges->setVisible(false);
+			ui->groupBox_Vertices->setVisible(false);
+
+			ui->groupBox_Lights->setVisible(true);
+			ui->groupBox_Material->setVisible(true);
+
+			ui->label_displayType->setText("Трассировка лучей");
+
+			viewer_->DrawScene();
+		}
+		else {
+			ui->statusbar->showMessage("Для начала загрузите фигуру");
+		}
+	}
+
 
 	void MainWindow::on_action_SaveScreenshot_triggered() {
 		QString fileName = QFileDialog::getSaveFileName(this, "Сохранить скриншот",
