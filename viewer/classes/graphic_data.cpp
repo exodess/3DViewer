@@ -167,7 +167,7 @@ namespace viewer {
 	}
 
 	CameraData Camera::getData(float aspect) noexcept {
-		static CameraData data;
+		CameraData data;
 
 		TransformMatrix projectionMatrix = getProjectionMatrix(aspect);
 		TransformMatrix viewMatrix = getModelMatrix();
@@ -225,12 +225,17 @@ namespace viewer {
 	}
 
 	std::vector<LightData> Scene::getSceneLightsData() noexcept {
-		std::vector<LightData> scene_lights(countLights());
+		std::vector<LightData> scene_lights(6);
 
-		for (auto i = 0; i < countLights(); ++i) {
-			auto data = getLight(i + 1).getData();
+		for (auto i = 0; i < 6; ++i) {
+			if (i < countLights()) {
+				auto data = getLight(i + 1).getData();
 
-			scene_lights.push_back(data);
+				scene_lights[i] = data;
+			}
+			else {
+				scene_lights[i] = LightData{Point3D(), Point3D(), 0};
+			}
 		}
 
 		return scene_lights;
@@ -285,11 +290,7 @@ namespace viewer {
 	}
 
 	LightData Light::getData() noexcept {
-		static LightData data;
-
-		data = { position_, intensity_, color_ };
-
-		return data;
+		return LightData( color_, position_, intensity_ );
 	}
 
 

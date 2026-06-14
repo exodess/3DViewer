@@ -44,6 +44,7 @@ namespace viewer {
 		WIREFRAME_MODEL = 0, ///< Каркасная модель
 		FLAT_SHADING_MODEL, ///< Плоское затенение
 		SMOOTH_SHADING_MODEL, ///< Мягкое затенение
+		RAY_TRACING /// Трассировка лучей (пока что через PBR)
 	};
 
 #define LIGHT_DEFAULT_INTENSITY 0.5f
@@ -67,6 +68,8 @@ namespace viewer {
 		Point3D operator+(const Point3D& other) const noexcept {
 			return Point3D(x + other.x, y + other.y, z + other.z);
 		}
+
+		Point3D(const Point3D& other) noexcept : x{other.x}, y{other.y}, z{other.z} {}
 	};
 
 	/**
@@ -229,9 +232,17 @@ namespace viewer {
 	};
 
 	struct LightData {
+		Point3D color_; ///< Цвет освещения в формате RGB
 		Point3D position_; ///< Координата источника освещения (смещение относительно начала координат)
 		float intensity_; ///< Интенсивность источника освещения, где 0 - нет света, 1 - максимальная сила света
-		Point3D color_; ///< Цвет освещения в формате RGB
+		float padding[3];
+
+		LightData() noexcept : intensity_(0) {}
+
+		LightData(const Point3D& color, const Point3D& pos, float intensity) noexcept
+		: color_{color}, position_(pos), intensity_(intensity) {}
+
+		LightData(const LightData& other) noexcept : color_(other.color_), position_(other.position_), intensity_(other.intensity_) {}
 	};
 
 }

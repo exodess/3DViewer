@@ -15,7 +15,7 @@ namespace viewer {
 		vbo_{BO(GL_ARRAY_BUFFER)},
 		ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
 		ssboCamera_{SSBO(sizeof(CameraData), 0)},
-		ssboLights_{SSBO(sizeof(LightData), 1)},
+		ssboLights_{SSBO(sizeof(LightData) * 6, 1)},
 		ssboMaterial_{SSBO(sizeof(MaterialData), 2)},
 		count_vertices_{0},
 		count_surfaces_{0} {
@@ -69,15 +69,15 @@ namespace viewer {
 		// Векторы нормалей идут после 3 float переменных, поэтому смещение 3 * sizeof(float)
 		vbo_.setAttrib(6 * sizeof(float), (void*) (3 * sizeof(float)), 1);
 
-		std::cout << "\tСохраняем количество обрабатываемых вершин и ребер:\n";
+		// std::cout << "\tСохраняем количество обрабатываемых вершин и ребер:\n";
 		count_vertices_ = vertices.size();
 		count_surfaces_ = surfaces.size();
 
 		VAO::disable();
 
-		std::cout << "\tcount_vertices = " << count_vertices_;
-		std::cout << ", count_surfaces = " << count_surfaces_;
-		std::cout << "\n";
+		// std::cout << "\tcount_vertices = " << count_vertices_;
+		// std::cout << ", count_surfaces = " << count_surfaces_;
+		// std::cout << "\n";
 	}
 
 	bool Mesh::loadVerticesColor(GLint uniform_location, const Point3D& color) noexcept {
@@ -258,15 +258,21 @@ namespace viewer {
 	}
 
 	void Mesh::loadMaterialStructure(const MaterialData &material) noexcept {
+		vao_.use();
 		ssboMaterial_.loadSub(&material, sizeof(MaterialData), 0);
+		VAO::disable();
 	}
 
 	void Mesh::loadCameraStructure(const CameraData &cameraInfo) noexcept {
+		vao_.use();
 		ssboCamera_.loadSub(&cameraInfo, sizeof(CameraData), 0);
+		VAO::disable();
 	}
 
 	void Mesh::loadLightStructure(const std::vector<LightData>& scene_lights_data) noexcept {
-		ssboLights_.loadSub(&scene_lights_data, sizeof(LightData) * scene_lights_data.size(), 0);
+		vao_.use();
+		ssboLights_.loadSub(scene_lights_data.data(), sizeof(LightData) * scene_lights_data.size(), 0);
+		VAO::disable();
 	}
 
 	void Mesh::render() noexcept {
