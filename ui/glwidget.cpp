@@ -43,6 +43,7 @@ namespace viewer {
 	}
 
 	void GLWidget::paintGL() {
+		// Mesh::clear();
 		shaderProgram_->use();
 		mesh_->render();
 	}
@@ -190,12 +191,9 @@ namespace viewer {
 	void GLWidget::DrawScene(Scene* scene) {
 		makeCurrent();
 		Mesh::clear();
+		shaderProgram_->use();
 
 		glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
-		mesh_->loadAspectRatio(
-			shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
-			width() / height()
-			);
 		mesh_->loadCameraStructure(scene->getCamera().getData(width() / height()));
 		mesh_->loadCountActiveLight(
 			shaderProgram_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
@@ -221,6 +219,9 @@ namespace viewer {
 
 			if (current_figure.displayType() == WIREFRAME_MODEL) {
 				// Для каркасной модели необходимы сведения о вершинах и ребрах
+				mesh_->loadAspectRatio(
+					shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
+					width() / height() );
 
 				// Размер, цвет и форма отображения вершин
 				mesh_->loadVerticesSize(
@@ -248,7 +249,7 @@ namespace viewer {
 			else {
 				mesh_->loadMaterialStructure(current_figure.material());
 			}
-			update();
+			mesh_->render();
 		}
 
 		std::cout << "[GLWidget] Сцена отрисована. ";
