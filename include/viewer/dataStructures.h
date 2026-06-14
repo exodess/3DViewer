@@ -48,6 +48,7 @@ namespace viewer {
 	};
 
 #define LIGHT_DEFAULT_INTENSITY 0.5f
+#define MAX_POINT_LIGHTS 5
 
 	/**
 	* @class Point3D
@@ -237,12 +238,6 @@ namespace viewer {
 		float intensity_; ///< Интенсивность источника освещения, где 0 - нет света, 1 - максимальная сила света
 		float padding[3];
 
-		LightData() noexcept : intensity_(0) {}
-
-		LightData(const Point3D& color, const Point3D& pos, float intensity) noexcept
-		: color_{color}, position_(pos), intensity_(intensity) {}
-
-		LightData(const LightData& other) noexcept : color_(other.color_), position_(other.position_), intensity_(other.intensity_) {}
 	};
 
 }

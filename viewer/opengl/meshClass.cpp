@@ -15,7 +15,7 @@ namespace viewer {
 		vbo_{BO(GL_ARRAY_BUFFER)},
 		ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
 		ssboCamera_{SSBO(sizeof(CameraData), 0)},
-		ssboLights_{SSBO(sizeof(LightData) * 6, 1)},
+		ssboLights_{SSBO(sizeof(LightData) * (MAX_POINT_LIGHTS + 1), 1)},
 		ssboMaterial_{SSBO(sizeof(MaterialData), 2)},
 		count_vertices_{0},
 		count_surfaces_{0} {
@@ -105,24 +105,16 @@ namespace viewer {
 	}
 
 	bool Mesh::loadVerticesMode(GLint u_sizeloc, GLint u_modeloc, VerticesMode mode) noexcept {
-
-		std::string message_mode;
 		int out_mode = 0; // будет ли точка отрисовываться как круг
 		bool isEmpty = false;
 
 		if(mode == NONE) {
 			// размер вершины становится равен 0
-			message_mode = "нет";
 			isEmpty = true;
 		}
 		else if(mode == CIRCLE) {
-			message_mode = "круг";
 			out_mode = 1;
 		}
-		else if(mode == SQUARE)
-			message_mode = "квадрат";
-		else
-			message_mode = "[error_mode]";
 
 		if(u_modeloc == -1) {
 			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_isVertCircle" << std::endl;
@@ -166,18 +158,7 @@ namespace viewer {
 	}
 
 	bool Mesh::loadEdgesMode(GLint uniform_location, EdgesMode mode) noexcept {
-
-		std::string message_mode;
-		float dash_size = 0.0; // расстояние между штрихами
-
-		if(mode == SOLID)
-			message_mode = "сплошная линия";
-		else if(mode == DASHED) {
-			message_mode = "пунктирная линия";
-			dash_size = 0.05;
-		}
-		else
-			message_mode = "[error_mode]";
+		float dash_size = (mode == DASHED) ? 0.05f : 0.0f; // расстояние между штрихами
 
 		if(uniform_location == -1) {
 			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_dashSize" << std::endl;
@@ -258,21 +239,15 @@ namespace viewer {
 	}
 
 	void Mesh::loadMaterialStructure(const MaterialData &material) noexcept {
-		vao_.use();
 		ssboMaterial_.loadSub(&material, sizeof(MaterialData), 0);
-		VAO::disable();
 	}
 
 	void Mesh::loadCameraStructure(const CameraData &cameraInfo) noexcept {
-		vao_.use();
 		ssboCamera_.loadSub(&cameraInfo, sizeof(CameraData), 0);
-		VAO::disable();
 	}
 
 	void Mesh::loadLightStructure(const std::vector<LightData>& scene_lights_data) noexcept {
-		vao_.use();
 		ssboLights_.loadSub(scene_lights_data.data(), sizeof(LightData) * scene_lights_data.size(), 0);
-		VAO::disable();
 	}
 
 	void Mesh::render() noexcept {

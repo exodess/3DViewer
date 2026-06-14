@@ -98,7 +98,7 @@ namespace viewer {
 
 	Figure::Figure() noexcept :
 	displayType_(DisplayType::WIREFRAME_MODEL),
-	material_(Point3D(), 0.5f, 0.0f, 0.5f, 0.5f, 0.0f) {}
+	material_(Point3D(), 0.5f, 0.0f, 0.5f, 0.5f, 0.5f) {}
 
 	Figure::Figure(
 		const std::string& path,
@@ -108,7 +108,7 @@ namespace viewer {
 	vertices_{vertices},
 	surfaces_{surfaces},
 	displayType_(DisplayType::WIREFRAME_MODEL),
-	material_(Point3D(), 0.5f, 0.0f, 0.5f, 0.5f, 0.0f) {}
+	material_(Point3D(), 0.5f, 0.5f, 0.5f, 0.5f, 0.5f) {}
 
 	const std::string& Figure::path() noexcept {
 		return name_;
@@ -225,17 +225,12 @@ namespace viewer {
 	}
 
 	std::vector<LightData> Scene::getSceneLightsData() noexcept {
-		std::vector<LightData> scene_lights(6);
+		std::vector<LightData> scene_lights;
 
-		for (auto i = 0; i < 6; ++i) {
-			if (i < countLights()) {
-				auto data = getLight(i + 1).getData();
+		for (auto i = 0; i < countLights(); ++i) {
+			auto data = getLight(i + 1).getData();
 
-				scene_lights[i] = data;
-			}
-			else {
-				scene_lights[i] = LightData{Point3D(), Point3D(), 0};
-			}
+			scene_lights.push_back(data);
 		}
 
 		return scene_lights;
