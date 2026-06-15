@@ -3,10 +3,6 @@
 #include <QColorDialog> // Обязательно для диалога выбора цвета
 #include <iostream>
 
-// Ошибка: при смене фигуры прошлые настройки передаются другой фигуре. \
-// Возможно, это связанно с тем, что при загрузке нового значения срабатывает сигнал,
-// и все оставшиеся значения присваиваются новой фигуре
-
 namespace viewer {
 
 	MainWindow::MainWindow(QWidget *parent)
@@ -190,6 +186,11 @@ namespace viewer {
 		auto color = viewer_->getScene()->getLight(current_light_).color();
 		QColor qcolor = QColor(color.x * 255, color.y * 255, color.z * 255);
 
+		ui->label_LightPos->setVisible(current_light_ != 1);
+		ui->light_transX->setVisible(current_light_ != 1);
+		ui->light_transY->setVisible(current_light_ != 1);
+		ui->light_transZ->setVisible(current_light_ != 1);
+
 		ui->light_transX->setValue(posLight.x);
 		ui->light_transY->setValue(posLight.y);
 		ui->light_transZ->setValue(posLight.z);
@@ -338,11 +339,11 @@ namespace viewer {
 		if (file.open(QIODevice::WriteOnly)) {
 			file.write(doc.toJson());
 			file.close();
-			std::cout << "[GLWidget] Настройки сохранены в файл: "
+			std::cout << "[MainWindow] Настройки сохранены в файл: "
 		            << filePath.toStdString() << std::endl;
 		}
 		else {
-			std::cerr << "[GLWidget] Ошибка сохранения настроек в файл: "
+			std::cerr << "[MainWindow] Ошибка сохранения настроек в файл: "
 			          << filePath.toStdString() << std::endl;
 		}
 	}
@@ -351,7 +352,7 @@ namespace viewer {
 		QFile file(filePath);
 
 		if (!file.exists()) {
-			std::cout << "[GLWidget] Файл настроек не найден, используем значения по умолчанию" << std::endl;
+			std::cout << "[MainWindow] Файл настроек не найден, используем значения по умолчанию" << std::endl;
 			return;
 		}
 
@@ -440,11 +441,11 @@ namespace viewer {
 				i++;
 			}
 
-			std::cout << "[GLWidget] Настройки загружены из файла: "
+			std::cout << "[MainWindow] Настройки загружены из файла: "
 			          << filePath.toStdString() << std::endl;
 		}
 		else {
-			std::cerr << "[GLWidget] Ошибка загрузки настроек из файла: "
+			std::cerr << "[MainWindow] Ошибка загрузки настроек из файла: "
 			          << filePath.toStdString() << std::endl;
 		}
 	}
