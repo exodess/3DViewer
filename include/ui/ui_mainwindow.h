@@ -151,7 +151,8 @@ public:
 
     // Камера — масштаб (zoom)
     QLabel *label_CamZoom;
-    QDoubleSpinBox *spin_camZoom;
+    QHBoxLayout *camScaleLayout;
+    QDoubleSpinBox *spin_camScaleX, *spin_camScaleY, *spin_camScaleZ;
 
     // Нижняя информационная панель
     QHBoxLayout *infoLayout;
@@ -503,8 +504,9 @@ public:
         label_CamTrans->setWordWrap(true);
         generalLayout->addWidget(label_CamTrans);
         camTransLayout = new QHBoxLayout();
-        spin_camTransX = spin_camTransY = spin_camTransZ = nullptr;
-        spin_camTransX = new QDoubleSpinBox(); spin_camTransY = new QDoubleSpinBox(); spin_camTransZ = new QDoubleSpinBox();
+        spin_camTransX = new QDoubleSpinBox();
+        spin_camTransY = new QDoubleSpinBox();
+        spin_camTransZ = new QDoubleSpinBox();
         for (auto *s : {spin_camTransX, spin_camTransY, spin_camTransZ}) {
             s->setRange(-1000.0, 1000.0); s->setSingleStep(0.5); s->setDecimals(2);
             camTransLayout->addWidget(s);
@@ -516,8 +518,9 @@ public:
         label_CamRot->setWordWrap(true);
         generalLayout->addWidget(label_CamRot);
         camRotLayout = new QHBoxLayout();
-        spin_camRotX = spin_camRotY = spin_camRotZ = nullptr;
-        spin_camRotX = new QDoubleSpinBox(); spin_camRotY = new QDoubleSpinBox(); spin_camRotZ = new QDoubleSpinBox();
+        spin_camRotX = new QDoubleSpinBox();
+        spin_camRotY = new QDoubleSpinBox();
+        spin_camRotZ = new QDoubleSpinBox();
         for (auto *s : {spin_camRotX, spin_camRotY, spin_camRotZ}) {
             s->setRange(-360.0, 360.0); s->setSingleStep(1.0); s->setDecimals(1);
             camRotLayout->addWidget(s);
@@ -526,10 +529,20 @@ public:
 
         // Камера — масштаб
         label_CamZoom = new QLabel("Камера — масштаб:");
+        label_CamZoom->setWordWrap(true);
         generalLayout->addWidget(label_CamZoom);
-        spin_camZoom = new QDoubleSpinBox();
-        spin_camZoom->setRange(0.01, 100.0); spin_camZoom->setValue(1.0); spin_camZoom->setSingleStep(0.1); spin_camZoom->setDecimals(2);
-        generalLayout->addWidget(spin_camZoom);
+        camScaleLayout = new QHBoxLayout();
+        spin_camScaleX = new QDoubleSpinBox();
+        spin_camScaleY = new QDoubleSpinBox();
+        spin_camScaleZ = new QDoubleSpinBox();
+
+        for (auto *s : {spin_camScaleX, spin_camScaleY, spin_camScaleZ}) {
+            s->setRange(0.1, 10.0);
+            s->setSingleStep(0.1);
+            s->setDecimals(1);
+            camScaleLayout->addWidget(s);
+        }
+        generalLayout->addLayout(camScaleLayout);
 
         scrollLayout->addWidget(groupBox_General);
 
