@@ -123,6 +123,8 @@ namespace viewer {
          */
         void setGeneralValues() noexcept;
 
+        void setUISettings(DisplayType) noexcept;
+
         Ui::MainWindow *ui; ///< Элементы UI программы
         Viewer *viewer_; ///< Менеджер ресурсов
         QString currentFileName_; ///< Название последнего считанного файла

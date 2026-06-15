@@ -205,6 +205,38 @@ namespace viewer {
 		ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
 	}
 
+	void MainWindow::setUISettings(DisplayType type) noexcept {
+		if (type == WIREFRAME_MODEL) {
+			ui->groupBox_Edges->setVisible(true);
+			ui->groupBox_Vertices->setVisible(true);
+
+			ui->groupBox_Lights->setVisible(false);
+			ui->groupBox_Material->setVisible(false);
+
+			ui->label_displayType->setText("Отображение только ребер и вершин");
+		}
+
+		else if (type == FLAT_SHADING_MODEL) {
+			ui->groupBox_Edges->setVisible(false);
+			ui->groupBox_Vertices->setVisible(false);
+
+			ui->groupBox_Lights->setVisible(true);
+			ui->groupBox_Material->setVisible(false);
+
+			ui->label_displayType->setText("Плоское затенение");
+		}
+
+		else if (type == SMOOTH_SHADING_MODEL || type == RAY_TRACING) {
+			ui->groupBox_Edges->setVisible(false);
+			ui->groupBox_Vertices->setVisible(false);
+
+			ui->groupBox_Lights->setVisible(true);
+			ui->groupBox_Material->setVisible(true);
+
+			ui->label_displayType->setText("Мягкое затенение");
+		}
+	}
+
 
 	void MainWindow::mousePressEvent(QMouseEvent* event) {
 		lastPos_ = event->pos();
@@ -244,9 +276,10 @@ namespace viewer {
 
 		if (current_figure_ > 0) {
 			float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getCamera().translation().z -= det;
+			viewer_->getScene()->getCamera().translation().z -= det * 0.5f;
 
 			viewer_->DrawScene();
+			update();
 		}
 	}
 
@@ -487,6 +520,7 @@ namespace viewer {
 		current_figure_ = value + 1;
 
 		setFigureValues();
+		setUISettings(viewer_->getScene()->getFigure(current_figure_).displayType());
 	}
 
 	// Слот для выбора цвета вершин
@@ -651,13 +685,7 @@ namespace viewer {
 	void MainWindow::on_action_Wireframe_triggered() {
 		if (current_figure_ > 0) {
 			viewer_->getScene()->getFigure(current_figure_).displayType() = WIREFRAME_MODEL;
-			ui->groupBox_Edges->setVisible(true);
-			ui->groupBox_Vertices->setVisible(true);
-
-			ui->groupBox_Lights->setVisible(false);
-			ui->groupBox_Material->setVisible(false);
-
-			ui->label_displayType->setText("Отображение только ребер и вершин");
+			setUISettings(WIREFRAME_MODEL);
 
 			viewer_->DrawScene();
 		}
@@ -670,13 +698,7 @@ namespace viewer {
 	void MainWindow::on_action_FlatShading_triggered() {
 		if (current_figure_ > 0) {
 			viewer_->getScene()->getFigure(current_figure_).displayType() = FLAT_SHADING_MODEL;
-			ui->groupBox_Edges->setVisible(false);
-			ui->groupBox_Vertices->setVisible(false);
-
-			ui->groupBox_Lights->setVisible(true);
-			ui->groupBox_Material->setVisible(false);
-
-			ui->label_displayType->setText("Плоское затенение");
+			setUISettings(FLAT_SHADING_MODEL);
 
 			viewer_->DrawScene();
 		}
@@ -689,13 +711,7 @@ namespace viewer {
 	void MainWindow::on_action_SmoothShading_triggered() {
 		if (current_figure_ > 0) {
 			viewer_->getScene()->getFigure(current_figure_).displayType() = SMOOTH_SHADING_MODEL;
-			ui->groupBox_Edges->setVisible(false);
-			ui->groupBox_Vertices->setVisible(false);
-
-			ui->groupBox_Lights->setVisible(true);
-			ui->groupBox_Material->setVisible(true);
-
-			ui->label_displayType->setText("Мягкое затенение");
+			setUISettings(SMOOTH_SHADING_MODEL);
 
 			viewer_->DrawScene();
 		}
