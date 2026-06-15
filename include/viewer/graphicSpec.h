@@ -422,7 +422,7 @@ namespace viewer {
 		 * @brief Задает характеристики всех источников освещения на сцене (фоновый и направленные вместе)
 		 * @param sceneLightsData Информация об источниках освещения
 		 */
-		void loadLightStructure(const std::vector<LightData>& sceneLightsData) noexcept;
+		void loadLightStructure(const std::vector<Light>& sceneLightsData) noexcept;
 
 		static void clear() noexcept; ///< Очищает буфер кадра
 

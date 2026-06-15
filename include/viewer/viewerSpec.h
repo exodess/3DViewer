@@ -536,9 +536,10 @@ namespace viewer {
 
 	class Light {
 	private:
-		Point3D position_; ///< Координата источника освещения в пространстве (для направленных источников)
-		float intensity_; ///<
 		Point3D color_; ///< Цвет в формате RGB
+		Point3D position_; ///< Координата источника освещения в пространстве (для направленных источников)
+		float intensity_; ///< Интенсивность источника освещения, где 0 - нет света, 1 - максимальная сила света
+		float padding[3];
 
 	public:
 		Light() noexcept; ///< Инициализация стандартного источника освещения
@@ -546,12 +547,6 @@ namespace viewer {
 		Point3D& position() noexcept; ///< Доступ к полю координаты объекта
 		float& intensity() noexcept; ///< Доступ к полю интенсивности объекта
 		Point3D& color() noexcept; ///< Доступ к полю цвета объекта
-
-		/**
-		 * @brief Получение информации для загрузки ее в шейдеры
-		 * @return Результирующая информация об источнике освещения
-		 */
-		LightData getData() noexcept;
 	};
 
 	// =====================================
@@ -628,7 +623,7 @@ namespace viewer {
 		 * @brief Получение информации обо всех источниках освещения, которые есть на сцене
 		 * @return Список структур для загрузки в шейдерный буфер
 		 */
-		std::vector<LightData> getSceneLightsData() noexcept;
+		std::vector<Light> getSceneLightsData() noexcept;
 
 		/**
 		 * @brief Получение количества вершин, одновременно обрабатываемых на сцене

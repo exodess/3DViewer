@@ -15,7 +15,7 @@ namespace viewer {
 		vbo_{BO(GL_ARRAY_BUFFER)},
 		ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
 		ssboCamera_{SSBO(sizeof(CameraData), 0)},
-		ssboLights_{SSBO(sizeof(LightData) * (MAX_POINT_LIGHTS + 1), 1)},
+		ssboLights_{SSBO(sizeof(Light) * (MAX_POINT_LIGHTS + 1), 1)},
 		ssboMaterial_{SSBO(sizeof(MaterialData), 2)},
 		count_vertices_{0},
 		count_surfaces_{0} {
@@ -246,8 +246,8 @@ namespace viewer {
 		ssboCamera_.loadSub(&cameraInfo, sizeof(CameraData), 0);
 	}
 
-	void Mesh::loadLightStructure(const std::vector<LightData>& scene_lights_data) noexcept {
-		ssboLights_.loadSub(scene_lights_data.data(), sizeof(LightData) * scene_lights_data.size(), 0);
+	void Mesh::loadLightStructure(const std::vector<Light>& scene_lights_data) noexcept {
+		ssboLights_.loadSub(scene_lights_data.data(), sizeof(Light) * scene_lights_data.size(), 0);
 	}
 
 	void Mesh::render() noexcept {

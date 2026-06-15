@@ -224,11 +224,11 @@ namespace viewer {
 		return camera_;
 	}
 
-	std::vector<LightData> Scene::getSceneLightsData() noexcept {
-		std::vector<LightData> scene_lights;
+	std::vector<Light> Scene::getSceneLightsData() noexcept {
+		std::vector<Light> scene_lights;
 
 		for (auto i = 0; i < countLights(); ++i) {
-			auto data = getLight(i + 1).getData();
+			auto data = getLight(i + 1);
 
 			scene_lights.push_back(data);
 		}
@@ -270,7 +270,7 @@ namespace viewer {
 	// ========== Light ==========
 	// ===========================
 
-	Light::Light() noexcept : intensity_(LIGHT_DEFAULT_INTENSITY), color_(Point3D(1.0f, 1.0f, 1.0f)) {}
+	Light::Light() noexcept : intensity_(LIGHT_DEFAULT_INTENSITY), padding{0} {}
 
 	Point3D &Light::position() noexcept {
 		return position_;
@@ -283,10 +283,5 @@ namespace viewer {
 	Point3D &Light::color() noexcept {
 		return color_;
 	}
-
-	LightData Light::getData() noexcept {
-		return LightData( color_, position_, intensity_ );
-	}
-
 
 }
