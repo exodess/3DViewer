@@ -103,6 +103,7 @@ namespace viewer {
 
         ShaderProgram* shaderProgram_;
         Mesh* mesh_;
+        float aspect_;
 
         // GIF запись
         std::unique_ptr<GifRecorder> gif_recorder_;  ///< Рекордер GIF

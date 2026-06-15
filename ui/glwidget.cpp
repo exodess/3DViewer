@@ -1,11 +1,18 @@
 #include "ui/glwidget.h"
 
+// Что еще нужно исправить:
+// 1. Движение камеры
+// 2. Назначить спинбоксам общих настроек свои действия
+// 3. Починить масштабирование с помощью колесика мыши
+// 4. Заменить LightData на Light
+
 namespace viewer {
 
 	GLWidget::GLWidget(QWidget* parent)
 	    : QOpenGLWidget(parent)
 	    , shaderProgram_(nullptr)
 	    , mesh_(nullptr)
+		, aspect_(1.0f)
 		, gif_recorder_(std::make_unique<GifRecorder>())
 		, record_timer_(new QTimer(this))
 	{
@@ -49,10 +56,9 @@ namespace viewer {
 	}
 
 	void GLWidget::resizeGL(int w, int h) {
+		if (h == 0) h = 1;
 		glViewport(0, 0, w, h);
-		mesh_->loadAspectRatio(
-			shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
-			w / h);
+		aspect_ = static_cast<float>(w) / static_cast<float>(h);
 	}
 
 	void GLWidget::saveImage(const QString& path) {
@@ -190,73 +196,72 @@ namespace viewer {
 
 	void GLWidget::DrawScene(Scene* scene) {
 		makeCurrent();
-		Mesh::clear();
-		shaderProgram_->use();
+		if (mesh_ && shaderProgram_) {
+			Mesh::clear();
+			shaderProgram_->use();
 
-		glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
-		mesh_->loadCameraStructure(scene->getCamera().getData(width() / height()));
-		mesh_->loadCountActiveLight(
-			shaderProgram_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
-			scene->countLights());
+			glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
+			mesh_->loadCameraStructure(scene->getCamera().getData(aspect_));
 
-		// Сначала загружаем информацию об освещении сцены
-		mesh_->loadLightStructure(scene->getSceneLightsData());
+			// Загружаем данные фигур и поочередно их отрисовываем
+			for (auto i = 0; i < scene->countFigures(); ++i) {
+				auto current_figure = scene->getFigure(i + 1);
 
-		// Загружаем данные фигур и поочередно их отрисовываем
-		for (auto i = 0; i < scene->countFigures(); ++i) {
-			auto current_figure = scene->getFigure(i + 1);
+				mesh_->loadData(current_figure);
+				mesh_->loadDisplayType(
+					shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
+					current_figure.displayType());
+				mesh_->loadModelMatrix(
+					shaderProgram_->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
+					current_figure.getModelMatrix());
+				mesh_->loadNormalMatrix(
+					shaderProgram_->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
+					current_figure.getModelMatrix());
 
-			mesh_->loadData(current_figure);
-			mesh_->loadDisplayType(
-				shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
-				current_figure.displayType());
-			mesh_->loadModelMatrix(
-				shaderProgram_->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
-				current_figure.getModelMatrix());
-			mesh_->loadNormalMatrix(
-				shaderProgram_->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
-				current_figure.getModelMatrix());
+				if (current_figure.displayType() == WIREFRAME_MODEL) {
+					// Для каркасной модели необходимы сведения о вершинах и ребрах
+					mesh_->loadAspectRatio(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
+						aspect_ );
 
-			if (current_figure.displayType() == WIREFRAME_MODEL) {
-				// Для каркасной модели необходимы сведения о вершинах и ребрах
-				mesh_->loadAspectRatio(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
-					width() / height() );
+					// Размер, цвет и форма отображения вершин
+					mesh_->loadVerticesSize(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
+						current_figure.vertexInfo().size());
+					mesh_->loadVerticesColor(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
+						current_figure.vertexInfo().color());
+					mesh_->loadVerticesMode(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
+						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_MODE),
+						current_figure.vertexInfo().mode());
 
-				// Размер, цвет и форма отображения вершин
-				mesh_->loadVerticesSize(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
-					current_figure.vertexInfo().size());
-				mesh_->loadVerticesColor(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
-					current_figure.vertexInfo().color());
-				mesh_->loadVerticesMode(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
-					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_MODE),
-					current_figure.vertexInfo().mode());
+					// Размер, цвет и способ отображения ребер
+					mesh_->loadEdgesSize(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_SIZE),
+						current_figure.edgeInfo().size());
+					mesh_->loadEdgesColor(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_COLOR),
+						current_figure.edgeInfo().color());
+					mesh_->loadEdgesMode(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_MODE),
+						current_figure.edgeInfo().mode());
+				}
+				else {
+					mesh_->loadCountActiveLight(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+						scene->countLights());
 
-				// Размер, цвет и способ отображения ребер
-				mesh_->loadEdgesSize(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_SIZE),
-					current_figure.edgeInfo().size());
-				mesh_->loadEdgesColor(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
-					current_figure.edgeInfo().color());
-				mesh_->loadEdgesMode(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_MODE),
-					current_figure.edgeInfo().mode());
+					mesh_->loadLightStructure(scene->getSceneLightsData());
+					mesh_->loadMaterialStructure(current_figure.material());
+				}
+				mesh_->render();
 			}
-			else {
-				mesh_->loadMaterialStructure(current_figure.material());
-			}
-			mesh_->render();
 		}
 
-		std::cout << "[GLWidget] Сцена отрисована. ";
-		std::cout << "Фигур: " << scene->countFigures();
-		std::cout << " | Источников освещения: " << scene->countLights();
-		std::cout << " | Вершин: " << scene->countVertices();
-		std::cout << " | Поверхностей: " << scene->countSurfaces() << std::endl;
+		else {
+			std::cout << "[GLWidget] Инструменты OpenGL недоступны!" << std::endl;
+		}
 
 		doneCurrent();
 	}

@@ -86,7 +86,7 @@ namespace viewer {
 		TransformMatrix rotationMatrix = TransformMatrixBuilder::CreateRotationMatrix(
 			rotationVector_.x, rotationVector_.y, rotationVector_.z);
 		TransformMatrix translationMatrix = TransformMatrixBuilder::CreateMoveMatrix(
-			translationVector_.x, translationVector_.y, translationVector_.z);
+			translationVector_.x, translationVector_.y, -translationVector_.z * 10.0f);
 
 		return translationMatrix * rotationMatrix * scaleMatrix;
 	}
