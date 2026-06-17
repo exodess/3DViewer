@@ -27,6 +27,8 @@ namespace viewer {
 		setLightValues();
 		setGeneralValues();
 
+		viewer_->DrawScene();
+
 		std::cout << "[MainWindow] Инициализация завершена\n";
 	}
 
@@ -310,7 +312,7 @@ namespace viewer {
 
 		if (current_figure_ > 0) {
 			float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getCamera().translation().z -= det * 0.5f;
+			viewer_->getScene()->getCamera().translation().z -= det;
 
 			viewer_->DrawScene();
 			update();
@@ -335,7 +337,7 @@ namespace viewer {
 		settings["globalLight"] = globalLight_settings;
 
 		// Сохраняем настройки каждой фигуры
-		for (auto i = 2; i <= count_figures_; ++i) {
+		for (auto i = 1; i <= count_figures_; ++i) {
 			QJsonObject figure_settings;
 
 			figure_settings["path"] = QString::fromStdString(viewer_->getScene()->getFigure(i).path());
@@ -347,16 +349,19 @@ namespace viewer {
 			figure_settings["vertexColor"] = colorToJson(viewer_->getScene()->getFigure(i).vertexInfo().color());
 			figure_settings["vertexSize"] = viewer_->getScene()->getFigure(i).vertexInfo().size();
 			figure_settings["vertexDisplayType"] = viewer_->getScene()->getFigure(i).vertexInfo().mode();
+
 			figure_settings["edgeColor"] = colorToJson(viewer_->getScene()->getFigure(i).edgeInfo().color());
 			figure_settings["edgeSize"] = viewer_->getScene()->getFigure(i).edgeInfo().size();
-			figure_settings["edgeIsDashed"] = viewer_->getScene()->getFigure(i).edgeInfo().mode();
-			figure_settings["edgeDisplayType"] = viewer_->getScene()->getFigure(i).displayType();
+			figure_settings["edgeDisplayType"] = viewer_->getScene()->getFigure(i).edgeInfo().mode();
+
+			figure_settings["displayType"] = viewer_->getScene()->getFigure(i).displayType();
+			figure_settings["material"] = materialToJson(viewer_->getScene()->getFigure(i).material());
 
 			settings[QString("figure %1").arg(i)] = figure_settings;
 		}
 
 		// Сохраняем настройки каждого источника освещения
-		for (auto i = 1; i <= count_lights_; ++i) {
+		for (auto i = 2; i <= count_lights_; ++i) {
 			QJsonObject light_settings;
 
 			light_settings["position"] = positionToJson(viewer_->getScene()->getLight(i).position());
@@ -419,10 +424,10 @@ namespace viewer {
 
 			// Загрузка настроек фигур
 			int i = 1;
-			while (settings.contains("figure " + i)) {
-				auto figure_settings = settings["figure " + i].toObject();
+			while (settings.contains(QString("figure %1").arg(i))) {
+				auto figure_settings = settings[QString("figure %1").arg(i)].toObject();
 
-				if (viewer_->LoadFigure(figure_settings["path"].toString().toStdString()).isSuccess()) {
+				if (loadScene(figure_settings["path"].toString())) {
 					if (figure_settings.contains("translation")) {
 						viewer_->getScene()->getFigure(i).translation() = positionFromJson(figure_settings["translation"].toObject());
 					}
@@ -450,16 +455,27 @@ namespace viewer {
 					if (figure_settings.contains("edgeDisplayType")) {
 						viewer_->getScene()->getFigure(i).edgeInfo().mode() = static_cast<EdgesMode>(figure_settings["edgeDisplayType"].toInt());
 					}
+					if (figure_settings.contains("displayType")) {
+						viewer_->getScene()->getFigure(i).displayType() = static_cast<DisplayType>(figure_settings["displayType"].toInt());
+					}
+					if (figure_settings.contains("material")) {
+						viewer_->getScene()->getFigure(i).material() = materialFromJson(figure_settings["material"].toObject());
+					}
+
+					setFigureValues();
+					setUISettings(viewer_->getScene()->getFigure(i).displayType());
 
 					i++;
+				}
+				else {
+					std::cout << "Не удалось загрузить фигуру: " << figure_settings["path"].toString().toStdString() << std::endl;
 				}
 			}
 
 			i = 2;
-			while (settings.contains("light " + i)) {
-				auto light_settings = settings["light " + i].toObject();
-
-				viewer_->getScene()->addLight();
+			while (settings.contains(QString("light %1").arg(i))) {
+				auto light_settings = settings[QString("light %1").arg(i)].toObject();
+				on_btn_AddLight_clicked();
 
 				if (light_settings.contains("position")) {
 					viewer_->getScene()->getLight(i).position() = positionFromJson(light_settings["position"].toObject());
@@ -522,6 +538,32 @@ namespace viewer {
 		pos.z = static_cast<float>(obj["z"].toDouble());
 
 		return pos;
+	}
+
+	QJsonObject MainWindow::materialToJson(const MaterialData &mat) noexcept {
+		QJsonObject obj;
+
+		obj["color"] = colorToJson(mat.baseColor_);
+		obj["roughness"] = mat.roughness_;
+		obj["metallic"] = mat.metallic_;
+		obj["refractive"] = mat.refractive_;
+		obj["reflectivity"] = mat.reflectivity_;
+		obj["alpha"] = mat.alpha_;
+
+		return obj;
+	}
+
+	MaterialData MainWindow::materialFromJson(const QJsonObject &jobject) noexcept {
+		MaterialData data;
+
+		data.baseColor_ = colorFromJson(jobject["color"].toObject());
+		data.roughness_ = static_cast<float>(jobject["roughness"].toDouble());
+		data.metallic_ = static_cast<float>(jobject["metallic"].toDouble());
+		data.refractive_ = static_cast<float>(jobject["refractive"].toDouble());
+		data.reflectivity_ = static_cast<float>(jobject["reflectivity"].toDouble());
+		data.alpha_ = static_cast<float>(jobject["alpha"].toDouble());
+
+		return data;
 	}
 
 	// Слоты для ComboBox
@@ -620,6 +662,7 @@ namespace viewer {
 
 	void MainWindow::on_btn_AddLight_clicked() {
 		count_lights_++;
+		current_light_ = count_lights_;
 		viewer_->getScene()->addLight();
 		ui->combo_LightSelect->addItem(QString("Источник %1").arg(viewer_->getScene()->countLights()));
 		viewer_->DrawScene();
@@ -643,16 +686,19 @@ namespace viewer {
 	}
 
 
-	void MainWindow::loadScene(const QString& path) {
+	bool MainWindow::loadScene(const QString& path) {
 		auto result = viewer_->LoadFigure(path.toStdString());
 
 		if (result.isSuccess()) {
 			currentFileName_ = QFileInfo(path).fileName();
 			count_figures_ ++;
 			current_figure_ = count_figures_;
-			viewer_->DrawScene();
 
 			updateInfoLabels();
+
+			ui->groupBox_Figure->setVisible(true);
+			ui->combo_FigureSelect->addItem(QString("Фигура %1").arg(viewer_->getScene()->countFigures()));
+			ui->combo_FigureSelect->setCurrentIndex(count_figures_ - 1);
 			ui->statusbar->showMessage("Загружено: " + currentFileName_);
 		}
 
@@ -661,6 +707,8 @@ namespace viewer {
 			QMessageBox::critical(this, "Ошибка", "Не удалось загрузить файл: " + path);
 			std::cout << "[MainWindow] Ошибка загрузки файла: " << path.toStdString() << "\n";
 		}
+
+		return result.isSuccess();
 	}
 
 	void MainWindow::updateInfoLabels() {
@@ -691,9 +739,7 @@ namespace viewer {
 
 		if (!fileName.isEmpty()) {
 			loadScene(fileName);
-			ui->groupBox_Figure->setVisible(true);
-			ui->combo_FigureSelect->addItem(QString("Фигура %1").arg(viewer_->getScene()->countFigures()));
-			ui->combo_FigureSelect->setCurrentIndex(count_figures_ - 1);
+			viewer_->DrawScene();
 		}
 	}
 

@@ -64,7 +64,7 @@ namespace viewer {
         void onFigureChanged(int value);
 
     private:
-        void loadScene(const QString& path);
+        bool loadScene(const QString& path);
         void updateInfoLabels();
         void connectSignals() noexcept;
 
@@ -109,6 +109,20 @@ namespace viewer {
         Point3D positionFromJson(const QJsonObject& jobject) noexcept;
 
         /**
+         * @brief Преобразование информации о материале фигуры в формат, понятный JSON
+         * @param mat Структура материала фигуры
+         * @return JSON формат, позволяющий хранить информацию о материале
+         */
+        QJsonObject materialToJson(const MaterialData& mat) noexcept;
+
+        /**
+         * @brief Преобразование структуры материала из JSON формата в MaterialData, понятный программе
+         * @param jobject Информация о материале фигуры, хранящаяся в JSON формате
+         * @return Структура MaterialData
+         */
+        MaterialData materialFromJson(const QJsonObject& jobject) noexcept;
+
+        /**
          * @brief Устанавливает значения на интерфейсе в зоне настройки текущей фигуры
          */
         void setFigureValues() noexcept;
@@ -123,6 +137,9 @@ namespace viewer {
          */
         void setGeneralValues() noexcept;
 
+        /**
+         * @brief Устанавливает видимости элементов интерфейса фигуры, в зависимости от ее режима отрисовки
+         */
         void setUISettings(DisplayType) noexcept;
 
         Ui::MainWindow *ui; ///< Элементы UI программы
