@@ -51,7 +51,7 @@ namespace viewer {
 	void GLWidget::paintGL() {
 		// Mesh::clear();
 		shaderProgram_->use();
-		mesh_->render();
+		mesh_->renderFigure();
 	}
 
 	void GLWidget::resizeGL(int w, int h) {
@@ -202,6 +202,19 @@ namespace viewer {
 			glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
 			mesh_->loadCameraStructure(scene->getCamera().getData(aspect_));
 
+			// Если нужно, отображаем пол
+			if (scene->displayFloor()) {
+				mesh_->loadDisplayFloor(
+					shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
+					scene->displayFloor());
+
+				mesh_->renderFloor();
+
+				mesh_->loadDisplayFloor(
+						shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
+						false);
+			}
+
 			// Загружаем данные фигур и поочередно их отрисовываем
 			for (auto i = 0; i < scene->countFigures(); ++i) {
 				auto current_figure = scene->getFigure(i + 1);
@@ -254,7 +267,7 @@ namespace viewer {
 					mesh_->loadLightStructure(scene->getSceneLightsData());
 					mesh_->loadMaterialStructure(current_figure.material());
 				}
-				mesh_->render();
+				mesh_->renderFigure();
 			}
 		}
 

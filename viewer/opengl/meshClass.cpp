@@ -238,6 +238,17 @@ namespace viewer {
 		return true;
 	}
 
+	bool Mesh::loadDisplayFloor(int32_t u_location, bool is_display) noexcept {
+		if (u_location == -1) {
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_isFloor" << std::endl;
+			return false;
+		}
+
+		glUniform1i(u_location, static_cast<int>(is_display));
+		return true;
+	}
+
+
 	void Mesh::loadMaterialStructure(const MaterialData &material) noexcept {
 		ssboMaterial_.loadSub(&material, sizeof(MaterialData), 0);
 	}
@@ -250,10 +261,41 @@ namespace viewer {
 		ssboLights_.loadSub(scene_lights_data.data(), sizeof(Light) * scene_lights_data.size(), 0);
 	}
 
-	void Mesh::render() noexcept {
+	void Mesh::renderFigure() noexcept {
 		vao_.use();
 		glDrawElements(GL_TRIANGLES, count_surfaces_ * 3, GL_UNSIGNED_INT, nullptr);
 
+		VAO::disable();
+	}
+
+	void Mesh::renderFloor() noexcept {
+		std::vector<Vertex> floor_vertices = {
+			Vertex(Point3D(-100.0, 0.0, -100.0), Point3D()),
+			Vertex(Point3D(100.0, 0.0, -100.0), Point3D()),
+			Vertex(Point3D(-100.0, 0.0, 100.0), Point3D()),
+
+			Vertex(Point3D(100.0, 0.0, -100.0), Point3D()),
+			Vertex(Point3D(100.0, 0.0, 100.0), Point3D()),
+			Vertex(Point3D(-100.0, 0.0, 100.0), Point3D())
+		};
+		std::vector<float> raw_vertices;
+
+		for (auto v : floor_vertices) {
+			raw_vertices.push_back(v.getPosition().x);
+			raw_vertices.push_back(v.getPosition().y);
+			raw_vertices.push_back(v.getPosition().z);
+		}
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		vbo_.load(raw_vertices.data(), raw_vertices.size() * sizeof(float), GL_STATIC_DRAW);
+		vao_.use();
+		vbo_.setAttrib(3 * sizeof(float), (void*) 0, 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, floor_vertices.size());
+
+		glDisable(GL_BLEND);
 		VAO::disable();
 	}
 

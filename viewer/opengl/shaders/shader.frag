@@ -30,6 +30,7 @@ layout(std430, binding = 1) buffer LightsBuffer {
 	LightData lights[MAX_POINT_LIGHTS + 1];
 } b_LightStruct;
 
+uniform int u_isFloor; // 1 - отображение пола, 0 - остальных фигур на сцене
 uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
 uniform vec3 u_lightColor; // цвет источника света
 uniform vec3 u_vertColor; // цвет вершин
@@ -85,6 +86,32 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 void main() {
+	if (u_isFloor == 1) {
+		// Координаты сетки (зависят от абсолютных мировых координат)
+		vec2 coord = Camera_v.xz / 1.0;
+		vec2 derivative = fwidth(coord);
+
+		vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
+		float lineAlpha = min(grid.x, grid.y);
+
+		// Вычисляем интенсивность пикселя линии (от 1.0 в центре до 0.0 на краю)
+		float lineIntensity = 1.0 - min(lineAlpha, 1.0);
+
+		// Если пиксель не принадлежит линии сетки — не отрисовываем его вообще
+		if (lineIntensity <= 0.0) {
+			discard;
+		}
+
+		// Плавное затухание (Fade Out) сетки к горизонту
+		float distanceToCam = length(Vertex_v - Camera_v);
+		float fade = clamp(1.0 - (distanceToCam / 80.0), 0.0, 1.0);
+
+		// Отрисовываем саму линию. Прозрачность линии зависит от сглаживания и дальности
+		vec3 gridLineColor = vec3(0.5, 0.5, 0.5);
+		FragColor = vec4(gridLineColor, lineIntensity * fade);
+		return;
+	}
+
 	if(displayType == 0) {
 		if(vIsPoint == 1) {
 			// если точка - круг, отсекаем лишние пиксели по окружности

@@ -188,7 +188,7 @@ namespace viewer {
 	// ========== Scene ==========
 	// ===========================
 
-	Scene::Scene() noexcept : backColor_(Point3D(1.0, 1.0f, 1.0f)), camera_(Camera()) {
+	Scene::Scene() noexcept : backColor_(Point3D(1.0, 1.0f, 1.0f)), camera_(Camera()), isFloor_(false) {
 		lights_.push_back(Light());
 	}
 
@@ -264,6 +264,10 @@ namespace viewer {
 	int Scene::countLights() noexcept {
 		// 1 Фоновое освещение + (n - 1) направленных источников
 		return lights_.size();
+	}
+
+	bool &Scene::displayFloor() noexcept {
+		return isFloor_;
 	}
 
 	// ===========================

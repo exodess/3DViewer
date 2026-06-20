@@ -19,6 +19,7 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include <QSlider>
+#include <QCheckBox>
 
 QT_BEGIN_NAMESPACE
 
@@ -138,6 +139,9 @@ public:
 
     // Фон
     QPushButton *btn_BackgroundColor;
+
+    // Отображение пола
+    QCheckBox *check_FloorDisplay;
 
     // Камера — перемещение
     QLabel *label_CamTrans;
@@ -498,6 +502,9 @@ public:
 
         btn_BackgroundColor = new QPushButton("Цвет фона");
         generalLayout->addWidget(btn_BackgroundColor);
+
+        check_FloorDisplay = new QCheckBox("Отображение пола");
+        generalLayout->addWidget(check_FloorDisplay);
 
         // Камера — перемещение
         label_CamTrans = new QLabel("Камера — перемещение (X / Y / Z):");

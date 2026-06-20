@@ -67,6 +67,8 @@ namespace viewer {
 		connect(ui->combo_LightSelect, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onLightChanged);
 		connect(ui->combo_FigureSelect, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onFigureChanged);
 
+		connect(ui->check_FloorDisplay, QOverload<int>::of(&QCheckBox::stateChanged), this, &MainWindow::onFloorDisplayChanged);
+
 		auto updateTransform = [this]() {
 			if (count_figures_ > 0) {
 				viewer_->getScene()->getFigure(current_figure_).vertexInfo().size() = ui->spin_VertexSize->value() / 100;
@@ -226,7 +228,10 @@ namespace viewer {
 		Point3D cameraRot = viewer_->getScene()->getCamera().rotation();
 		Point3D cameraScale = viewer_->getScene()->getCamera().scale();
 
+		bool is_floor_display = viewer_->getScene()->displayFloor();
+
 		ui->btn_BackgroundColor->setStyleSheet(QString("background-color: %1").arg(backColor.name()));
+		ui->check_FloorDisplay->setCheckState(static_cast<Qt::CheckState>(is_floor_display));
 
 		ui->spin_camTransX->setValue(cameraTrans.x);
 		ui->spin_camTransY->setValue(cameraTrans.y);
@@ -597,6 +602,12 @@ namespace viewer {
 
 		setFigureValues();
 		setUISettings(viewer_->getScene()->getFigure(current_figure_).displayType());
+	}
+
+	void MainWindow::onFloorDisplayChanged() {
+		viewer_->getScene()->displayFloor() = !viewer_->getScene()->displayFloor();
+
+		viewer_->DrawScene();
 	}
 
 	// Слот для выбора цвета вершин

@@ -568,6 +568,7 @@ namespace viewer {
 		 * Здесь хранится 1 глобальный и N направленных источников освещения
 		 */
 		std::vector<Light> lights_;
+		bool isFloor_;
 
 	public:
 		/**
@@ -639,6 +640,8 @@ namespace viewer {
 
 		int countFigures() noexcept; ///< Вычисляет количество фигур на сцене
 		int countLights() noexcept; ///< Вычисляет количество направленных источников освещения
+
+		bool& displayFloor() noexcept; ///< Включено ли отображение пола на сцене
 
 	};
 

@@ -63,6 +63,9 @@ namespace viewer {
         void onLightChanged(int value);
         void onFigureChanged(int value);
 
+        // Изменение чекбоксов
+        void onFloorDisplayChanged();
+
     private:
         bool loadScene(const QString& path);
         void updateInfoLabels();

@@ -70,6 +70,11 @@
 #define UNIFORM_ACTIVE_LIGHTS "u_activePointLights"
 
 /**
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки информации, будет ли отрисован пол сцены или нет
+ */
+#define UNIFORM_DISPLAY_FLOOR "u_isFloor"
+
+/**
 @brief Классы для управления логикой проекта реализованы внутри пространства имен viewer
 */
 namespace viewer {
@@ -407,6 +412,15 @@ namespace viewer {
 		bool loadCountActiveLight(int32_t u_location, int count) noexcept;
 
 		/**
+		 * @brief Задает информацию, отображать ли пол на сцене
+		 * @param u_location Идентификатор uniform'ы
+		 * @param is_display Будет ли отрисован пол или нет
+		 * @return true, если uniform'а существует, иначе false
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_DISPLAY_FLOOR)
+		 */
+		bool loadDisplayFloor(int32_t u_location, bool is_display) noexcept;
+
+		/**
 		 * @brief Задает характеристики поверхности фигуры
 		 * @param material Визуальные свойства материала, которые влияют на отображение
 		 */
@@ -430,7 +444,15 @@ namespace viewer {
 		@brief Отрисовка фигуры\n
 		@note Вызывается после того, как были загружены все данные в uniform'ы (методы load*)
 		*/
-		void render() noexcept;
+		void renderFigure() noexcept;
+
+		/**
+		 * @brief Отрисовка пола сцены
+		 * @note Внутри себя имлементирует всю логику загрузки,
+		 * только перед этим нужно загрузить в фрагментный шейдер
+		 * отображение пола через Mesh::loadDisplayFloor()
+		 */
+		void renderFloor() noexcept;
 
 		/**
 		@brief Получение количества обрабатываемых вершин
