@@ -115,7 +115,7 @@ namespace viewer {
 
 		auto updateGeneral = [this]() {
 			viewer_->getScene()->getCamera().translation() = Point3D(ui->spin_camTransX->value(), ui->spin_camTransY->value(), ui->spin_camTransZ->value());
-			viewer_->getScene()->getCamera().rotation() = Point3D(ui->spin_camRotX->value(), ui->spin_rotY->value(), ui->spin_camRotZ->value());
+			viewer_->getScene()->getCamera().rotation() = Point3D(ui->spin_camRotX->value(), ui->spin_camRotY->value(), ui->spin_camRotZ->value());
 			viewer_->getScene()->getCamera().scale() = Point3D(ui->spin_camScaleX->value(), ui->spin_camScaleY->value(), ui->spin_camScaleZ->value());
 
 			viewer_->DrawScene();
@@ -123,7 +123,7 @@ namespace viewer {
 
 		for (auto s : {
 			ui->spin_camTransX, ui->spin_camTransY, ui->spin_camTransZ,
-			ui->spin_camRotX, ui->spin_camRotY, ui->spin_rotZ,
+			ui->spin_camRotX, ui->spin_camRotY, ui->spin_camRotZ,
 			ui->spin_camScaleX, ui->spin_camScaleY, ui->spin_camScaleZ}) {
 
 			connect(s, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, updateGeneral);
@@ -287,25 +287,60 @@ namespace viewer {
 		float dx = event->position().x() - lastPos_.x();
 		float dy = event->position().y() - lastPos_.y();
 
+		bool isCtrlPressed = (event->modifiers() & Qt::ControlModifier);
+
 		if (event->buttons() & Qt::LeftButton && current_figure_ > 0) {
+			// Левая кнопка мыши с Ctrl - перемещение камеры
+			if (isCtrlPressed) {
+				viewer_->getScene()->getCamera().translation().x += dx * TRANSLATION_MOUSE_SENSITIVITY;
+				viewer_->getScene()->getCamera().translation().y -= dy * TRANSLATION_MOUSE_SENSITIVITY;
+
+				ui->spin_camTransX->setValue(viewer_->getScene()->getCamera().translation().x);
+				ui->spin_camTransY->setValue(viewer_->getScene()->getCamera().translation().y);
+			}
+
 			// Левая кнопка мыши - перемещение фигуры в фокусе
+			else {
+				viewer_->getScene()->getFigure(current_figure_).translation().x += dx * TRANSLATION_MOUSE_SENSITIVITY;
+				viewer_->getScene()->getFigure(current_figure_).translation().y -= dy * TRANSLATION_MOUSE_SENSITIVITY;
 
-			viewer_->getScene()->getFigure(current_figure_).translation().x += dx * TRANSLATION_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getFigure(current_figure_).translation().y -= dy * TRANSLATION_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getFigure(current_figure_).translation().z = ui->spin_transZ->value();
-
-			ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x);
-			ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y);
+				ui->spin_transX->setValue(viewer_->getScene()->getFigure(current_figure_).translation().x);
+				ui->spin_transY->setValue(viewer_->getScene()->getFigure(current_figure_).translation().y);
+			}
 		}
 
 		else if (event->buttons() & Qt::RightButton && current_figure_) {
+			// Правая кнопка мыши с Ctrl - вращение камеры
+			if (isCtrlPressed) {
+				float new_x = viewer_->getScene()->getCamera().rotation().x + dy * ROTATION_MOUSE_SENSITIVITY;
+				float new_y = viewer_->getScene()->getCamera().rotation().y + dx * ROTATION_MOUSE_SENSITIVITY;
+
+				if (std::abs(new_x) >= 360.0) {
+					new_x += (new_x > 0.0) ? -360.0 : 360.0;
+				}
+				if (std::abs(new_y) >= 360.0) {
+					new_y += (new_y > 0.0) ? -360.0 : 360.0;
+				}
+
+				ui->spin_camRotX->setValue(new_x);
+				ui->spin_camRotY->setValue(new_y);
+			}
+
 			// Правая кнопка мыши - вращение
+			else {
+				float new_x = viewer_->getScene()->getFigure(current_figure_).rotation().x + dy * ROTATION_MOUSE_SENSITIVITY;
+				float new_y = viewer_->getScene()->getFigure(current_figure_).rotation().y + dx * ROTATION_MOUSE_SENSITIVITY;
 
-			viewer_->getScene()->getFigure(current_figure_).rotation().x += static_cast<int>(dy * ROTATION_MOUSE_SENSITIVITY) % 360;
-			viewer_->getScene()->getFigure(current_figure_).rotation().y += static_cast<int>(dx * ROTATION_MOUSE_SENSITIVITY) % 360;
+				if (std::abs(new_x) >= 360.0) {
+					new_x += (new_x > 0.0) ? -360.0 : 360.0;
+				}
+				if (std::abs(new_y) >= 360.0) {
+					new_y += (new_y > 0.0) ? -360.0 : 360.0;
+				}
 
-			ui->spin_rotX->setValue(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).rotation().x) % 360);
-			ui->spin_rotY->setValue(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).rotation().y) % 360);
+				ui->spin_rotX->setValue(new_x);
+				ui->spin_rotY->setValue(new_y);
+			}
 		}
 
 		lastPos_ = event->pos();
@@ -314,10 +349,20 @@ namespace viewer {
 
 	void MainWindow::wheelEvent(QWheelEvent* event) {
 		// Колесико мыши - зум
+		bool isCtrlPressed = (event->modifiers() & Qt::ControlModifier);
 
 		if (current_figure_ > 0) {
 			float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
-			viewer_->getScene()->getCamera().translation().z -= det;
+
+			if (isCtrlPressed) {
+				ui->spin_camTransZ->setValue(ui->spin_camTransZ->value() - det);
+			}
+
+			else {
+				ui->spin_scaleX->setValue(ui->spin_scaleX->value() + det);
+				ui->spin_scaleY->setValue(ui->spin_scaleY->value() + det);
+				ui->spin_scaleZ->setValue(ui->spin_scaleZ->value() + det);
+			}
 
 			viewer_->DrawScene();
 			update();
