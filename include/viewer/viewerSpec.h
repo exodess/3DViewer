@@ -500,7 +500,6 @@ namespace viewer {
 		std::string name_; ///< Путь до файла с фигурой
 		std::vector<Vertex> vertices_; ///< Множество вершин (координат в трехмерном пространстве)
 		std::vector<Surface> surfaces_; ///< Множество поверхностей (связей между вершинами)
-		DisplayType displayType_; ///< Хранит способ отображения фигуры на сцене
 		EdgeInfo edgInfo_; ///< Способ отображения ребер в фигуре
 		VertexInfo vertInfo_; ///< Способ отображения вершин в фигуре
 		MaterialData material_; ///< Характеристики материала, из которого состоит фигура
@@ -524,7 +523,6 @@ namespace viewer {
 		const std::vector<Vertex>& getVertices() const noexcept; ///< Доступ к списку вершин фигуры
 		const std::vector<Surface>& getSurfaces() const noexcept; ///< Доступ к списку поверхностей фигуры
 
-		DisplayType& displayType() noexcept; ///< Получение информации о том, как должна отрисовываться фигура
 		EdgeInfo& edgeInfo() noexcept; ///< Получение информации о способе представления ребер фигуры в каркасном режиме
 		VertexInfo& vertexInfo() noexcept; ///< Получение информации о способе представления вершин фигуры в каркасном режиме
 		MaterialData& material() noexcept; ///< Получение информации о характеристиках материала фигуры
@@ -568,6 +566,7 @@ namespace viewer {
 		 * Здесь хранится 1 глобальный и N направленных источников освещения
 		 */
 		std::vector<Light> lights_;
+		DisplayType displayType_; ///< Хранит способ отображения фигур на сцене
 		bool isFloor_;
 
 	public:
@@ -641,6 +640,7 @@ namespace viewer {
 		int countFigures() noexcept; ///< Вычисляет количество фигур на сцене
 		int countLights() noexcept; ///< Вычисляет количество направленных источников освещения
 
+		DisplayType& displayType() noexcept; ///< Получение информации о том, как должны отрисовываться фигуры
 		bool& displayFloor() noexcept; ///< Включено ли отображение пола на сцене
 
 	};

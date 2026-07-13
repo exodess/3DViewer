@@ -97,7 +97,6 @@ namespace viewer {
 
 
 	Figure::Figure() noexcept :
-	displayType_(DisplayType::WIREFRAME_MODEL),
 	material_(Point3D(), 0.5f, 0.0f, 0.5f, 0.5f, 0.5f) {}
 
 	Figure::Figure(
@@ -107,7 +106,6 @@ namespace viewer {
 	name_(path),
 	vertices_{vertices},
 	surfaces_{surfaces},
-	displayType_(DisplayType::WIREFRAME_MODEL),
 	material_(Point3D(), 0.5f, 0.5f, 0.5f, 0.5f, 0.5f) {}
 
 	const std::string& Figure::path() noexcept {
@@ -121,10 +119,6 @@ namespace viewer {
 
 	const std::vector<Surface>& Figure::getSurfaces() const noexcept {
 		return surfaces_;
-	}
-
-	DisplayType &Figure::displayType() noexcept {
-		return displayType_;
 	}
 
 	EdgeInfo &Figure::edgeInfo() noexcept {
@@ -188,7 +182,11 @@ namespace viewer {
 	// ========== Scene ==========
 	// ===========================
 
-	Scene::Scene() noexcept : backColor_(Point3D(1.0, 1.0f, 1.0f)), camera_(Camera()), isFloor_(false) {
+	Scene::Scene() noexcept
+	: backColor_(Point3D(1.0, 1.0f, 1.0f))
+	, camera_(Camera())
+	, displayType_(WIREFRAME_MODEL)
+	, isFloor_(false) {
 		lights_.push_back(Light());
 	}
 
@@ -264,6 +262,10 @@ namespace viewer {
 	int Scene::countLights() noexcept {
 		// 1 Фоновое освещение + (n - 1) направленных источников
 		return lights_.size();
+	}
+
+	DisplayType &Scene::displayType() noexcept {
+		return displayType_;
 	}
 
 	bool &Scene::displayFloor() noexcept {

@@ -379,6 +379,7 @@ namespace viewer {
 		// Сначала глобальные настройки сцены
 		settings["backgroundColor"] = colorToJson(viewer_->getScene()->backgroundColor());
 		settings["projectionType"] = viewer_->getScene()->getCamera().projectionType();
+		settings["displayType"] = viewer_->getScene()->displayType();
 
 		// Сохраняем настройки глобального освещения
 		QJsonObject globalLight_settings;
@@ -404,7 +405,6 @@ namespace viewer {
 			figure_settings["edgeSize"] = viewer_->getScene()->getFigure(i).edgeInfo().size();
 			figure_settings["edgeDisplayType"] = viewer_->getScene()->getFigure(i).edgeInfo().mode();
 
-			figure_settings["displayType"] = viewer_->getScene()->getFigure(i).displayType();
 			figure_settings["material"] = materialToJson(viewer_->getScene()->getFigure(i).material());
 
 			settings[QString("figure %1").arg(i)] = figure_settings;
@@ -505,15 +505,12 @@ namespace viewer {
 					if (figure_settings.contains("edgeDisplayType")) {
 						viewer_->getScene()->getFigure(i).edgeInfo().mode() = static_cast<EdgesMode>(figure_settings["edgeDisplayType"].toInt());
 					}
-					if (figure_settings.contains("displayType")) {
-						viewer_->getScene()->getFigure(i).displayType() = static_cast<DisplayType>(figure_settings["displayType"].toInt());
-					}
 					if (figure_settings.contains("material")) {
 						viewer_->getScene()->getFigure(i).material() = materialFromJson(figure_settings["material"].toObject());
 					}
 
 					setFigureValues();
-					setUISettings(viewer_->getScene()->getFigure(i).displayType());
+					setUISettings(viewer_->getScene()->displayType());
 
 					i++;
 				}
@@ -646,7 +643,6 @@ namespace viewer {
 		current_figure_ = value + 1;
 
 		setFigureValues();
-		setUISettings(viewer_->getScene()->getFigure(current_figure_).displayType());
 	}
 
 	void MainWindow::onFloorDisplayChanged() {
@@ -772,13 +768,13 @@ namespace viewer {
 		ui->label_VertexCount->setText("Вершин: " + QString::number(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).getVertices().size())));
 		ui->label_EdgeCount->setText("Поверхностей: " + QString::number(static_cast<int>(viewer_->getScene()->getFigure(current_figure_).getSurfaces().size())));
 
-		if (viewer_->getScene()->getFigure(current_figure_).displayType() == DisplayType::WIREFRAME_MODEL)
+		if (viewer_->getScene()->displayType() == DisplayType::WIREFRAME_MODEL)
 			ui->label_displayType->setText("Отображение только ребер и вершин");
-		else if (viewer_->getScene()->getFigure(current_figure_).displayType() == DisplayType::FLAT_SHADING_MODEL)
+		else if (viewer_->getScene()->displayType() == DisplayType::FLAT_SHADING_MODEL)
 			ui->label_displayType->setText("Плоское затенение");
-		else if (viewer_->getScene()->getFigure(current_figure_).displayType() == DisplayType::SMOOTH_SHADING_MODEL)
+		else if (viewer_->getScene()->displayType() == DisplayType::SMOOTH_SHADING_MODEL)
 			ui->label_displayType->setText("Мягкое затенение");
-		else if (viewer_->getScene()->getFigure(current_figure_).displayType() == RAY_TRACING)
+		else if (viewer_->getScene()->displayType() == RAY_TRACING)
 			ui->label_displayType->setText("Трассировка лучей");
 
 		if (viewer_->getScene()->getCamera().projectionType() == ProjectionType::ORTHOGRAPHIC)
@@ -820,7 +816,7 @@ namespace viewer {
 
 	void MainWindow::on_action_Wireframe_triggered() {
 		if (current_figure_ > 0) {
-			viewer_->getScene()->getFigure(current_figure_).displayType() = WIREFRAME_MODEL;
+			viewer_->getScene()->displayType() = WIREFRAME_MODEL;
 			setUISettings(WIREFRAME_MODEL);
 
 			viewer_->DrawScene();
@@ -833,7 +829,7 @@ namespace viewer {
 
 	void MainWindow::on_action_FlatShading_triggered() {
 		if (current_figure_ > 0) {
-			viewer_->getScene()->getFigure(current_figure_).displayType() = FLAT_SHADING_MODEL;
+			viewer_->getScene()->displayType() = FLAT_SHADING_MODEL;
 			setUISettings(FLAT_SHADING_MODEL);
 
 			viewer_->DrawScene();
@@ -846,7 +842,7 @@ namespace viewer {
 
 	void MainWindow::on_action_SmoothShading_triggered() {
 		if (current_figure_ > 0) {
-			viewer_->getScene()->getFigure(current_figure_).displayType() = SMOOTH_SHADING_MODEL;
+			viewer_->getScene()->displayType() = SMOOTH_SHADING_MODEL;
 			setUISettings(SMOOTH_SHADING_MODEL);
 
 			viewer_->DrawScene();
@@ -859,7 +855,7 @@ namespace viewer {
 
 	void MainWindow::on_action_RayTracing_triggered() {
 		if (current_figure_ > 0) {
-			viewer_->getScene()->getFigure(current_figure_).displayType() = RAY_TRACING;
+			viewer_->getScene()->displayType() = RAY_TRACING;
 			ui->groupBox_Edges->setVisible(false);
 			ui->groupBox_Vertices->setVisible(false);
 

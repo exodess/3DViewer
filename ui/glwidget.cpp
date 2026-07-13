@@ -201,6 +201,9 @@ namespace viewer {
 
 			glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
 			mesh_->loadCameraStructure(scene->getCamera().getData(aspect_));
+			mesh_->loadDisplayType(
+					shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
+					scene->displayType());
 
 			// Если нужно, отображаем пол
 			if (scene->displayFloor()) {
@@ -220,9 +223,6 @@ namespace viewer {
 				auto current_figure = scene->getFigure(i + 1);
 
 				mesh_->loadData(current_figure);
-				mesh_->loadDisplayType(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
-					current_figure.displayType());
 				mesh_->loadModelMatrix(
 					shaderProgram_->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 					current_figure.getModelMatrix());
@@ -230,7 +230,7 @@ namespace viewer {
 					shaderProgram_->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
 					current_figure.getModelMatrix());
 
-				if (current_figure.displayType() == WIREFRAME_MODEL) {
+				if (scene->displayType() == WIREFRAME_MODEL) {
 					// Для каркасной модели необходимы сведения о вершинах и ребрах
 					mesh_->loadAspectRatio(
 						shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
