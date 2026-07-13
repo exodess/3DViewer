@@ -101,14 +101,14 @@ namespace viewer {
     private:
         void compileShaders();
 
-        ShaderProgram* shaderProgram_;
-        Mesh* mesh_;
-        float aspect_;
+        std::shared_ptr<ShaderProgram> shader_program_; ///< Шейдерная программа для отрисовки в обычных режимах
+        std::shared_ptr<ShaderProgram> ray_tracing_shader_program_; ///< Шейдерная программа для отрисовки с трассировкой лучей
+        std::shared_ptr<Mesh> mesh_;
+        float aspect_; ///< Соотношение сторон экрана
 
         // GIF запись
         std::unique_ptr<GifRecorder> gif_recorder_;  ///< Рекордер GIF
-        QTimer* record_timer_ = nullptr;  ///< Таймер для захвата кадров
-
+        std::unique_ptr<QTimer> record_timer_;  ///< Таймер для захвата кадров
     };
 
 }

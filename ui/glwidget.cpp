@@ -9,48 +9,32 @@ namespace viewer {
 
 	GLWidget::GLWidget(QWidget* parent)
 	    : QOpenGLWidget(parent)
-	    , shaderProgram_(nullptr)
+	    , shader_program_(nullptr)
+		, ray_tracing_shader_program_(nullptr)
 	    , mesh_(nullptr)
 		, aspect_(1.0f)
 		, gif_recorder_(std::make_unique<GifRecorder>())
-		, record_timer_(new QTimer(this))
+		, record_timer_(std::make_unique<QTimer>(this))
 	{
 		setFocusPolicy(Qt::StrongFocus);
 
 		// Инициализация GIF рекордера
-		connect(record_timer_, &QTimer::timeout, this, &GLWidget::captureFrame);
+		connect(record_timer_.get(), &QTimer::timeout, this, &GLWidget::captureFrame);
 
 		std::cout << "[GLWidget] Инициализация GLWidget\n";
 	}
 
-	GLWidget::~GLWidget() {
-		std::cout << "[GLWidget] Удаление GLWidget\n";
-		if (mesh_) {
-		    delete mesh_;
-		}
-		if (shaderProgram_) {
-		    delete shaderProgram_;
-		}
-
-		if (record_timer_ && record_timer_->isActive()) {
-			record_timer_->stop();
-		}
-		if (gif_recorder_ && gif_recorder_->IsRecording()) {
-			gif_recorder_->StopRecording();
-		}
-	}
-
 	void GLWidget::initializeGL() {
 		initializeOpenGLFunctions();
+		ShaderProgram::initOpenGLTools();
 
 		compileShaders();
-		mesh_ = new Mesh();
+		mesh_ = std::make_unique<Mesh>();
 		std::cout << "[GLWidget] OpenGL инициализирован\n";
 	}
 
 	void GLWidget::paintGL() {
-		// Mesh::clear();
-		shaderProgram_->use();
+		shader_program_->use();
 		mesh_->renderFigure();
 	}
 
@@ -195,26 +179,26 @@ namespace viewer {
 
 	void GLWidget::DrawScene(Scene* scene) {
 		makeCurrent();
-		if (mesh_ && shaderProgram_) {
+		if (mesh_ && shader_program_) {
 			Mesh::clear();
-			shaderProgram_->use();
+			shader_program_->use();
 
 			glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
 			mesh_->loadCameraStructure(scene->getCamera().getData(aspect_));
 			mesh_->loadDisplayType(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
+					shader_program_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
 					scene->displayType());
 
 			// Если нужно, отображаем пол
 			if (scene->displayFloor()) {
 				mesh_->loadDisplayFloor(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
+					shader_program_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
 					scene->displayFloor());
 
 				mesh_->renderFloor();
 
 				mesh_->loadDisplayFloor(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
+						shader_program_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
 						false);
 			}
 
@@ -224,44 +208,44 @@ namespace viewer {
 
 				mesh_->loadData(current_figure);
 				mesh_->loadModelMatrix(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
+					shader_program_->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 					current_figure.getModelMatrix());
 				mesh_->loadNormalMatrix(
-					shaderProgram_->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
+					shader_program_->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
 					current_figure.getModelMatrix());
 
 				if (scene->displayType() == WIREFRAME_MODEL) {
 					// Для каркасной модели необходимы сведения о вершинах и ребрах
 					mesh_->loadAspectRatio(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
+						shader_program_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
 						aspect_ );
 
 					// Размер, цвет и форма отображения вершин
 					mesh_->loadVerticesSize(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
+						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
 						current_figure.vertexInfo().size());
 					mesh_->loadVerticesColor(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
+						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
 						current_figure.vertexInfo().color());
 					mesh_->loadVerticesMode(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
-						shaderProgram_->getUniformLocation((char*)UNIFORM_VERTICES_MODE),
+						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
+						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_MODE),
 						current_figure.vertexInfo().mode());
 
 					// Размер, цвет и способ отображения ребер
 					mesh_->loadEdgesSize(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_SIZE),
+						shader_program_->getUniformLocation((char*)UNIFORM_EDGES_SIZE),
 						current_figure.edgeInfo().size());
 					mesh_->loadEdgesColor(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_COLOR),
+						shader_program_->getUniformLocation((char*)UNIFORM_EDGES_COLOR),
 						current_figure.edgeInfo().color());
 					mesh_->loadEdgesMode(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_EDGES_MODE),
+						shader_program_->getUniformLocation((char*)UNIFORM_EDGES_MODE),
 						current_figure.edgeInfo().mode());
 				}
 				else {
 					mesh_->loadCountActiveLight(
-						shaderProgram_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+						shader_program_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
 						scene->countLights());
 
 					mesh_->loadLightStructure(scene->getSceneLightsData());
@@ -283,14 +267,12 @@ namespace viewer {
 		QString vertPath = shaderPath + "shader.vert";
 		QString geomPath = shaderPath + "shader.geom";
 		QString fragPath = shaderPath + "shader.frag";
+		QString rayVertPath = shaderPath + "ray_tracing.vert";
+		QString rayFragPath = shaderPath + "ray_tracing.frag";
 
-		if (!QFile::exists(vertPath)) {
-			vertPath = "shaders/shader.vert";
-			geomPath = "shaders/shader.geom";
-			fragPath = "shaders/shader.frag";
-		}
+		shader_program_ = std::make_unique<ShaderProgram>(vertPath.toStdString(), geomPath.toStdString(), fragPath.toStdString());
+		ray_tracing_shader_program_ = std::make_unique<ShaderProgram>(vertPath.toStdString(), fragPath.toStdString());
 
-		shaderProgram_ = new ShaderProgram(vertPath.toStdString(), geomPath.toStdString(), fragPath.toStdString());
 		std::cout << "[GLWidget] Шейдеры скомпилированы\n";
 	}
 
