@@ -9,29 +9,11 @@ layout (triangle_strip, max_vertices = 27) out;
 uniform float u_edgesSize;
 uniform float u_vertSize;
 uniform float u_aspectRatio;
-uniform int u_displayType; // 0 - каркасная модель, иначе отрисовка с освещением
 
 // Данные, передаваемые в фрагментный шейдер
 out vec2 vTexCoord;
 out float vLineDist;
 flat out int vIsPoint;
-flat out int displayType;
-
-in vec3 Camera_vertex[];
-in vec3 Vertex_view[];
-in vec3 Normal_vertex[];
-
-out vec3 Camera_v;
-out vec3 Vertex_v;
-out vec3 Normal_v;
-
-void setLightSettings(int index) {
-    Camera_v = Camera_vertex[index];
-    Vertex_v = Vertex_view[index];
-    Normal_v = Normal_vertex[index];
-
-    gl_Position = gl_in[index].gl_Position;
-}
 
 // Генерация квадрата (точки) вокруг позиции
 void emitPoint(vec4 center, float size) {
@@ -96,36 +78,18 @@ void emitEdge(vec4 begin, vec4 end) {
 }
 
 void main() {
-
-    displayType = u_displayType;
-
     // Три вершины образуют треугольник
     vec4 p0 = gl_in[0].gl_Position;
     vec4 p1 = gl_in[1].gl_Position;
     vec4 p2 = gl_in[2].gl_Position;
 
-    if(u_displayType == 0) {
-        // каркасная фигура
+    // Отрисовываем вершины треугольника
+    emitPoint(p0, u_vertSize);
+    emitPoint(p1, u_vertSize);
+    emitPoint(p2, u_vertSize);
 
-        // 2. Отрисовываем вершины треугольника
-        emitPoint(p0, u_vertSize);
-        emitPoint(p1, u_vertSize);
-        emitPoint(p2, u_vertSize);
-
-        // 1. Отрисовываем ребра между вершинами
-        emitEdge(p0, p1);
-        emitEdge(p1, p2);
-        emitEdge(p0, p2);
-    }
-
-    else {
-        // Режим освещения
-
-        for(int i = 0; i < 3; ++i) {
-            setLightSettings(i);
-            EmitVertex();
-        }
-        EndPrimitive();
-    }
-
+    // Отрисовываем ребра между вершинами
+    emitEdge(p0, p1);
+    emitEdge(p1, p2);
+    emitEdge(p0, p2);
 }
