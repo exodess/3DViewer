@@ -114,7 +114,7 @@ namespace viewer {
 		@param path Путь до файла с кодом шейдера
 		@return Исходный код в виде одной строки
 		*/
-		std::string readShaderSource(std::string path);
+		std::string readShaderSource(const std::string& path) const noexcept;
 
 		/**
 		@brief Создание и компиляция шейдера
@@ -122,28 +122,55 @@ namespace viewer {
 		@param shaderType Тип шейдера, который необходимо создать (вершинный или фрагментарный)
 		@return Идентификатор скомпилированного шейдера
 		*/
-		uint32_t createShader(const char* sourceShaderCode, uint32_t shaderType);
+		uint32_t createShader(const char* sourceShaderCode, uint32_t shaderType) const noexcept;
 
 		/**
 		@brief Создание шейдерной программы, присоединение к ней скомпилированных ранее шейдеров
-		@note После присоединения шейдеров к шейдерной программе они удаляются
+		@note Шейдерная программа создается вместе с геометрическим шейдером,
+		служит для отрисовки в каркасном режиме
 		@param vertexShader Идентификатор скомпилированного вершинного шейдера
 		@param geometryShader Идентификатор скомпилированного геометрического шейдера
 		@param fragmentShader Идентификатор скомпилированного фрагментарного шейдера
 		@return Идентификатор шейдерной программы
 		*/
-		uint32_t createShaderProgram(uint32_t vertexShader, uint32_t geometryShader, uint32_t fragmentShader);
+		uint32_t createShaderProgram(uint32_t vertexShader, uint32_t geometryShader, uint32_t fragmentShader) noexcept;
+
+		/**
+		 * @brief Создание шейдерной программы, присоединение к ней скомпилированных ранее шейдеров.
+		 * @note Шейдерная программа создается без геометрического шейдера,
+		 * служит для отрисовки сцены со светом
+		 * @param vertexShader Идентификатор скомпилированного вершинного шейдера
+		 * @param fragmentShader Идентификатор скомпилированного фрагментарного шейдера
+		 * @return Идентификатор шейдерной программы
+		 */
+		uint32_t createShaderProgram(uint32_t vertexShader, uint32_t fragmentShader) noexcept;
 
 	public:
 		/**
-		@brief Создание шейдерной программы для ее использования в вычислениях над вершинами
-		@param vertShaderPath Путь до исходного кода вершинного шейдера
-		@param geomShaderPath Путь до исходного кода геометрического шейдера
-		@param fragShaderPath Путь до исходного кода фрагментарного шейдера
+		@brief Создание шейдерной программы для ее использования в каркасном режиме отрисовки
+		@param vert_shader_path Путь до исходного кода вершинного шейдера
+		@param geom_shader_path Путь до исходного кода геометрического шейдера
+		@param frag_shader_path Путь до исходного кода фрагментарного шейдера
 		@note Шейдерная программа создается один раз в начале программы
 		*/
-		ShaderProgram(std::string vertShaderPath, std::string geomShaderPath, std::string fragShaderPath);
+		ShaderProgram(const std::string& vert_shader_path, const std::string& geom_shader_path, const std::string& frag_shader_path);
+
+		/**
+		 * @brief Создание шейдерной программы для ее использования при работе со светом
+		 * @param vert_shader_path Путь до исходного кода вершинного шейдера
+		 * @param frag_shader_path Путь до исходного кода фрагментарного шейдера
+		 * @note Шейдерная программа создается один раз в начале программы
+		 */
+		ShaderProgram(const std::string& vert_shader_path, const std::string& frag_shader_path);
+
+		ShaderProgram(const ShaderProgram&) = delete; ///< Убираем возможность копировать шейдерные программы
 		~ShaderProgram(); ///< Удаление шейдерной программы
+
+		/**
+		 * @brief Инициализирует функции OpenGL и
+		 * включает необходимые поддержки для работы с графикой
+		 */
+		static void initOpenGLTools() noexcept;
 
 		/**
 		 * @brief Находит расположение необходимой uniform'ы в шейдерной программе\n
