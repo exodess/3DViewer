@@ -8,7 +8,7 @@
 @author Versiese
 @date 2026-03-13
 */
-#include "viewerSpec.h"
+#include "viewer_spec.h"
 #include <fstream>
 #include <map>
 #include <cstdint> // для типов

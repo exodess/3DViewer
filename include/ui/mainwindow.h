@@ -3,7 +3,7 @@
 
 #include "ui_mainwindow.h"
 #include "glwidget.h"
-#include "viewer/viewerSpec.h"
+#include "viewer/viewer_spec.h"
 
 namespace viewer {
 

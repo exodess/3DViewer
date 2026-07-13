@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "viewer/viewerSpec.h"
+#include "viewer/viewer_spec.h"
 
 #ifndef TEST_SHAPES_DATA_PATH
 #define TEST_SHAPES_DATA_PATH "."

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <viewer/viewerSpec.h>
+#include <viewer/viewer_spec.h>
 #include <cmath>
 
 constexpr float kEpsilon = 1e-5f;

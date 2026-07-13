@@ -1,4 +1,4 @@
-#include "viewer/viewerSpec.h"
+#include "viewer/viewer_spec.h"
 #include <cmath>
 
 namespace viewer {

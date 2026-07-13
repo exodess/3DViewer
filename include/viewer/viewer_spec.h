@@ -3,7 +3,7 @@
 
 /**
 
-@file viewerSpec.h
+@file viewer_spec.h
 @author exodess
 @date 2026-03-21
 @brief Этот файл содержит описание структуры внутренней части программы 3DViewer\n

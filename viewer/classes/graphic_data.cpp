@@ -1,6 +1,6 @@
 #include <random>
 
-#include "viewer/viewerSpec.h"
+#include "viewer/viewer_spec.h"
 
 // реализация классов Surface, Vertex, Figure
 
