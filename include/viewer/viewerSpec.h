@@ -1,11 +1,6 @@
 #ifndef VIEWER_SPECIFICATION_H
 #define VIEWER_SPECIFICATION_H
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <cstdint>
-
 /**
 
 @file viewerSpec.h
@@ -13,7 +8,7 @@
 @date 2026-03-21
 @brief Этот файл содержит описание структуры внутренней части программы 3DViewer\n
 
-Классы, описанные в данном файле, осуществляют хранение информации о том, как будет представлены объекты в памяти 
+Классы, описанные в данном файле, осуществляют хранение информации о том, как будет представлены объекты в памяти
 и как ими управлять
 
 Загружаемая фигура поддерживает только список вершин, поверхностей и нормалей\n
@@ -25,12 +20,14 @@
 - классы BaseSceneObject, Figure и Vertex реализуют паттерн Strategy
 - Класс Viewer реализует паттерн Facade
 - TransformMatrixBuilder реализует паттерн Abstract Factory
-	
+
 */
 
-#include "dataStructures.h"
-#include "viewerSpec.h"
-#include "viewerSpec.h"
+#include <vector>
+#include <string>
+#include <iostream>
+#include <cstdint>
+#include "data.h"
 
 namespace viewer {
 

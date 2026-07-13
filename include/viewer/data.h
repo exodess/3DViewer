@@ -2,7 +2,7 @@
 #define VIEWER_DATASTRUCTURES_H
 
 /**
- * @file dataStructures.h
+ * @file data.h
  * @brief В этом файле хранятся основные структуры данных,
  * которые используются при хранении данных в базовых классах программы
  * @author Georgiy Kovalev
