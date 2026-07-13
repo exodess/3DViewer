@@ -14,7 +14,7 @@
 #include <QTimer>
 #include <iostream>
 
-#include "viewer/graphicSpec.h"
+#include "viewer/graphic_spec.h"
 #include "ui/ui_mainwindow.h"
 #include "services/gif_recorder.h"
 

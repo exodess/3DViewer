@@ -1,5 +1,5 @@
 #include <glad/glad.h>
-#include "viewer/graphicSpec.h"
+#include "viewer/graphic_spec.h"
 #include <sstream>
 
 namespace viewer {

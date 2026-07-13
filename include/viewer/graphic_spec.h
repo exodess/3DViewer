@@ -2,7 +2,7 @@
 #define VIEWER_GRAPHIC_SPECIFICATION_H
 
 /**
-@file graphicSpec.h
+@file graphic_spec.h
 @brief В этом заголовочном файле описаны вспомогательные классы и константы, 
 которые используются при обработке 3D графики OpenGL в коде viewer/opengl
 @author Versiese

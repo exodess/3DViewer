@@ -1,4 +1,4 @@
-#include "viewer/graphicSpec.h"
+#include "viewer/graphic_spec.h"
 #include <glad/glad.h>
 
 namespace viewer {
