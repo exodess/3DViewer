@@ -16,15 +16,13 @@ layout(std430, binding = 1) buffer LightsBuffer {
 uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
 
 // значения из вершинного шейдера
-in vec3 Camera_v;
-in vec3 Vertex_v;
-in vec3 Normal_v;
+in vec3 Vertex_view;
 
 out vec4 FragColor;
 
 void main() {
     // Нормаль
-    vec3 N = normalize(cross(dFdx(Vertex_v), dFdy(Vertex_v)));
+    vec3 N = normalize(cross(dFdx(Vertex_view), dFdy(Vertex_view)));
 
     // Общая диффузная составляющая
     vec3 diffuseAccum = vec3(0.0);
@@ -33,7 +31,7 @@ void main() {
     vec3 ambient = b_LightStruct.lights[0].color.xyz * b_LightStruct.lights[0].intensity;
 
     for(int i = 1; i < u_activePointLights; ++i) {
-        vec3 Light_v = normalize(b_LightStruct.lights[i].position.xyz - Vertex_v);
+        vec3 Light_v = normalize(b_LightStruct.lights[i].position.xyz - Vertex_view);
 
         // Диффузная составляющая
         float diffuse = max(dot(Light_v, N), 0.0);

@@ -3,14 +3,14 @@
 uniform vec3 u_backgroundColor;
 
 // значения из вершинного шейдера
-in vec3 Camera_v;
-in vec3 Vertex_v;
+in vec3 Camera_vertex;
+in vec3 Vertex_view;
 
 out vec4 FragColor;
 
 void main() {
     // Координаты сетки (абсолютные мировые)
-    vec2 coord = Vertex_v.xz / 2.0;
+    vec2 coord = Vertex_view.xz / 2.0;
     vec2 derivative = fwidth(coord);
 
     vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
@@ -22,7 +22,7 @@ void main() {
         discard;
     }
 
-    float distanceToCam = length(Vertex_v - Camera_v);
+    float distanceToCam = length(Vertex_view - Camera_vertex);
 
     // Плавное затухание
     float fade = clamp(1.0 - (distanceToCam / 80.0), 0.0, 1.0);

@@ -25,16 +25,16 @@ layout(std430, binding = 1) buffer LightsBuffer {
 uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
 
 // значения из вершинного шейдера
-in vec3 Camera_v;
-in vec3 Vertex_v;
-in vec3 Normal_v;
+in vec3 Camera_vertex;
+in vec3 Vertex_view;
+in vec3 Normal_vertex;
 
 out vec4 FragColor;
 
 void main() {
     // мягкое затенение методом Блинна-Фонга
 
-    vec3 N = normalize(Normal_v); // Интерполированная нормаль
+    vec3 N = normalize(Normal_vertex); // Интерполированная нормаль
 
     // Базовое фоновое освещение
     vec3 ambient = b_LightStruct.lights[0].color.xyz * b_LightStruct.lights[0].intensity;
@@ -42,14 +42,14 @@ void main() {
     vec3 specularAccum = vec3(0, 0, 0); // Общая зеркальная составляющая
 
     for(int i = 1; i < u_activePointLights; ++i) {
-        vec3 Light_v = normalize(b_LightStruct.lights[i].position.xyz - Vertex_v);
+        vec3 Light_v = normalize(b_LightStruct.lights[i].position.xyz - Vertex_view);
 
         // Интенсивность диффузного отражения
         float diffuse = max(dot(normalize(Light_v), N), 0.0);
         diffuseAccum += diffuse * b_LightStruct.lights[i].color.xyz * b_LightStruct.lights[i].intensity;
 
         // Вектор половины пути
-        vec3 H = normalize(normalize(Light_v) + normalize(Camera_v));
+        vec3 H = normalize(normalize(Light_v) + normalize(Camera_vertex));
 
         // Зеркальная составляющая
         float specular = pow(max(dot(H, N), 0.0), 32);
