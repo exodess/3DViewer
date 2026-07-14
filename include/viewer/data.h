@@ -44,7 +44,8 @@ namespace viewer {
 		WIREFRAME_MODEL = 0, ///< Каркасная модель
 		FLAT_SHADING_MODEL, ///< Плоское затенение
 		SMOOTH_SHADING_MODEL, ///< Мягкое затенение
-		RAY_TRACING /// Трассировка лучей (пока что через PBR)
+		RAY_TRACING, /// Трассировка лучей (пока что через PBR)
+		COUNT ///< Константа для хранения размера перечисления DisplayType
 	};
 
 #define LIGHT_DEFAULT_INTENSITY 0.5f
