@@ -1,16 +1,10 @@
 #include "ui/glwidget.h"
 
-// Что еще нужно исправить:
-// 1. Движение камеры
-// 3. Починить масштабирование с помощью колесика мыши
-// 4. Заменить LightData на Light
-
 namespace viewer {
 
 	GLWidget::GLWidget(QWidget* parent)
 	    : QOpenGLWidget(parent)
-	    , shader_program_(nullptr)
-		, ray_tracing_shader_program_(nullptr)
+		, current_program_id_(0)
 	    , mesh_(nullptr)
 		, aspect_(1.0f)
 		, gif_recorder_(std::make_unique<GifRecorder>())
@@ -20,6 +14,7 @@ namespace viewer {
 
 		// Инициализация GIF рекордера
 		connect(record_timer_.get(), &QTimer::timeout, this, &GLWidget::captureFrame);
+		shader_programs_.reserve(DisplayType::COUNT + 1);
 
 		std::cout << "[GLWidget] Инициализация GLWidget\n";
 	}
@@ -34,7 +29,8 @@ namespace viewer {
 	}
 
 	void GLWidget::paintGL() {
-		shader_program_->use();
+		Mesh::clear();
+		shader_programs_[current_program_id_]->use();
 		mesh_->renderFigure();
 	}
 
@@ -179,79 +175,104 @@ namespace viewer {
 
 	void GLWidget::DrawScene(Scene* scene) {
 		makeCurrent();
-		if (mesh_ && shader_program_) {
+		if (mesh_ && !shader_programs_.empty()) {
+			// Выбираем необходимую шейдерную программу
+			current_program_id_ = scene->displayType() + 1;
 			Mesh::clear();
-			shader_program_->use();
 
-			glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
-			mesh_->loadCameraStructure(scene->getCamera().getData(aspect_));
-			mesh_->loadDisplayType(
-					shader_program_->getUniformLocation((char*)UNIFORM_DISPLAY_TYPE),
-					scene->displayType());
-
-			// Если нужно, отображаем пол
+			// Сначала, если нужно, отображаем пол
 			if (scene->displayFloor()) {
-				mesh_->loadDisplayFloor(
-					shader_program_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
-					scene->displayFloor());
-
+				shader_programs_[0]->use();
 				mesh_->renderFloor();
-
-				mesh_->loadDisplayFloor(
-						shader_program_->getUniformLocation((char*)UNIFORM_DISPLAY_FLOOR),
-						false);
 			}
 
-			// Загружаем данные фигур и поочередно их отрисовываем
-			for (auto i = 0; i < scene->countFigures(); ++i) {
-				auto current_figure = scene->getFigure(i + 1);
+			shader_programs_[current_program_id_]->use();
+			glClearColor(scene->backgroundColor().x, scene->backgroundColor().y, scene->backgroundColor().z, 1.0f);
 
-				mesh_->loadData(current_figure);
-				mesh_->loadModelMatrix(
-					shader_program_->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
-					current_figure.getModelMatrix());
-				mesh_->loadNormalMatrix(
-					shader_program_->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
-					current_figure.getModelMatrix());
+			// Везде необходима информация о камере
+			mesh_->loadCameraStructure(scene->getCamera().getData(aspect_));
 
-				if (scene->displayType() == WIREFRAME_MODEL) {
-					// Для каркасной модели необходимы сведения о вершинах и ребрах
-					mesh_->loadAspectRatio(
-						shader_program_->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
-						aspect_ );
+			if (scene->displayType() == WIREFRAME_MODEL) {
+				mesh_->loadAspectRatio(
+					shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_ASPECT_RATIO),
+					aspect_);
 
-					// Размер, цвет и форма отображения вершин
+				// Загружаем информацию о каждой фигуре
+
+				for (auto i = 0; i < scene->countFigures(); ++i) {
+					auto current_figure = scene->getFigure(i + 1);
+
+					mesh_->loadData(current_figure);
+					mesh_->loadModelMatrix(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
+						current_figure.getModelMatrix());
+					mesh_->loadNormalMatrix(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
+						current_figure.getModelMatrix());
+
+					// Загружаем информацию о вершинах
 					mesh_->loadVerticesSize(
-						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
 						current_figure.vertexInfo().size());
 					mesh_->loadVerticesColor(
-						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_VERTICES_COLOR),
 						current_figure.vertexInfo().color());
 					mesh_->loadVerticesMode(
-						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
-						shader_program_->getUniformLocation((char*)UNIFORM_VERTICES_MODE),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_VERTICES_SIZE),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_VERTICES_MODE),
 						current_figure.vertexInfo().mode());
 
-					// Размер, цвет и способ отображения ребер
+					// Загружаем информацию о ребрах
 					mesh_->loadEdgesSize(
-						shader_program_->getUniformLocation((char*)UNIFORM_EDGES_SIZE),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_EDGES_SIZE),
 						current_figure.edgeInfo().size());
 					mesh_->loadEdgesColor(
-						shader_program_->getUniformLocation((char*)UNIFORM_EDGES_COLOR),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_EDGES_COLOR),
 						current_figure.edgeInfo().color());
 					mesh_->loadEdgesMode(
-						shader_program_->getUniformLocation((char*)UNIFORM_EDGES_MODE),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_EDGES_MODE),
 						current_figure.edgeInfo().mode());
-				}
-				else {
-					mesh_->loadCountActiveLight(
-						shader_program_->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
-						scene->countLights());
 
-					mesh_->loadLightStructure(scene->getSceneLightsData());
-					mesh_->loadMaterialStructure(current_figure.material());
+					mesh_->renderFigure();
 				}
-				mesh_->renderFigure();
+			}
+
+			// Для всех остальных режимов нужно загружать информацию об освещении
+			mesh_->loadCountActiveLight(
+					shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+					scene->countLights());
+
+			mesh_->loadLightStructure(scene->getSceneLightsData());
+
+			if (scene->displayType() == FLAT_SHADING_MODEL) {
+				for (auto i = 0; i < scene->countFigures(); ++i) {
+					auto current_figure = scene->getFigure(i + 1);
+
+					mesh_->loadData(current_figure);
+					mesh_->loadModelMatrix(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
+						current_figure.getModelMatrix());
+					mesh_->loadNormalMatrix(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
+						current_figure.getModelMatrix());
+				}
+			}
+
+			else if (scene->displayType() == SMOOTH_SHADING_MODEL) {
+				for (auto i = 0; i < scene->countFigures(); ++i) {
+					auto current_figure = scene->getFigure(i + 1);
+
+					mesh_->loadData(current_figure);
+					mesh_->loadModelMatrix(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
+						current_figure.getModelMatrix());
+					mesh_->loadNormalMatrix(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
+						current_figure.getModelMatrix());
+
+					mesh_->loadMaterialStructure(current_figure.material());
+					mesh_->renderFigure();
+				}
 			}
 		}
 
