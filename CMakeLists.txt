@@ -47,16 +47,6 @@ file(GLOB glad_src_files "dependencies/src/glad.c")
 file(GLOB gtest_src_files "gtest/*.cpp")
 file(GLOB gif_src_files "viewer/services/*.cpp")
 
-# Копируем нужные ресурсы в директорию сборки
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders/shader.vert"
-	DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/shaders")
-
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders/shader.geom"
-	DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/shaders")
-
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders/shader.frag"
-	DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/shaders")
-
 # ---------------------------------------------
 #     Создание библиотек для работы проекта
 # ---------------------------------------------
@@ -77,7 +67,7 @@ set_target_properties(GLAD_LIB PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Библиотека для работы с логикой обработки OpenGL
 add_library(ViewerGraphicLib STATIC ${glad_src_files} ${opengl_src_files})
-target_link_libraries(ViewerGraphicLib 
+target_link_libraries(ViewerGraphicLib
 	ViewerClasses
 	GLAD_LIB
 	GIF_LIB
@@ -94,6 +84,13 @@ target_link_libraries(3DViewer
 	ViewerGraphicLib
 	Qt6::Widgets
 	Qt6::OpenGLWidgets
+)
+
+# Копируем нужные ресурсы в директорию сборки
+add_custom_command(TARGET 3DViewer POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+		"${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders"
+		"${CMAKE_CURRENT_BINARY_DIR}/shaders"
 )
 
 # ---------------------------
