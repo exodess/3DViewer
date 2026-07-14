@@ -50,9 +50,6 @@ namespace viewer {
 		std::cout << "Сохраняем индексы всех uniform, используемых в шейдерной программе" << std::endl;
 	}
 
-	ShaderProgram::ShaderProgram(const std::string &vert_shader_path,
-		                         const std::string &frag_shader_path) : ShaderProgram(vert_shader_path, "", frag_shader_path) {}
-
 	ShaderProgram::~ShaderProgram() {
 		glDeleteProgram(ProgramID_);
 

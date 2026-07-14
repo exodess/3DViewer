@@ -154,16 +154,6 @@ namespace viewer {
 		@note Шейдерная программа создается один раз в начале программы
 		*/
 		ShaderProgram(const std::string& vert_shader_path, const std::string& geom_shader_path, const std::string& frag_shader_path);
-
-		/**
-		 * @brief Создание шейдерной программы для ее использования при работе со светом
-		 * @param vert_shader_path Путь до исходного кода вершинного шейдера
-		 * @param frag_shader_path Путь до исходного кода фрагментарного шейдера
-		 * @note Шейдерная программа создается один раз в начале программы
-		 */
-		ShaderProgram(const std::string& vert_shader_path, const std::string& frag_shader_path);
-
-		ShaderProgram(const ShaderProgram&) = delete; ///< Убираем возможность копировать шейдерные программы
 		~ShaderProgram(); ///< Удаление шейдерной программы
 
 		/**
