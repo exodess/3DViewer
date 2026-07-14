@@ -284,16 +284,36 @@ namespace viewer {
 	}
 
 	void GLWidget::compileShaders() {
-		QString shaderPath = QCoreApplication::applicationDirPath() + "/shaders/";
-		QString vertPath = shaderPath + "shader.vert";
-		QString geomPath = shaderPath + "shader.geom";
-		QString fragPath = shaderPath + "shader.frag";
-		QString rayVertPath = shaderPath + "ray_tracing.vert";
-		QString rayFragPath = shaderPath + "ray_tracing.frag";
+		QString shadersPath = QCoreApplication::applicationDirPath() + "/shaders/";
+		QStringList shader_directories;
+		shader_directories << shadersPath + "floor/";
+		shader_directories << shadersPath + "wireframe/";
+		shader_directories << shadersPath + "flat_shadings/";
+		shader_directories << shadersPath + "smooth_shading/";
+		shader_directories << shadersPath + "ray_tracing/";
 
-		shader_program_ = std::make_unique<ShaderProgram>(vertPath.toStdString(), geomPath.toStdString(), fragPath.toStdString());
-		ray_tracing_shader_program_ = std::make_unique<ShaderProgram>(vertPath.toStdString(), fragPath.toStdString());
+		QStringList filters;
+		filters << "*.vert" << "*.geom" << "*.frag";
+		for (const auto& path : shader_directories) {
+			QString vertShader, geomShader, fragShader;
+			QDir dir(path);
 
+			std::cout << "Поиск файлов шейдеров в директории " + path.toStdString() + "\n";
+
+			// Ищем файлы шейдеров
+			dir.setNameFilters(filters);
+			dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+
+			QFileInfoList fileList = dir.entryInfoList();
+
+			for (const auto& file : fileList) {
+				if (file.fileName() == "shader.vert") vertShader = file.absoluteFilePath();
+				if (file.fileName() == "shader.geom") geomShader = file.absoluteFilePath();
+				if (file.fileName() == "shader.frag") fragShader = file.absoluteFilePath();
+			}
+
+			shader_programs_.push_back(std::make_shared<ShaderProgram>(vertShader.toStdString(), geomShader.toStdString(), fragShader.toStdString()));
+		}
 		std::cout << "[GLWidget] Шейдеры скомпилированы\n";
 	}
 
