@@ -29,7 +29,6 @@ namespace viewer {
 
     public:
         GLWidget(QWidget* parent);
-        ~GLWidget();
 
         void DrawScene(Scene* scene) override;
 
@@ -101,8 +100,17 @@ namespace viewer {
     private:
         void compileShaders();
 
-        std::shared_ptr<ShaderProgram> shader_program_; ///< Шейдерная программа для отрисовки в обычных режимах
-        std::shared_ptr<ShaderProgram> ray_tracing_shader_program_; ///< Шейдерная программа для отрисовки с трассировкой лучей
+        /**
+         * @brief Хранит в себе шейдерные программы, которые используются в программе:
+         * 1. Floor
+         * 2. Wireframe
+         * 3. Flat Shading
+         * 4. Soft Shading
+         * 5. Ray-Tracing
+         * Таким образом, доступ ко всем, кроме Floor, можно получить через displayType() + 1
+         */
+        std::vector<std::shared_ptr<ShaderProgram>> shader_programs_;
+        int current_program_id_; ///< Текущая шейдерная программа, которая осуществляет отрисовку
         std::shared_ptr<Mesh> mesh_;
         float aspect_; ///< Соотношение сторон экрана
 
