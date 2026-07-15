@@ -153,11 +153,6 @@ public:
     QHBoxLayout *camRotLayout;
     QDoubleSpinBox *spin_camRotX, *spin_camRotY, *spin_camRotZ;
 
-    // Камера — масштаб (zoom)
-    QLabel *label_CamZoom;
-    QHBoxLayout *camScaleLayout;
-    QDoubleSpinBox *spin_camScaleX, *spin_camScaleY, *spin_camScaleZ;
-
     // Нижняя информационная панель
     QHBoxLayout *infoLayout;
     QLabel *label_FileInfo;
@@ -533,23 +528,6 @@ public:
             camRotLayout->addWidget(s);
         }
         generalLayout->addLayout(camRotLayout);
-
-        // Камера — масштаб
-        label_CamZoom = new QLabel("Камера — масштаб:");
-        label_CamZoom->setWordWrap(true);
-        generalLayout->addWidget(label_CamZoom);
-        camScaleLayout = new QHBoxLayout();
-        spin_camScaleX = new QDoubleSpinBox();
-        spin_camScaleY = new QDoubleSpinBox();
-        spin_camScaleZ = new QDoubleSpinBox();
-
-        for (auto *s : {spin_camScaleX, spin_camScaleY, spin_camScaleZ}) {
-            s->setRange(0.1, 10.0);
-            s->setSingleStep(0.1);
-            s->setDecimals(1);
-            camScaleLayout->addWidget(s);
-        }
-        generalLayout->addLayout(camScaleLayout);
 
         scrollLayout->addWidget(groupBox_General);
 

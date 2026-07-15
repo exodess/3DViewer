@@ -489,6 +489,11 @@ namespace viewer {
 		float& fov() noexcept;
 
 		/**
+		 * @brief Для камеры управление зумом происходит через FOV угол
+		 */
+		Point3D& scale() noexcept = delete;
+
+		/**
 		 * @brief Получение информации для загрузки ее в вершинный шейдер
 		 * @return Результирующая информация о камере
 		 */

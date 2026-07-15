@@ -116,15 +116,13 @@ namespace viewer {
 		auto updateGeneral = [this]() {
 			viewer_->getScene()->getCamera().translation() = Point3D(ui->spin_camTransX->value(), ui->spin_camTransY->value(), ui->spin_camTransZ->value());
 			viewer_->getScene()->getCamera().rotation() = Point3D(ui->spin_camRotX->value(), ui->spin_camRotY->value(), ui->spin_camRotZ->value());
-			viewer_->getScene()->getCamera().scale() = Point3D(ui->spin_camScaleX->value(), ui->spin_camScaleY->value(), ui->spin_camScaleZ->value());
 
 			viewer_->DrawScene();
 		};
 
 		for (auto s : {
 			ui->spin_camTransX, ui->spin_camTransY, ui->spin_camTransZ,
-			ui->spin_camRotX, ui->spin_camRotY, ui->spin_camRotZ,
-			ui->spin_camScaleX, ui->spin_camScaleY, ui->spin_camScaleZ}) {
+			ui->spin_camRotX, ui->spin_camRotY, ui->spin_camRotZ}) {
 
 			connect(s, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, updateGeneral);
 		}
@@ -226,7 +224,6 @@ namespace viewer {
 
 		Point3D cameraTrans = viewer_->getScene()->getCamera().translation();
 		Point3D cameraRot = viewer_->getScene()->getCamera().rotation();
-		Point3D cameraScale = viewer_->getScene()->getCamera().scale();
 
 		bool is_floor_display = viewer_->getScene()->displayFloor();
 
@@ -240,10 +237,6 @@ namespace viewer {
 		ui->spin_camRotX->setValue(cameraRot.x);
 		ui->spin_camRotY->setValue(cameraRot.y);
 		ui->spin_camRotZ->setValue(cameraRot.z);
-
-		ui->spin_camScaleX->setValue(cameraScale.x);
-		ui->spin_camScaleY->setValue(cameraScale.y);
-		ui->spin_camScaleZ->setValue(cameraScale.z);
 	}
 
 	void MainWindow::setUISettings(DisplayType type) noexcept {
