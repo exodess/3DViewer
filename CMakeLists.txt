@@ -87,11 +87,14 @@ target_link_libraries(3DViewer
 )
 
 # Копируем нужные ресурсы в директорию сборки
-add_custom_command(TARGET 3DViewer POST_BUILD
+add_custom_target(CopyShaders ALL
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
 		"${CMAKE_CURRENT_SOURCE_DIR}/viewer/opengl/shaders"
 		"${CMAKE_CURRENT_BINARY_DIR}/shaders"
+		COMMENT "Updating shader files in build directory..."
 )
+
+add_dependencies(3DViewer CopyShaders)
 
 # ---------------------------
 # тестирование с помощью GTest
