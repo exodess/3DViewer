@@ -52,6 +52,14 @@ namespace viewer {
 		return CreateRotationX(x_rad) * CreateRotationY(y_rad) * CreateRotationZ(z_rad);
 	}
 
+	TransformMatrix TransformMatrixBuilder::CreateRotationInverseMatrix(float x_deg, float y_deg, float z_deg) noexcept {
+		const float x_rad = x_deg * kDegreesToRadians;
+		const float y_rad = y_deg * kDegreesToRadians;
+		const float z_rad = z_deg * kDegreesToRadians;
+
+		return CreateRotationZ(z_rad) * CreateRotationY(y_rad) * CreateRotationX(x_rad);
+	}
+
 	TransformMatrix TransformMatrixBuilder::CreateMoveMatrix(float x, float y, float z) noexcept {
 		TransformMatrix matrix;
 

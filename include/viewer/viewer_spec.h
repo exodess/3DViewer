@@ -71,6 +71,9 @@ namespace viewer {
 		Point3D scaleVector_ = Point3D(1.0f, 1.0f, 1.0f); ///< Масштаб объекта в трехмерном пространстве
 
 	public:
+		BaseSceneObject() noexcept = default;
+		BaseSceneObject(const Point3D& translation) noexcept;
+
 		Point3D& translation() noexcept; ///< Доступ к полю со смещением объекта
 		Point3D& rotation() noexcept; ///< Доступ к полю угла вращения объекта
 		Point3D& scale() noexcept; ///< Доступ к полю масштаба отображения объекта
@@ -177,16 +180,27 @@ namespace viewer {
 
 	/* Вспомогательный класс для генерации матриц трансформации */
 	class TransformMatrixBuilder {
-
 	public:
 		/**
-		 * @brief Создание комбинированной матрицы поворота
+		 * @brief Создание комбинированной матрицы поворота.
+		 * Внутри - умножение трех матриц поворота: X * Y * Z
 		 * @param x_deg Угол поворота вокруг оси X (градусы)
 		 * @param y_deg Угол поворота вокруг оси Y (градусы)
 		 * @param z_deg Угол поворота вокруг оси Z (градусы)
 		 * @return Комбинированная матрица поворота 4×4
 		*/
-		static TransformMatrix CreateRotationMatrix(float x, float y, float z) noexcept;
+		static TransformMatrix CreateRotationMatrix(float x_deg, float y_deg, float z_deg) noexcept;
+
+		/**
+		 * @brief Создание обратной комбинированной матрицы поворота.
+		 * Внутри - умножение трех матриц поворота: X * Y * Z
+		 * @param x_deg Угол поворота вокруг оси X (градусы)
+		 * @param y_deg Угол поворота вокруг оси Y (градусы)
+		 * @param z_deg Угол поворота вокруг оси Z (градусы)
+		 * @note Используется при создании матрицы вида камеры
+		 * @return Комбинированная матрица поворота 4×4
+		 */
+		static TransformMatrix CreateRotationInverseMatrix(float x_deg, float y_deg, float z_deg) noexcept;
 
 		/**
 		 * @brief Создание матрицы перемещения
