@@ -10,7 +10,7 @@ out vec4 FragColor;
 
 void main() {
     // Координаты сетки (зависят от абсолютных мировых координат)
-    vec2 coord = Camera_vertex.xz;
+    vec2 coord = Camera_vertex.xz * 85.0;
     vec2 derivative = fwidth(coord);
 
     vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
@@ -28,7 +28,7 @@ void main() {
     float distanceToCam = length(Vertex_view - Camera_vertex);
 
     // Плавное затухание
-    float fade = clamp(1.0 - (distanceToCam / 10.0), 0.0, 1.0);
+    float fade = clamp(1.0 - (distanceToCam / 80.0), 0.0, 1.0);
 
     vec3 oppositeColor = vec3(1.0) - u_backgroundColor;
     FragColor = vec4(oppositeColor, lineIntensity * fade);
