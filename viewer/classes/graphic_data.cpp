@@ -68,6 +68,8 @@ namespace viewer {
 	// ===== BaseSceneObject =====
 	// ===========================
 
+	BaseSceneObject::BaseSceneObject(const Point3D &translation) noexcept : translationVector_(translation) {}
+
 	Point3D& BaseSceneObject::translation() noexcept {
 		return translationVector_;
 	}
@@ -86,7 +88,7 @@ namespace viewer {
 		TransformMatrix rotationMatrix = TransformMatrixBuilder::CreateRotationMatrix(
 			rotationVector_.x, rotationVector_.y, rotationVector_.z);
 		TransformMatrix translationMatrix = TransformMatrixBuilder::CreateMoveMatrix(
-			translationVector_.x, translationVector_.y, -translationVector_.z * 10.0f);
+			translationVector_.x, translationVector_.y, translationVector_.z);
 
 		return translationMatrix * rotationMatrix * scaleMatrix;
 	}
@@ -137,21 +139,23 @@ namespace viewer {
 	// ========= Camera ==========
 	// ===========================
 
-	Camera::Camera() noexcept : type_(ProjectionType::ORTHOGRAPHIC), fov_(45.0f) {}
+	Camera::Camera() noexcept
+	: BaseSceneObject(Point3D(0.0f, 0.0f, 10.0f))
+	, type_(ProjectionType::ORTHOGRAPHIC)
+	, fov_(45.0f) {}
 
 	TransformMatrix Camera::getModelMatrix() noexcept {
 		// Обратное вращение (инвертируем углы)
-		TransformMatrix rotationMatrix = TransformMatrixBuilder::CreateRotationMatrix(
-			-rotationVector_.x, -rotationVector_.y, -rotationVector_.z);
+		TransformMatrix rotationMatrix = TransformMatrixBuilder::CreateRotationInverseMatrix(
+			rotationVector_.x, rotationVector_.y, rotationVector_.z);
 
 		// Обратный перенос (сдвигаем мир в противоположную от камеры сторону)
 		TransformMatrix translationMatrix = TransformMatrixBuilder::CreateMoveMatrix(
-			-translationVector_.x, -translationVector_.y, -translationVector_.z);
+			translationVector_.x, translationVector_.y, translationVector_.z);
 
 		// Порядок умножения для View Matrix обратный: сначала перенос, затем вращение
 		return rotationMatrix * translationMatrix;
 	}
-
 
 	TransformMatrix Camera::getProjectionMatrix(float aspect) noexcept {
 
@@ -186,8 +190,8 @@ namespace viewer {
 
 		for (auto i = 0; i < 4; ++i) {
 			for (auto j = 0; j < 4; ++j) {
-				data.projectionMatrix_[i][j] = projectionMatrix(i, j);
-				data.viewMatrix_[i][j] = viewMatrix(i, j);
+				data.projectionMatrix_[i][j] = projectionMatrix(j, i);
+				data.viewMatrix_[i][j] = viewMatrix(j, i);
 			}
 		}
 
