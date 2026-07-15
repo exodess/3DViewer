@@ -455,12 +455,19 @@ namespace viewer {
 	class Camera : public BaseSceneObject {
 	private:
 		ProjectionType type_; ///< Тип проекции
+		float fov_; ///< Угол обзора камеры (отвечает за зум)
 
 	public:
 		/**
 		 * @brief Создание камеры с стандартными настройками вида
 		 */
 		Camera() noexcept;
+
+		/**
+		 * @brief Создание собственной видовой матрицы для камеры
+		 * @return Обратная матрица модели камеры
+		 */
+		TransformMatrix getModelMatrix() noexcept;
 
 		/**
 		 * @brief Создание проекционной матрицы, в зависимости от выбора пользователя
@@ -474,6 +481,12 @@ namespace viewer {
 		 * @return Информация о проекции
 		 */
 		ProjectionType& projectionType() noexcept;
+
+		/**
+		 * @brief Доступ к углу обзора камеры
+		 * @return Угол обзора от 1.0 до 90.0
+		 */
+		float& fov() noexcept;
 
 		/**
 		 * @brief Получение информации для загрузки ее в вершинный шейдер

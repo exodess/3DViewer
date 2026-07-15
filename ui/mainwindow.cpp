@@ -355,7 +355,12 @@ namespace viewer {
 			float det = event->angleDelta().y() * ZOOM_MOUSE_SENSITIVITY;
 
 			if (isCtrlPressed) {
-				ui->spin_camTransZ->setValue(ui->spin_camTransZ->value() - det);
+				float new_fov = viewer_->getScene()->getCamera().fov() - det * 100.0f;
+
+				if (new_fov < 1.0f) new_fov = 1.0f;
+				if (new_fov > 90.0f) new_fov = 90.0f;
+
+				viewer_->getScene()->getCamera().fov() = new_fov;
 			}
 
 			else {

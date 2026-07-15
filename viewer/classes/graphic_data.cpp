@@ -137,7 +137,21 @@ namespace viewer {
 	// ========= Camera ==========
 	// ===========================
 
-	Camera::Camera() noexcept : type_(ProjectionType::ORTHOGRAPHIC) {}
+	Camera::Camera() noexcept : type_(ProjectionType::ORTHOGRAPHIC), fov_(45.0f) {}
+
+	TransformMatrix Camera::getModelMatrix() noexcept {
+		// Обратное вращение (инвертируем углы)
+		TransformMatrix rotationMatrix = TransformMatrixBuilder::CreateRotationMatrix(
+			-rotationVector_.x, -rotationVector_.y, -rotationVector_.z);
+
+		// Обратный перенос (сдвигаем мир в противоположную от камеры сторону)
+		TransformMatrix translationMatrix = TransformMatrixBuilder::CreateMoveMatrix(
+			-translationVector_.x, -translationVector_.y, -translationVector_.z);
+
+		// Порядок умножения для View Matrix обратный: сначала перенос, затем вращение
+		return rotationMatrix * translationMatrix;
+	}
+
 
 	TransformMatrix Camera::getProjectionMatrix(float aspect) noexcept {
 
@@ -150,7 +164,7 @@ namespace viewer {
 		}
 		else {
 			resultMatrix = TransformMatrixBuilder::CreatePerspectiveMatrix(
-				  45.0f, aspect, 0.1f, 100.0f);
+				  fov_, aspect, 0.1f, 100.0f);
 		}
 
 		return resultMatrix;
@@ -158,6 +172,10 @@ namespace viewer {
 
 	ProjectionType& Camera::projectionType() noexcept {
 		return type_;
+	}
+
+	float &Camera::fov() noexcept {
+		return fov_;
 	}
 
 	CameraData Camera::getData(float aspect) noexcept {
