@@ -65,14 +65,21 @@
 #define UNIFORM_DISPLAY_TYPE "u_displayType"
 
 /**
- * @brief Имя uniform переменной в вершинном шейдере для загрузки количества направленных источников освещениия на сцене
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки количества направленных источников освещениия на сцене.
+ * Используется в шейдерной программе для отрисовки с плоским затенением
  */
-#define UNIFORM_ACTIVE_LIGHTS "u_activePointLights"
+#define UNIFORM_FLAT_ACTIVE_LIGHTS "u_activeFlatPointLights"
 
 /**
- * @brief Имя uniform переменной в фрагментарном шейдере для загрузки информации, будет ли отрисован пол сцены или нет
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки количества направленных источников освещениия на сцене.
+ * Используется в шейдерной программе для отрисовки с мягким затенением
  */
-#define UNIFORM_DISPLAY_FLOOR "u_isFloor"
+#define UNIFORM_SMOOTH_ACTIVE_LIGHTS "u_activeSmoothPointLights"
+
+/**
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки фонового цвета сцены
+ */
+#define UNIFORM_BACKGROUND_COLOR "u_backgroundColor"
 
 /**
 @brief Классы для управления логикой проекта реализованы внутри пространства имен viewer
