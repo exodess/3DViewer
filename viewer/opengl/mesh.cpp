@@ -238,13 +238,13 @@ namespace viewer {
 		return true;
 	}
 
-	bool Mesh::loadDisplayFloor(int32_t u_location, bool is_display) noexcept {
+	bool Mesh::loadBackgroundColor(int32_t u_location, const Point3D& color) noexcept {
 		if (u_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_isFloor" << std::endl;
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_backgroundColor" << std::endl;
 			return false;
 		}
 
-		glUniform1i(u_location, static_cast<int>(is_display));
+		glUniform3f(u_location, color.x, color.y, color.z);
 		return true;
 	}
 

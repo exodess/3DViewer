@@ -438,11 +438,11 @@ namespace viewer {
 		/**
 		 * @brief Задает информацию, отображать ли пол на сцене
 		 * @param u_location Идентификатор uniform'ы
-		 * @param is_display Будет ли отрисован пол или нет
+		 * @param color Цвет фона
 		 * @return true, если uniform'а существует, иначе false
 		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_DISPLAY_FLOOR)
 		 */
-		bool loadDisplayFloor(int32_t u_location, bool is_display) noexcept;
+		bool loadBackgroundColor(int32_t u_location, const Point3D& color) noexcept;
 
 		/**
 		 * @brief Задает характеристики поверхности фигуры
