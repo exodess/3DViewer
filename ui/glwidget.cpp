@@ -183,6 +183,10 @@ namespace viewer {
 			// Сначала, если нужно, отображаем пол
 			if (scene->displayFloor()) {
 				shader_programs_[0]->use();
+				mesh_->loadBackgroundColor(
+					shader_programs_[0]->getUniformLocation((char*)UNIFORM_BACKGROUND_COLOR),
+					scene->backgroundColor());
+
 				mesh_->renderFloor();
 			}
 
