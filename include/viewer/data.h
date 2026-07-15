@@ -108,7 +108,7 @@ namespace viewer {
 		float edgSize_; ///< Размер ребер
 		EdgesMode edgMode_; ///< Режим отображения ребер
 
-		EdgeInfo() noexcept : edgColor_(1.0, 1.0, 1.0), edgSize_(1.0), edgMode_(EdgesMode::SOLID) {}
+		EdgeInfo() noexcept : edgColor_(0.0, 0.0, 0.0), edgSize_(0.001f), edgMode_(EdgesMode::SOLID) {}
 
 		/**
 		 * @brief Метод для доступа к полю цвета
@@ -145,7 +145,7 @@ namespace viewer {
 		float vertSize_; ///< Размер вершины
 		VerticesMode vertMode_; ///< Режим отображения вершины
 
-		VertexInfo() noexcept : vertColor_(0.0, 0.0, 0.0), vertSize_(1.0), vertMode_(VerticesMode::NONE) {}
+		VertexInfo() noexcept : vertColor_(0.0, 0.0, 0.0), vertSize_(0.01f), vertMode_(VerticesMode::CIRCLE) {}
 
 		/**
 		 * @brief Осуществление доступа к полю цвета вершины

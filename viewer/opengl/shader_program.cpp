@@ -96,7 +96,7 @@ namespace viewer {
 
 	GLuint ShaderProgram::createShaderProgram(GLuint vertexShader,
 	                                          GLuint geometryShader,
-	                                          GLuint fragmentShader) {
+	                                          GLuint fragmentShader) noexcept {
 
 		std::cout << "\tСоздаем шейдерную программу...";
 		GLuint shaderProgram = glCreateProgram();
