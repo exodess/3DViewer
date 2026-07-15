@@ -13,7 +13,7 @@ layout(std430, binding = 1) buffer LightsBuffer {
     LightData lights[MAX_POINT_LIGHTS + 1];
 } b_LightStruct;
 
-uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
+uniform int u_activeFlatPointLights; // Реальное количество направленных источников освещения на сцене
 
 // значения из вершинного шейдера
 in vec3 Vertex_view;
@@ -30,7 +30,7 @@ void main() {
     // Базовое фоновое освещение
     vec3 ambient = b_LightStruct.lights[0].color.xyz * b_LightStruct.lights[0].intensity;
 
-    for(int i = 1; i < u_activePointLights; ++i) {
+    for(int i = 1; i <= u_activeFlatPointLights; ++i) {
         vec3 Light_v = normalize(b_LightStruct.lights[i].position.xyz - Vertex_view);
 
         // Диффузная составляющая

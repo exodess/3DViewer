@@ -244,7 +244,7 @@ namespace viewer {
 						current_figure.getModelMatrix());
 
 					mesh_->loadCountActiveLight(
-						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_FLAT_ACTIVE_LIGHTS),
 						scene->countLights());
 					mesh_->loadLightStructure(scene->getSceneLightsData());
 
@@ -265,7 +265,7 @@ namespace viewer {
 						current_figure.getModelMatrix());
 
 					mesh_->loadCountActiveLight(
-						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_SMOOTH_ACTIVE_LIGHTS),
 						scene->countLights());
 					mesh_->loadLightStructure(scene->getSceneLightsData());
 					mesh_->loadMaterialStructure(current_figure.material());

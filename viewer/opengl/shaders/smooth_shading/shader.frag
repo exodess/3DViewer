@@ -22,7 +22,7 @@ layout(std430, binding = 1) buffer LightsBuffer {
     LightData lights[MAX_POINT_LIGHTS + 1];
 } b_LightStruct;
 
-uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
+uniform int u_activeSmoothPointLights; // Реальное количество направленных источников освещения на сцене
 
 // значения из вершинного шейдера
 in vec3 Camera_vertex;
@@ -41,7 +41,7 @@ void main() {
     vec3 diffuseAccum = vec3(0, 0, 0); // Общая диффузная составляющая
     vec3 specularAccum = vec3(0, 0, 0); // Общая зеркальная составляющая
 
-    for(int i = 1; i < u_activePointLights; ++i) {
+    for(int i = 1; i <= u_activeSmoothPointLights; ++i) {
         vec3 Light_v = normalize(b_LightStruct.lights[i].position.xyz - Vertex_view);
 
         // Интенсивность диффузного отражения
