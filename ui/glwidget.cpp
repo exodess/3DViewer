@@ -206,9 +206,6 @@ namespace viewer {
 					mesh_->loadModelMatrix(
 						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 						current_figure.getModelMatrix());
-					mesh_->loadNormalMatrix(
-						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
-						current_figure.getModelMatrix());
 
 					// Загружаем информацию о вершинах
 					mesh_->loadVerticesSize(
@@ -237,13 +234,6 @@ namespace viewer {
 				}
 			}
 
-			// Для всех остальных режимов нужно загружать информацию об освещении
-			mesh_->loadCountActiveLight(
-					shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
-					scene->countLights());
-
-			mesh_->loadLightStructure(scene->getSceneLightsData());
-
 			if (scene->displayType() == FLAT_SHADING_MODEL) {
 				for (auto i = 0; i < scene->countFigures(); ++i) {
 					auto current_figure = scene->getFigure(i + 1);
@@ -252,9 +242,13 @@ namespace viewer {
 					mesh_->loadModelMatrix(
 						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 						current_figure.getModelMatrix());
-					mesh_->loadNormalMatrix(
-						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
-						current_figure.getModelMatrix());
+
+					mesh_->loadCountActiveLight(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+						scene->countLights());
+					mesh_->loadLightStructure(scene->getSceneLightsData());
+
+					mesh_->renderFigure();
 				}
 			}
 
@@ -270,7 +264,12 @@ namespace viewer {
 						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_NORMAL_MATRIX),
 						current_figure.getModelMatrix());
 
+					mesh_->loadCountActiveLight(
+						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_ACTIVE_LIGHTS),
+						scene->countLights());
+					mesh_->loadLightStructure(scene->getSceneLightsData());
 					mesh_->loadMaterialStructure(current_figure.material());
+
 					mesh_->renderFigure();
 				}
 			}
@@ -288,7 +287,7 @@ namespace viewer {
 		QStringList shader_directories;
 		shader_directories << shadersPath + "floor/";
 		shader_directories << shadersPath + "wireframe/";
-		shader_directories << shadersPath + "flat_shadings/";
+		shader_directories << shadersPath + "flat_shading/";
 		shader_directories << shadersPath + "smooth_shading/";
 		shader_directories << shadersPath + "ray_tracing/";
 
