@@ -271,6 +271,16 @@ namespace viewer {
 		return true;
 	}
 
+	bool Mesh::loadTotalFigures(int32_t u_location, int count) noexcept {
+		if (u_location == -1) {
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_activePointLights" << std::endl;
+			return false;
+		}
+
+		glUniform1i(u_location, count);
+		return true;
+	}
+
 	bool Mesh::loadBackgroundColor(int32_t u_location, const Point3D& color) noexcept {
 		if (u_location == -1) {
 			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_backgroundColor" << std::endl;

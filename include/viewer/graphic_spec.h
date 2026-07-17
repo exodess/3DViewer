@@ -82,6 +82,12 @@
 #define UNIFORM_BACKGROUND_COLOR "u_backgroundColor"
 
 /**
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки количества фигур на сцене.
+ * Используется в Ray-tracing шейдерной программе
+ */
+#define UNIFORM_TOTAL_FIGURES "u_totalFigures"
+
+/**
 @brief Классы для управления логикой проекта реализованы внутри пространства имен viewer
 */
 namespace viewer {
@@ -442,6 +448,15 @@ namespace viewer {
 		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_ACTIVE_LIGHTS)
 		 */
 		bool loadCountActiveLight(int32_t u_location, int count) noexcept;
+
+		/**
+		 * @brief Задает количество фигур на сцене в данный момент
+		 * @param u_location Идентификатор uniform'ы
+		 * @param count Количество фигур
+		 * @return Идентификатор uniform'ы
+		 * @note Идентификатор uniform'ы передается с помощью метода ShaderProgram::getUniformLocation(UNIFORM_TOTAL_FIGURES)
+		 */
+		bool loadTotalFigures(int32_t u_location, int count) noexcept;
 
 		/**
 		 * @brief Задает информацию, отображать ли пол на сцене

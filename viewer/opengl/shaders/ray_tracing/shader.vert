@@ -10,19 +10,13 @@ layout(std430, binding = 0) buffer Camera {
     vec3 position; // Координата камеры
 } b_CameraStruct;
 
-uniform mat4 u_modelMatrix; // матрица модели
-uniform mat3 u_normalMatrix; // Матрица для трансформации нормали
-
 out vec3 Camera_vertex; // Позиция камеры относительно вершины
 out vec3 Vertex_view; // Вершина в пространстве камеры
 out vec3 Normal_vertex; // Трансформированная нормаль
 
 void main() {
-    vec4 P = u_modelMatrix * vec4(inPosition, 1.0); // трансформация вершины
-
     Camera_vertex = normalize(b_CameraStruct.position - P.xyz);
     Vertex_view = P.xyz;
-    Normal_vertex = normalize(u_normalMatrix * inNormal);
 
     gl_Position = b_CameraStruct.projection * b_CameraStruct.view * P;
 }
