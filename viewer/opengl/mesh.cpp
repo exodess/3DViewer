@@ -14,16 +14,18 @@ namespace viewer {
 		vao_{VAO()},
 		vbo_{BO(GL_ARRAY_BUFFER)},
 		ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
+		ssboMaterial_(sizeof(MaterialData), 2),
 		ssboCamera_{SSBO(sizeof(CameraData), 0)},
 		ssboLights_{SSBO(sizeof(Light) * (MAX_POINT_LIGHTS + 1), 1)},
-		ssboMaterial_{SSBO(sizeof(MaterialData), 2)},
+		ssboRayMaterials_{SSBO(sizeof(MaterialData) * MAX_COUNT_FIGURES, 2)},
+		ssboFigures_{SSBO(sizeof(GPURayFigure) * MAX_COUNT_FIGURES, 3)},
 		count_vertices_{0},
 		count_surfaces_{0} {
 
 		std::cout << "[Mesh] Создание объекта класса Mesh\n";
 	}
 
-	void Mesh::loadData(const Figure& figure) noexcept {
+	void Mesh::loadGeometryData(const Figure& figure) noexcept {
 
 		auto vertices = figure.getVertices();
 		auto surfaces = figure.getSurfaces();
@@ -74,10 +76,41 @@ namespace viewer {
 		count_surfaces_ = surfaces.size();
 
 		VAO::disable();
+	}
 
-		// std::cout << "\tcount_vertices = " << count_vertices_;
-		// std::cout << ", count_surfaces = " << count_surfaces_;
-		// std::cout << "\n";
+	void Mesh::loadFiguresData(const std::vector<Figure> &figures_list) noexcept {
+		std::vector<GPURayFigure> figures_data;
+		std::vector<MaterialData> figures_material_data;
+		int offset = 0;
+
+		for (auto f : figures_list) {
+			// Сохраняем в vector данные о каждой фигуре
+
+			GPURayFigure ray_data;
+			auto model_matrix = f.getModelMatrix();
+			auto normal_matrix = model_matrix.inverse().transpose();
+
+			for (auto i = 0; i < 4; ++i) {
+				for (auto j = 0; j < 4; ++j) {
+					ray_data.modelMatrix[i * 4 + j] = model_matrix(i, j);
+					ray_data.normalMatrix_[i * 4 + j] = normal_matrix(i, j);
+				}
+			}
+
+			ray_data.firstIndex = offset;
+			ray_data.indexCount = f.getVertices().size();
+
+			// Обновляем смещение в общем буфере индексов
+			offset += f.getVertices().size();
+
+			// Сохраняем в общем списке
+			figures_data.emplace_back(ray_data);
+			figures_material_data.emplace_back(f.material());
+		}
+
+		// Загружаем данные в буферы
+		ssboFigures_.loadSub(figures_data.data(), sizeof(GPURayFigure) * figures_list.size(), 0);
+		ssboMaterial_.loadSub(figures_material_data.data(), sizeof(MaterialData) * figures_list.size(), 0);
 	}
 
 	bool Mesh::loadVerticesColor(GLint uniform_location, const Point3D& color) noexcept {
