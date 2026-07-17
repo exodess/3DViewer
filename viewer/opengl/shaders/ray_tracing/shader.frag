@@ -1,16 +1,19 @@
 #version 430 core
 #define MAX_POINT_LIGHTS 5 // Максимальное количество направленных источников освещения
+#define MAX_COUNT_FIGURES 5 // Максимальное количество фигур на сцене
 const float PI = 3.14159265359;
 
-layout(std430, binding = 2) buffer Material {
+// Хранение информации о материале фигуры
+struct Material {
     vec4 base_color; // Цвет материала
     float roughness; // Шероховатость поверхности
     float metallic; // Металличность поверхности
     float refractive; // Коэффициент преломления
     float reflectivity; // Коэффициент отражения
     float alpha; // Коэффициент прозрачности
-} b_MaterialStruct;
+};
 
+// Хранение информации о
 struct LightData {
     vec4 color; // Цвет источника света
     vec4 position; // Координата источника света
@@ -18,12 +21,29 @@ struct LightData {
     float padding[3];
 };
 
+struct RayFigure {
+    mat4 modelMatrix; // Матрица модели (Translation * Rotation * Scale)
+    mat4 normalMatrix; // Матрица нормали
+    int firstIndex; // Смещение начала индексов в общем буфере
+    int indexCount; // Количество индексов фигуры
+    int padding[2]; // Заполнение до 80 байт
+};
+
 // Структура, хранящая информацию обо всех источниках освещения
 layout(std430, binding = 1) buffer LightsBuffer {
     LightData lights[MAX_POINT_LIGHTS + 1];
 } b_LightStruct;
 
+layout(std430, binding = 2) buffer MaterialsBuffer {
+    Material materials[MAX_COUNT_FIGURES];
+} b_MaterialsStruct;
+
+layout(std430, binding = 3) buffer FiguresBuffer {
+    RayFigure figures[MAX_COUNT_FIGURES];
+} b_Figures;
+
 uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
+uniform int u_totalFigures; // Общее число загруженных фигур
 
 // значения из вершинного шейдера
 in vec3 Camera_v;
