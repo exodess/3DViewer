@@ -50,6 +50,7 @@ namespace viewer {
 
 #define LIGHT_DEFAULT_INTENSITY 0.5f
 #define MAX_POINT_LIGHTS 5
+#define MAX_COUNT_FIGURES 5
 
 	/**
 	* @class Point3D
@@ -231,6 +232,20 @@ namespace viewer {
 
 			position_ = other.position_;
 		}
+	};
+
+	/**
+	 * @struct GPURayFigure
+	 * @brief Структура для хранения основной информации о фигуре,
+	 * которая загружена в Ray-tracing шейдерную программу и
+	 * должна быть обработана.
+	 */
+	struct GPURayFigure {
+		float modelMatrix[16];
+		float normalMatrix_[16];
+		int firstIndex; ///< Смещение начала индексов в общем буфере
+		int indexCount; ///< Количество индексов фигуры
+		int padding[2];
 	};
 
 }
