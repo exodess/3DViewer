@@ -1,6 +1,7 @@
 #version 430 core
 #define MAX_POINT_LIGHTS 5 // Максимальное количество направленных источников освещения
 #define MAX_COUNT_FIGURES 5 // Максимальное количество фигур на сцене
+#define MAX_COUNT_VERTICES 1000000
 const float PI = 3.14159265359;
 
 // Хранение информации о материале фигуры
@@ -29,6 +30,11 @@ struct RayFigure {
     int padding[2]; // Заполнение до 80 байт
 };
 
+struct RayVertex {
+    vec4 position;
+    vec4 normale;
+};
+
 // Структура, хранящая информацию обо всех источниках освещения
 layout(std430, binding = 1) buffer LightsBuffer {
     LightData lights[MAX_POINT_LIGHTS + 1];
@@ -41,6 +47,14 @@ layout(std430, binding = 2) buffer MaterialsBuffer {
 layout(std430, binding = 3) buffer FiguresBuffer {
     RayFigure figures[MAX_COUNT_FIGURES];
 } b_Figures;
+
+layout(std430, binding = 4) buffer AllVertices {
+    RayVertex vertices[MAX_COUNT_VERTICES];
+} b_Vertices;
+
+layout(std430, binding = 5) buffer AllIndices {
+    uint indices[MAX_COUNT_VERTICES];
+} b_Indices;
 
 uniform int u_activePointLights; // Реальное количество направленных источников освещения на сцене
 uniform int u_totalFigures; // Общее число загруженных фигур

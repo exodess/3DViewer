@@ -19,6 +19,8 @@ namespace viewer {
 		ssboLights_{SSBO(sizeof(Light) * (MAX_POINT_LIGHTS + 1), 1)},
 		ssboRayMaterials_{SSBO(sizeof(MaterialData) * MAX_COUNT_FIGURES, 2)},
 		ssboFigures_{SSBO(sizeof(GPURayFigure) * MAX_COUNT_FIGURES, 3)},
+		ssboVertices_{SSBO(sizeof(Vertex) * MAX_VERTICES, 4)},
+		ssboIndices_{SSBO(sizeof(uint32_t) * MAX_VERTICES, 5)},
 		count_vertices_{0},
 		count_surfaces_{0} {
 
@@ -81,19 +83,20 @@ namespace viewer {
 	void Mesh::loadFiguresData(const std::vector<Figure> &figures_list) noexcept {
 		std::vector<GPURayFigure> figures_data;
 		std::vector<MaterialData> figures_material_data;
+		std::vector<Vertex> all_vertices;
+		std::vector<uint32_t> all_indices;
 		int offset = 0;
 
+		// Сохраняем данные о каждой фигуре
 		for (auto f : figures_list) {
-			// Сохраняем в vector данные о каждой фигуре
-
-			GPURayFigure ray_data;
+			GPURayFigure ray_data{};
 			auto model_matrix = f.getModelMatrix();
 			auto normal_matrix = model_matrix.inverse().transpose();
 
 			for (auto i = 0; i < 4; ++i) {
 				for (auto j = 0; j < 4; ++j) {
 					ray_data.modelMatrix[i * 4 + j] = model_matrix(i, j);
-					ray_data.normalMatrix_[i * 4 + j] = normal_matrix(i, j);
+					ray_data.normalMatrix[i * 4 + j] = normal_matrix(i, j);
 				}
 			}
 
@@ -106,11 +109,23 @@ namespace viewer {
 			// Сохраняем в общем списке
 			figures_data.emplace_back(ray_data);
 			figures_material_data.emplace_back(f.material());
+
+			// Копируем данные в общие массивы для их последующей загрузки в буферы Ray-tracing шейдерной программы
+			all_vertices.insert(all_vertices.end(), f.getVertices().begin(), f.getVertices().end());
+
+			const std::vector<Surface>& surfaces = f.getSurfaces();
+			for (const auto& s : surfaces) {
+				all_indices.push_back(s[0]);
+				all_indices.push_back(s[1]);
+				all_indices.push_back(s[2]);
+			}
 		}
 
-		// Загружаем данные в буферы
+		// Загружаем данные фигур
 		ssboFigures_.loadSub(figures_data.data(), sizeof(GPURayFigure) * figures_list.size(), 0);
 		ssboMaterial_.loadSub(figures_material_data.data(), sizeof(MaterialData) * figures_list.size(), 0);
+		ssboVertices_.loadSub(all_vertices.data(), all_vertices.size() * sizeof(Vertex), 0);
+		ssboIndices_.loadSub(all_indices.data(), all_indices.size() * sizeof(uint32_t), 0);
 	}
 
 	bool Mesh::loadVerticesColor(GLint uniform_location, const Point3D& color) noexcept {

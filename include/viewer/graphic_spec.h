@@ -316,6 +316,8 @@ namespace viewer {
 		SSBO ssboLights_; ///< Буфер источников освещения (общий для всех шейдерных программ, поддерживающих освещение)
 		SSBO ssboRayMaterials_; ///< Буфер материалов фигур в Ray-tracing шейдерной программе
 		SSBO ssboFigures_; ///< Буфер информации о всех фигурах на сцене
+		SSBO ssboVertices_;
+		SSBO ssboIndices_;
 
 		uint32_t count_vertices_; ///< Количество вершин в фигуре
 		uint32_t count_surfaces_; ///< Количество поверхностей в вершине
