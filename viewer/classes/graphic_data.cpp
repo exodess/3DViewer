@@ -240,6 +240,10 @@ namespace viewer {
 		return figures_[number - 1];
 	}
 
+	const std::vector<Figure> &Scene::getAllFigure() const noexcept {
+		return figures_;
+	}
+
 	Camera &Scene::getCamera() noexcept {
 		return camera_;
 	}
