@@ -1,22 +1,24 @@
 #version 430 core
 
-layout(location = 0) in vec3 inPosition; // координата вершины
-layout(location = 1) in vec3 inNormal; // Вектор нормали
+// Генерация координат углов экрана
+// Один прямоугольник, растянутый на весь экран,
+//  поверх которого будет рисоваться изображение
+const vec2 quadVertices[4] = vec2[](
+    vec2(-1.0, -1.0), // Левый нижний угол экрана
+    vec2(1.0, -1.0), // Правый нижний
+    vec2(-1.0, 1.0), // Левый верхний
+    vec2(1.0, 1.0)  // Правый верхний
+);
 
-// Структура для хранения информации о камере
-layout(std430, binding = 0) buffer Camera {
-    mat4 projection; // Матрица проекции камеры
-    mat4 view; // Матрица вида камеры
-    vec3 position; // Координата камеры
-} b_CameraStruct;
-
-out vec3 Camera_vertex; // Позиция камеры относительно вершины
-out vec3 Vertex_view; // Вершина в пространстве камеры
-out vec3 Normal_vertex; // Трансформированная нормаль
+out vec2 screenUV; // UV-координаты для фрагментного шейдера
 
 void main() {
-    Camera_vertex = normalize(b_CameraStruct.position - P.xyz);
-    Vertex_view = P.xyz;
+    // Получаем текущую вершину прямоугольника (от 0 до 3)
+    vec2 pos = quadVertices[gl_VertexID];
 
-    gl_Position = b_CameraStruct.projection * b_CameraStruct.view * P;
+    // Переводим из диапазона [-1, 1] в [0, 1] для текстурных координат
+    screenUV = pos * 0.5 + 0.5;
+
+    // Выводим позицию на экран. Z = 0.0, так как это плоский холст
+    gl_Position = vec4(pos, 0.0, 1.0);
 }
