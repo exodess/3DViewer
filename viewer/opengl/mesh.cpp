@@ -14,7 +14,7 @@ namespace viewer {
 		vao_{VAO()},
 		vbo_{BO(GL_ARRAY_BUFFER)},
 		ebo_{BO(GL_ELEMENT_ARRAY_BUFFER)},
-		ssboMaterial_(sizeof(MaterialData), 2),
+		ssboMaterial_(sizeof(MaterialData), 6),
 		ssboCamera_{SSBO(sizeof(CameraData), 0)},
 		ssboLights_{SSBO(sizeof(Light) * (MAX_POINT_LIGHTS + 1), 1)},
 		ssboRayMaterials_{SSBO(sizeof(MaterialData) * MAX_COUNT_FIGURES, 2)},
@@ -85,7 +85,7 @@ namespace viewer {
 		std::vector<MaterialData> figures_material_data;
 		std::vector<Vertex> all_vertices;
 		std::vector<uint32_t> all_indices;
-		int offset = 0;
+		int offset_vert = 0, offset_ind = 0;
 
 		// Сохраняем данные о каждой фигуре
 		for (auto f : figures_list) {
@@ -95,16 +95,18 @@ namespace viewer {
 
 			for (auto i = 0; i < 4; ++i) {
 				for (auto j = 0; j < 4; ++j) {
-					ray_data.modelMatrix[i * 4 + j] = model_matrix(i, j);
-					ray_data.normalMatrix[i * 4 + j] = normal_matrix(i, j);
+					ray_data.modelMatrix[j * 4 + i] = model_matrix(i, j);
+					ray_data.normalMatrix[j * 4 + i] = normal_matrix(i, j);
 				}
 			}
 
-			ray_data.firstIndex = offset;
-			ray_data.indexCount = f.getVertices().size();
+			ray_data.firstVertex = offset_vert;
+			ray_data.firstIndex = offset_ind;
+			ray_data.indexCount = f.getSurfaces().size() * 3;
 
-			// Обновляем смещение в общем буфере индексов
-			offset += f.getVertices().size();
+			// Обновляем смещения для вершин и индексов
+			offset_vert += f.getVertices().size();
+			offset_ind += f.getSurfaces().size() * 3;
 
 			// Сохраняем в общем списке
 			figures_data.emplace_back(ray_data);
@@ -123,7 +125,7 @@ namespace viewer {
 
 		// Загружаем данные фигур
 		ssboFigures_.loadSub(figures_data.data(), sizeof(GPURayFigure) * figures_list.size(), 0);
-		ssboMaterial_.loadSub(figures_material_data.data(), sizeof(MaterialData) * figures_list.size(), 0);
+		ssboRayMaterials_.loadSub(figures_material_data.data(), sizeof(MaterialData) * figures_list.size(), 0);
 		ssboVertices_.loadSub(all_vertices.data(), all_vertices.size() * sizeof(Vertex), 0);
 		ssboIndices_.loadSub(all_indices.data(), all_indices.size() * sizeof(uint32_t), 0);
 	}
@@ -288,7 +290,7 @@ namespace viewer {
 
 	bool Mesh::loadTotalFigures(int32_t u_location, int count) noexcept {
 		if (u_location == -1) {
-			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_activePointLights" << std::endl;
+			std::cout << "ERROR::SHADER::FRAGMENT_SHADER::UNIFORM_NOT_FOUND: u_totalFigures" << std::endl;
 			return false;
 		}
 
@@ -319,9 +321,18 @@ namespace viewer {
 		ssboLights_.loadSub(scene_lights_data.data(), sizeof(Light) * scene_lights_data.size(), 0);
 	}
 
-	void Mesh::renderFigure() noexcept {
-		vao_.use();
-		glDrawElements(GL_TRIANGLES, count_surfaces_ * 3, GL_UNSIGNED_INT, nullptr);
+	void Mesh::render(bool is_ray_tracing) noexcept {
+
+		if (is_ray_tracing) {
+			glDisable(GL_DEPTH_TEST);
+			vao_.use();
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			glEnable(GL_DEPTH_TEST);
+		}
+		else {
+			vao_.use();
+			glDrawElements(GL_TRIANGLES, count_surfaces_ * 3, GL_UNSIGNED_INT, nullptr);
+		}
 
 		VAO::disable();
 	}
