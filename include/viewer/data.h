@@ -51,6 +51,7 @@ namespace viewer {
 #define LIGHT_DEFAULT_INTENSITY 0.5f
 #define MAX_POINT_LIGHTS 5
 #define MAX_COUNT_FIGURES 5
+#define MAX_VERTICES 1000000 ///< Максимальное количество вершин в Ray-tracing шейдерной программе
 
 	/**
 	* @class Point3D
@@ -207,6 +208,7 @@ namespace viewer {
 		 * 1 - абсолютно непрозрачная
 		 */
 		float alpha_;
+		float padding[3];
 
 		Point3D& color() noexcept { return baseColor_; } ///< Получение доступа к базовому цвету
 		float& roughness() noexcept { return roughness_; } ///< Получение доступа к коэффициенту шероховатости
@@ -242,10 +244,11 @@ namespace viewer {
 	 */
 	struct GPURayFigure {
 		float modelMatrix[16];
-		float normalMatrix_[16];
+		float normalMatrix[16];
+		int firstVertex; ///< Смещение начала вершин в общем буфере
 		int firstIndex; ///< Смещение начала индексов в общем буфере
 		int indexCount; ///< Количество индексов фигуры
-		int padding[2];
+		int padding; ///< Выравнивание 16 байт
 	};
 
 }

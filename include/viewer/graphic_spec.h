@@ -77,6 +77,12 @@
 #define UNIFORM_SMOOTH_ACTIVE_LIGHTS "u_activeSmoothPointLights"
 
 /**
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки количества направленных источников освещения на сцене.
+ * Используется шейдерной программе для отрисовки с трассировкой лучей
+ */
+#define UNIFORM_RAY_TRACING_ACTIVE_LIGHTS "u_rayTracingPointLights"
+
+/**
  * @brief Имя uniform переменной в фрагментарном шейдере для загрузки фонового цвета сцены
  */
 #define UNIFORM_BACKGROUND_COLOR "u_backgroundColor"
@@ -493,7 +499,7 @@ namespace viewer {
 		@brief Отрисовка фигуры\n
 		@note Вызывается после того, как были загружены все данные в uniform'ы (методы load*)
 		*/
-		void renderFigure() noexcept;
+		void render(bool is_ray_tracing) noexcept;
 
 		/**
 		 * @brief Отрисовка пола сцены
