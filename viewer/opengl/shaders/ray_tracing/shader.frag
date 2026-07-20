@@ -15,7 +15,7 @@ struct Material {
     float refractive; // Коэффициент преломления
     float reflectivity; // Коэффициент отражения
     float alpha; // Коэффициент прозрачности
-    float padding[2]; // Выравнивание до 48 байт
+    float padding[3]; // Выравнивание до 48 байт
 };
 
 // Хранение информации о
@@ -29,9 +29,10 @@ struct LightData {
 struct RayFigure {
     mat4 modelMatrix; // Матрица модели (Translation * Rotation * Scale)
     mat4 normalMatrix; // Матрица нормали
-    int firstIndex; // Смещение начала индексов в общем буфере
+    int firstVertex; // Смещение начала вершин в общем буфере
+    int firstIndex; // Смещение начала индексов вершин в общем буфере
     int indexCount; // Количество индексов фигуры
-    int padding[2]; // Заполнение до 80 байт
+    int padding; // Выравнивание 16 байт
 };
 
 struct RayVertex {
@@ -69,6 +70,7 @@ layout(std430, binding = 5) buffer AllIndices {
 
 uniform int u_rayTracingPointLights; // Реальное количество направленных источников освещения на сцене
 uniform int u_totalFigures; // Общее число загруженных фигур
+uniform vec3 u_backgroundColor; // Цвет фона
 
 out vec4 FragColor;
 
@@ -103,6 +105,7 @@ float intersectTriangle(vec3 ro, vec3 rd, vec3 v0, vec3 v1, vec3 v2, out vec2 ba
 void main() {
     // Генерация луча
     vec2 ndc = screenUV * 2.0 - 1.0;
+    ndc.y = -ndc.y;
 
     // Вычисляем обратные матрицы прямо из буфера камеры
     mat4 invProj = inverse(b_CameraStruct.projection);
@@ -118,30 +121,53 @@ void main() {
     float closestT = 999999.0;
     vec3 hitNormal = vec3(0.0);
     vec3 hitPoint = vec3(0.0);
-    int hitMaterialId = -1;
+    int hitObjectId = -1;
+
+    // Проверяем, что луч не параллелен полу (защита от деления на ноль)
+    if (abs(rayDirWorld.y) > 1e-6) {
+        float tFloor = -rayOrigin.y / rayDirWorld.y;
+
+        // Пересечение валидно, если оно перед камерой (t > 0)
+        if (tFloor > 0.0 && tFloor < closestT) {
+            closestT = tFloor;
+            hitObjectId = -2; // Назначаем уникальный ID для пола
+            hitPoint = rayOrigin + rayDirWorld * tFloor;
+
+            // Нормаль пола всегда смотрит строго вверх (или вниз, если камера под полом)
+            hitNormal = rayOrigin.y > 0.0 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, -1.0, 0.0);
+        }
+    }
 
     for (int i = 0; i < u_totalFigures; ++i) {
         RayFigure fig = b_Figures.figures[i];
 
         mat4 modelMat = fig.modelMatrix;
-        mat3 normalMat = transpose(inverse(mat3(modelMat)));
+
+        // Приведение mat4 к mat3 нужно для безопасного умножения нормалей
+        // без учета смещения (translation)
+        mat3 normalMat = mat3(fig.normalMatrix);
 
         for (int j = 0; j < fig.indexCount; j += 3) {
             uint i0 = b_Indices.indices[fig.firstIndex + j + 0];
             uint i1 = b_Indices.indices[fig.firstIndex + j + 1];
             uint i2 = b_Indices.indices[fig.firstIndex + j + 2];
 
-            // Теперь вершины читаются элегантно напрямую через структуру RayVertex
-            vec3 v0 = (modelMat * b_Vertices.vertices[i0].position).xyz;
-            vec3 v1 = (modelMat * b_Vertices.vertices[i1].position).xyz;
-            vec3 v2 = (modelMat * b_Vertices.vertices[i2].position).xyz;
+            // Заменяем W-компонент на 1.0, чтобы исключить мусор из памяти C++
+            vec4 pos0 = vec4(b_Vertices.vertices[fig.firstVertex + i0].position.xyz, 1.0);
+            vec4 pos1 = vec4(b_Vertices.vertices[fig.firstVertex + i1].position.xyz, 1.0);
+            vec4 pos2 = vec4(b_Vertices.vertices[fig.firstVertex + i2].position.xyz, 1.0);
+
+            vec3 v0 = (modelMat * pos0).xyz;
+            vec3 v1 = (modelMat * pos1).xyz;
+            vec3 v2 = (modelMat * pos2).xyz;
 
             vec2 bary;
             float t = intersectTriangle(rayOrigin, rayDirWorld, v0, v1, v2, bary);
 
+            // Если нашли пересечение и оно ближе, чем предыдущее найденное
             if (t > 0.0 && t < closestT) {
                 closestT = t;
-                hitMaterialId = i;
+                hitObjectId = i;
                 hitPoint = rayOrigin + rayDirWorld * t;
 
                 // Читаем локальные нормали
@@ -149,38 +175,88 @@ void main() {
                 vec3 n1 = b_Vertices.vertices[i1].normale.xyz;
                 vec3 n2 = b_Vertices.vertices[i2].normale.xyz;
 
+                // Интерполяция локальной нормали по барицентрическим координатам
                 float w = 1.0 - bary.x - bary.y;
                 vec3 localNormal = normalize(n0 * w + n1 * bary.x + n2 * bary.y);
 
+                // Перевод нормали в мировые координаты
                 hitNormal = normalize(normalMat * localNormal);
             }
         }
     }
 
-    // Отрисовка и освещение
-    if (hitMaterialId != -1) {
-        // Достаем материал из буфера материалов по ID
-        Material mat = b_MaterialsStruct.materials[hitMaterialId];
+    if (hitObjectId != -1) {
+        vec3 albedo;
+        float metallic;
+        float roughness;
+        float alpha = 1.0;
 
-        // Логика освещения аналогичная вашему растеризатору
-        // lights[0] - это Ambient (фоновое освещение)
-        vec3 ambient = b_LightStruct.lights[0].color.xyz * b_LightStruct.lights[0].intensity;
-        vec3 diffuseAccum = vec3(0.0);
+        if (hitObjectId == -2) {
+            // === ПРОЦЕДУРНЫЙ МАТЕРИАЛ ПОЛА ===
+            float scale = 0.5; // Размер клеток
 
-        // Считаем направленные источники освещения (начиная с i = 1)
-        for(int i = 1; i <= u_rayTracingPointLights; ++i) {
-            vec3 lightDir = normalize(b_LightStruct.lights[i].position.xyz - hitPoint);
-            float diff = max(dot(hitNormal, lightDir), 0.0);
+            // Математика шахматной доски (чередование 0 и 1 в зависимости от координат X и Z)
+            float pattern = mod(floor(hitPoint.x * scale) + floor(hitPoint.z * scale), 2.0);
 
-            diffuseAccum += diff * b_LightStruct.lights[i].color.xyz * b_LightStruct.lights[i].intensity;
+            albedo = pattern < 1.0 ? vec3(0.8) : vec3(0.2); // Белые и темно-серые клетки
+            metallic = 0.05;  // Легкий отблеск
+            roughness = 0.15; // Делаем пол почти гладким, чтобы видеть красивые блики от ламп
+        } else {
+            // === МАТЕРИАЛ ОБЫЧНЫХ ФИГУР ===
+            Material mat = b_MaterialsStruct.materials[hitObjectId];
+            albedo = mat.base_color.xyz;
+            metallic = mat.metallic;
+            roughness = clamp(mat.roughness, 0.05, 1.0);
+            alpha = mat.alpha;
         }
 
-        // Итоговый цвет объекта
-        vec3 finalColor = (ambient + diffuseAccum) * mat.base_color.xyz;
-        FragColor = vec4(finalColor, mat.alpha);
+        vec3 diffuseColor = albedo * (1.0 - metallic);
+        vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
-    } else {
-        // Цвет фона (Skybox или однородная заливка), если луч не столкнулся с фигурами
-        FragColor = vec4(0.1, 0.1, 0.1, 1.0);
+        vec3 viewDir = normalize(b_CameraStruct.position - hitPoint);
+        vec3 totalLight = vec3(0.0);
+
+        // Глобальное освещение, чтобы тени не были абсолютно черными
+        vec3 ambient = vec3(0.03) * albedo;
+
+        // 2. Расчет вклада всех источников освещения
+        for (int i = 0; i < u_rayTracingPointLights; ++i) {
+            vec3 lightPos = b_LightStruct.lights[i].position.xyz;
+            vec3 lightColor = b_LightStruct.lights[i].color.xyz;
+            float lightIntensity = b_LightStruct.lights[i].intensity;
+
+            vec3 lightVec = lightPos - hitPoint;
+            float distanceToLight = length(lightVec);
+            vec3 lightDir = normalize(lightVec);
+
+            // Диффузная составляющая (зависит от угла наклона света)
+            float diff = max(dot(hitNormal, lightDir), 0.0);
+
+            // Бликовая составляющая (зависит от позиции наблюдателя и шероховатости)
+            vec3 halfwayDir = normalize(lightDir + viewDir);
+            float NdotH = max(dot(hitNormal, halfwayDir), 0.0);
+
+            float shininess = pow(2.0, (1.0 - roughness) * 10.0 + 1.0);
+            float spec = pow(NdotH, shininess);
+            vec3 specularColor = F0 * spec;
+
+            // Затухание света с расстоянием (квадратичный закон)
+            float attenuation = 1.0 / (1.0 + 0.09 * distanceToLight + 0.032 * (distanceToLight * distanceToLight));
+
+            // Итоговый свет от конкретной лампы
+            totalLight += (diffuseColor * diff + specularColor) * lightColor * lightIntensity * attenuation;
+        }
+
+        vec3 finalColor = ambient + totalLight;
+
+        // 3. Тон-маппинг (HDR -> LDR) и гамма-коррекция
+        finalColor = finalColor / (finalColor + vec3(1.0));
+        finalColor = pow(finalColor, vec3(1.0 / 2.2));
+
+        FragColor = vec4(finalColor, alpha);
+    }
+
+    else {
+        FragColor = vec4(u_backgroundColor, 1.0);
     }
 }
