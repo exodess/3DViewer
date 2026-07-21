@@ -31,7 +31,7 @@ namespace viewer {
 	void GLWidget::paintGL() {
 		Mesh::clear();
 		shader_programs_[current_program_id_]->use();
-		mesh_->renderFigure();
+		mesh_->render(current_program_id_ == RAY_TRACING + 1);
 	}
 
 	void GLWidget::resizeGL(int w, int h) {
@@ -181,10 +181,10 @@ namespace viewer {
 			Mesh::clear();
 
 			// Сначала, если нужно, отображаем пол
-			if (scene->displayFloor()) {
+			if (scene->displayFloor() && scene->displayType() != RAY_TRACING) {
 				shader_programs_[0]->use();
 				mesh_->loadBackgroundColor(
-					shader_programs_[0]->getUniformLocation((char*)UNIFORM_BACKGROUND_COLOR),
+					shader_programs_[0]->getUniformLocation((char*)UNIFORM_FLOOR_BACKGROUND_COLOR),
 					scene->backgroundColor());
 
 				mesh_->renderFloor();
@@ -206,7 +206,7 @@ namespace viewer {
 				for (auto i = 0; i < scene->countFigures(); ++i) {
 					auto current_figure = scene->getFigure(i + 1);
 
-					mesh_->loadData(current_figure);
+					mesh_->loadGeometryData(current_figure);
 					mesh_->loadModelMatrix(
 						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 						current_figure.getModelMatrix());
@@ -234,7 +234,7 @@ namespace viewer {
 						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_EDGES_MODE),
 						current_figure.edgeInfo().mode());
 
-					mesh_->renderFigure();
+					mesh_->render(false);
 				}
 			}
 
@@ -242,7 +242,7 @@ namespace viewer {
 				for (auto i = 0; i < scene->countFigures(); ++i) {
 					auto current_figure = scene->getFigure(i + 1);
 
-					mesh_->loadData(current_figure);
+					mesh_->loadGeometryData(current_figure);
 					mesh_->loadModelMatrix(
 						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 						current_figure.getModelMatrix());
@@ -252,7 +252,7 @@ namespace viewer {
 						scene->countLights());
 					mesh_->loadLightStructure(scene->getSceneLightsData());
 
-					mesh_->renderFigure();
+					mesh_->render(false);
 				}
 			}
 
@@ -260,7 +260,7 @@ namespace viewer {
 				for (auto i = 0; i < scene->countFigures(); ++i) {
 					auto current_figure = scene->getFigure(i + 1);
 
-					mesh_->loadData(current_figure);
+					mesh_->loadGeometryData(current_figure);
 					mesh_->loadModelMatrix(
 						shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_MODEL_MATRIX),
 						current_figure.getModelMatrix());
@@ -274,8 +274,25 @@ namespace viewer {
 					mesh_->loadLightStructure(scene->getSceneLightsData());
 					mesh_->loadMaterialStructure(current_figure.material());
 
-					mesh_->renderFigure();
+					mesh_->render(false);
 				}
+			}
+
+			else if (scene->displayType() == RAY_TRACING) {
+				mesh_->loadBackgroundColor(
+					shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_RAY_BACKGROUND_COLOR),
+					scene->backgroundColor());
+				mesh_->loadLightStructure(scene->getSceneLightsData());
+				mesh_->loadCountActiveLight(
+					shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_RAY_TRACING_ACTIVE_LIGHTS),
+					scene->countLights());
+				mesh_->loadTotalFigures(
+					shader_programs_[current_program_id_]->getUniformLocation((char*)UNIFORM_TOTAL_FIGURES),
+					scene->countFigures());
+
+				mesh_->loadFiguresData(scene->getAllFigure());
+
+				mesh_->render(true);
 			}
 		}
 
