@@ -70,7 +70,7 @@ layout(std430, binding = 5) buffer AllIndices {
 
 uniform int u_rayTracingPointLights; // Реальное количество направленных источников освещения на сцене
 uniform int u_totalFigures; // Общее число загруженных фигур
-uniform vec3 u_backgroundColor; // Цвет фона
+uniform vec3 u_rayBackgroundColor; // Цвет фона
 
 out vec4 FragColor;
 
@@ -257,6 +257,6 @@ void main() {
     }
 
     else {
-        FragColor = vec4(u_backgroundColor, 1.0);
+        FragColor = vec4(u_rayBackgroundColor, 1.0);
     }
 }

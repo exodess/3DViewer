@@ -1,6 +1,6 @@
 #version 430 core
 
-uniform vec3 u_backgroundColor;
+uniform vec3 u_floorBackgroundColor;
 
 // значения из вершинного шейдера
 in vec3 Camera_vertex;
@@ -30,7 +30,7 @@ void main() {
     // Плавное затухание
     float fade = clamp(1.0 - (distanceToCam / 80.0), 0.0, 1.0);
 
-    vec3 oppositeColor = vec3(1.0) - u_backgroundColor;
+    vec3 oppositeColor = vec3(1.0) - u_floorBackgroundColor;
     FragColor = vec4(oppositeColor, lineIntensity * fade);
     return;
 }

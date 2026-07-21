@@ -83,9 +83,16 @@
 #define UNIFORM_RAY_TRACING_ACTIVE_LIGHTS "u_rayTracingPointLights"
 
 /**
- * @brief Имя uniform переменной в фрагментарном шейдере для загрузки фонового цвета сцены
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки фонового цвета сцены.
+ * Используется в шейдерной программе для отрисовки с трассировкой лучей
  */
-#define UNIFORM_BACKGROUND_COLOR "u_backgroundColor"
+#define UNIFORM_RAY_BACKGROUND_COLOR "u_rayBackgroundColor"
+
+/**
+ * @brief Имя uniform переменной в фрагментарном шейдере для загрузки фонового цвета сцены.
+ * Используется в шейдерной программе для отрисовки пола
+ */
+#define UNIFORM_FLOOR_BACKGROUND_COLOR "u_floorBackgroundColor"
 
 /**
  * @brief Имя uniform переменной в фрагментарном шейдере для загрузки количества фигур на сцене.

@@ -1,7 +1,7 @@
 #version 430 core
 #define MAX_POINT_LIGHTS 5 // Максимальное количество направленных источников освещения
 
-layout(std430, binding = 2) buffer Material {
+layout(std430, binding = 6) buffer Material {
     vec4 base_color; // Цвет материала
     float roughness; // Шероховатость поверхности
     float metallic; // Металличность поверхности
