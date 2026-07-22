@@ -1,6 +1,6 @@
 # Информация о проекте
 PROJECT_NAME           = "3DViewer"
-PROJECT_NUMBER         = 2.0
+PROJECT_NUMBER         = 2.2
 
 # Папки
 INPUT                  = include
