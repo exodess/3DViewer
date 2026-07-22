@@ -48,6 +48,13 @@ namespace viewer {
 		COUNT ///< Константа для хранения размера перечисления DisplayType
 	};
 
+	enum RecordType {
+		IMAGE_RECORD = 0, ///< Захват изображения
+		GIF_RECORD ///< Запись GIF-анимации
+	};
+
+#define GIF_FPS_COUNT 10
+#define GIF_DURATION_SEC 5
 #define LIGHT_DEFAULT_INTENSITY 0.5f
 #define MAX_POINT_LIGHTS 5
 #define MAX_COUNT_FIGURES 5
