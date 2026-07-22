@@ -116,8 +116,6 @@ namespace viewer {
 		auto updateGeneral = [this]() {
 			viewer_->getScene()->getCamera().translation() = Point3D(ui->spin_camTransX->value(), ui->spin_camTransY->value(), ui->spin_camTransZ->value());
 			viewer_->getScene()->getCamera().rotation() = Point3D(ui->spin_camRotX->value(), ui->spin_camRotY->value(), ui->spin_camRotZ->value());
-
-			viewer_->DrawScene();
 		};
 
 		for (auto s : {
@@ -871,11 +869,23 @@ namespace viewer {
 
 
 	void MainWindow::on_action_SaveScreenshot_triggered() {
-		QString fileName = QFileDialog::getSaveFileName(this, "Сохранить скриншот",
-														"", "Images (*.png *.jpg)");
-		if (!fileName.isEmpty()) {
-			// glWidget_->saveImage(fileName);
-			ui->statusbar->showMessage("Скриншот сохранен в файле " + fileName);
+		const auto temp_file = ".temp.png";
+		// Сначала сохраняем во временный файл
+		viewer_->record(temp_file, IMAGE_RECORD);
+
+		ImagePreviewDialog preview_dialog(temp_file, this);
+		if (preview_dialog.exec() == QDialog::Accepted) {
+			// Пользователь нажал "Сохранить"
+			QString fileName = QFileDialog::getSaveFileName(this, "Сохранить скриншот",
+															"", "Images (*.png *.jpg)");
+
+			if (!fileName.isEmpty()) {
+				QFile::copy(temp_file, fileName);
+				ui->statusbar->showMessage("Скриншот сохранен в файле " + fileName);
+			}
+			else {
+				ui->statusbar->showMessage("Файл не выбран");
+			}
 		}
 	}
 
@@ -883,10 +893,9 @@ namespace viewer {
 		QString fileName = QFileDialog::getSaveFileName(this, "Сохранить анимацию",
 														"", "Animation (*.gif)");
 		if (!fileName.isEmpty()) {
-			// glWidget_->startRecording(fileName, 10, 5);
-			ui->statusbar->showMessage("Анимация сохранена в файле " + fileName);
+			viewer_->record(fileName.toStdString(), GIF_RECORD);
+			ui->statusbar->showMessage("GIF-анимация сохранена в файле " + fileName);
 		}
 	}
-
 
 }

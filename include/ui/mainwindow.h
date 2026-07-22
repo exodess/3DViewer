@@ -156,6 +156,16 @@ namespace viewer {
         QPoint lastPos_; ///< Последняя позиция мыши
     };
 
+    /**
+     * @class ImagePreviewDialog
+     * @brief Класс окна предпросмотра захваченного изображения.
+     * Появляется после активации Запись -> Скриншот в верхнем меню
+     */
+    class ImagePreviewDialog : public QDialog {
+    public:
+        explicit ImagePreviewDialog(const QString& image_path, QWidget *parent);
+    };
+
 } // namespace viewer
 
 #endif
