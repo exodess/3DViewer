@@ -58,6 +58,17 @@ namespace viewer {
 		return ViewerOperationResult(false, error_reader_);
 	}
 
+	ViewerOperationResult Viewer::record(const std::string &dist, RecordType type) noexcept {
+		if (drawer_) {
+			drawer_->record(dist, type);
+
+			return ViewerOperationResult(true);
+		}
+
+		std::cout << "[Viewer] Ошибка: Drawer is null\n";
+		return ViewerOperationResult(false, error_drawer_);
+	}
+
 	Scene *Viewer::getScene() noexcept {
 		return scene_;
 	}

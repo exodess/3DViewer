@@ -33,6 +33,13 @@ namespace viewer {
         void DrawScene(Scene* scene) override;
 
         /**
+         * @brief Реализует запись
+         * @param dist файл, куда будет сохранена запись
+         * @param type Что именно нужно сохранить (изображение или GIF-анимацию)
+         */
+        void record(const std::string &dist, RecordType type) noexcept override;
+
+        /**
          * @brief Сохранение текущего изображения в файл
          * @param path Путь к файлу для сохранения
          * @details Поддерживает форматы BMP, JPEG, PNG

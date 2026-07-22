@@ -303,6 +303,16 @@ namespace viewer {
 		doneCurrent();
 	}
 
+	void GLWidget::record(const std::string &dist, RecordType type) noexcept {
+		if (type == IMAGE_RECORD) {
+			saveImage(QString::fromStdString(dist));
+		}
+
+		else {
+			startRecording(QString::fromStdString(dist), GIF_FPS_COUNT, GIF_DURATION_SEC);
+		}
+	}
+
 	void GLWidget::compileShaders() {
 		QString shadersPath = QCoreApplication::applicationDirPath() + "/shaders/";
 		QStringList shader_directories;

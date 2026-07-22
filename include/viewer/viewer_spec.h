@@ -127,6 +127,7 @@ namespace viewer {
 
 	public:
 		virtual void DrawScene(Scene*) = 0;
+		virtual void record(const std::string& dist, RecordType type) = 0;
 		virtual ~BaseDrawerScene() = default;
 	};
 
@@ -455,6 +456,14 @@ namespace viewer {
 		@return Результат операции
 		*/
 		ViewerOperationResult LoadFigure(std::string path);
+
+		/**
+		 * @brief Передает drawer_ команду записывать медиа
+		 * @param dist Файл, куда должен быть сохранен результат
+		 * @param type Что именно должно быть записано
+		 * @return Результат операции
+		 */
+		ViewerOperationResult record(const std::string& dist, RecordType type) noexcept;
 
 		Scene* getScene() noexcept;
 	};
